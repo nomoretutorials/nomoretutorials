@@ -1,8 +1,9 @@
+import Navbar from "./_components/Navbar";
 
 export default function Home() {
   return (
-    <div>
-      Dashboard
+    <div className="bg-background">
+      <Navbar />
     </div>
   );
 }

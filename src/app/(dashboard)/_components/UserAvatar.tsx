@@ -7,7 +7,7 @@ import React, { useMemo } from "react";
 // TODO: Add Dropdown Menu on Hover and Click
 
 const UserAvatar = () => {
-  const seed = "ronit";
+  const seed = "";
 
   const avatarSvg = useMemo(() => {
     return createAvatar(glass, {
@@ -19,7 +19,7 @@ const UserAvatar = () => {
   const avatarUri = `data:image/svg+xml;utf8,${encodeURIComponent(avatarSvg)}`;
   return (
     <div
-      className="size-10 
+      className="size-8 
         rounded-full 
         overflow-hidden 
         flex items-center justify-center 

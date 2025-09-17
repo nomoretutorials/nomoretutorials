@@ -12,8 +12,7 @@ import NewProjectCard from "./NewProjectComponent";
 const ProjectsSection = () => {
   return (
     <div className="h-[calc(100vh-4rem)] px-2 overflow-hidden pb-2">
-      <div className="h-full rounded-2xl border bg-background shadow-sm px-8 py-6 space-y-10 overflow-y-auto pb-1">
-        {/* Quick actions header */}
+      <div className="h-full rounded-2xl bg-gradient-to-b from-white/1 to-transparent border bg-background shadow-sm px-8 py-6 space-y-10 overflow-y-auto pb-1">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div>
             <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
@@ -29,10 +28,8 @@ const ProjectsSection = () => {
           </div>
         </div>
 
-        {/* Quick actions row */}
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <NewProjectCard />
-          {/* Dummy Project */}
           <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
             <div
               aria-hidden
@@ -69,7 +66,6 @@ const ProjectsSection = () => {
           </Card>
         </div>
 
-        {/* Recent projects header */}
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div>
             <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
@@ -84,7 +80,6 @@ const ProjectsSection = () => {
           </div>
         </div>
 
-        {/* Recent projects grid */}
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <ProjectCard />
         </div>

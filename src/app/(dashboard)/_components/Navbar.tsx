@@ -12,6 +12,7 @@ import React from "react";
 import SearchComponent from "./SearchComponent";
 import { Command, CommandInput } from "@/components/ui/command";
 import UserAvatar from "./UserAvatar";
+import { FaGithub } from "react-icons/fa";
 
 import { usePathname } from "next/navigation";
 
@@ -69,6 +70,9 @@ const Navbar = () => {
           <SearchComponent open={open} setOpen={setOpen} />
         </div>
         <div className="w-px h-6 bg-border" />
+        <FaGithub size={23} />
+        <div className="w-px h-6 bg-border" />
+
         <UserAvatar />
       </div>
     </div>

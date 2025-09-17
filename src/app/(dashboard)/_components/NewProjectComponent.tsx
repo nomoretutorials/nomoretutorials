@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   Card,
@@ -7,11 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus, Sparkles, CornerDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -29,17 +28,34 @@ import { Textarea } from "@/components/ui/textarea";
 const NewProjectDialog = () => {
   const [open, setOpen] = React.useState(false);
 
-  // Keyboard shortcut handler: Ctrl+P / Cmd+P
+  const handleSubmit = () => {
+    // TODO: Implement actual form submission logic here
+    console.log("Project form submitted");
+    setOpen(false);
+  };
+
+  const handleCancel = () => {
+    console.log("Project creation cancelled");
+    setOpen(false);
+  };
+
+  // Keyboard shortcut handler: Ctrl+P / Cmd+P to open, Enter to submit, Escape to cancel
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
         e.preventDefault();
         setOpen(true);
+      } else if (open && e.key === "Enter") {
+        e.preventDefault();
+        handleSubmit();
+      } else if (open && e.key === "Escape") {
+        e.preventDefault();
+        handleCancel();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -79,19 +95,28 @@ const NewProjectDialog = () => {
           </div>
         </div>
 
-        <DialogFooter className="flex items-center gap-2">
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
+        <DialogFooter className="flex items-center justify-end gap-2 pt-2">
+          <Button variant="outline" size="sm" onClick={handleCancel}>
+            Cancel
+            <kbd className="ml-1 rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
+              Esc
+            </kbd>
+          </Button>
           <Button
             type="button"
             variant="secondary"
+            size="sm"
             className="flex items-center gap-1"
           >
             <Sparkles className="w-4 h-4" />
             Generate
           </Button>
-          <Button type="submit">Create project</Button>
+          <Button size="sm" onClick={handleSubmit}>
+            Create project
+            <kbd className="ml-1 rounded bg-muted/10 px-1.5 py-0.5 text-xs font-mono">
+              <CornerDownLeft />
+            </kbd>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -29,6 +29,7 @@ model User {
   sessions        Session[]
   accounts        Account[]
   Project         Project[]
+  UserTechStack   UserTechStack[]
 
   @@unique([email])
   @@index([email])
@@ -43,12 +44,14 @@ model Project {
   status        ProjectStatus @default(DRAFT)
   techStacks    String[]      @default([])
   repositoryUrl String?
+  features      Json?
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  ProjectTechStack ProjectTechStack[]
 
   @@index([userId])
   @@index([userId, status])
@@ -68,6 +71,60 @@ model Session {
 
   @@unique([token])
   @@map("session")
+}
+
+model TechStack {
+  id          String            @id @default(cuid())
+  name        String            @unique
+  slug        String            @unique
+  description String?
+  category    TechStackCategory
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userTechStacks    UserTechStack[]
+  projectTechStacks ProjectTechStack[]
+
+  @@map("tech_stacks")
+}
+
+model UserTechStack {
+  id               String          @id @default(cuid())
+  userId           String
+  techStackId      String
+  proficiencyLevel ExperienceLevel @default(BEGINNER)
+  isPreferred      Boolean         @default(false)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  techStack TechStack @relation(fields: [techStackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, techStackId])
+  @@map("user_tech_stacks")
+}
+
+model ProjectTechStack {
+  id          String  @id @default(cuid())
+  projectId   String
+  techStackId String
+  isPrimary   Boolean @default(false) // Mark main tech stacks for the project
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  // Relations
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  techStack TechStack @relation(fields: [techStackId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, techStackId])
+  @@map("project_tech_stacks")
 }
 
 model Account {
@@ -110,4 +167,12 @@ enum ProjectStatus {
 enum ExperienceLevel {
   BEGINNER
   INTERMEDIATE
+}
+
+enum TechStackCategory {
+  FRONTEND
+  BACKEND
+  DATABASE
+  DEVOPS
+  OTHER
 }

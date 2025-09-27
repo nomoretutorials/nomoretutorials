@@ -15,22 +15,47 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id              String          @id @default(uuid())
+  name            String?
+  email           String
+  emailVerified   Boolean         @default(false)
+  image           String?
+  experienceLevel ExperienceLevel @default(BEGINNER)
+  techStacks      String[]        @default([])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @default(now()) @updatedAt
+  lastLoginAt     DateTime?
+  sessions        Session[]
+  accounts        Account[]
+  Project         Project[]
 
   @@unique([email])
+  @@index([email])
+  @@index([name])
   @@map("user")
 }
 
+model Project {
+  id            String        @id @default(uuid())
+  title         String
+  description   String
+  status        ProjectStatus @default(DRAFT)
+  techStacks    String[]      @default([])
+  repositoryUrl String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("projects")
+}
+
 model Session {
-  id        String   @id
+  id        String   @id @default(uuid())
   expiresAt DateTime
   token     String
   createdAt DateTime @default(now())
@@ -72,4 +97,16 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
+}
+
+enum ProjectStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ON_HOLD
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
 }

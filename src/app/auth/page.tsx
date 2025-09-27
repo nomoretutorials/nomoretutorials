@@ -4,12 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 // TODO: Implement Toast instead of alert.
+// TODO: Implement disables buttons
 
 const Auth = () => {
   const [email, setEmail] = useState("");
+  const [lastMethod, setLastMethod] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    setLastMethod(authClient.getLastUsedLoginMethod());
+  }, []);
 
   const handleSubmit = async (
     e: React.FormEvent,
@@ -59,13 +67,16 @@ const Auth = () => {
             onSubmit={(e) => handleSubmit(e, "email")}
             className="flex flex-col gap-3 w-full"
           >
-            <Input
-              type="email"
-              placeholder="Enter your your Email."
-              onChange={(e) => setEmail(e.target.value)}
-              value={email}
-              required
-            />
+            <div className="relative">
+              <Input
+                type="email"
+                placeholder="Enter your your Email."
+                onChange={(e) => setEmail(e.target.value)}
+                value={email}
+                required
+              />
+              {isClient && lastMethod === "email" ? <LastUsedBadge /> : null}
+            </div>
             <Button size={"sm"} type="submit">
               Submit
             </Button>
@@ -78,19 +89,21 @@ const Auth = () => {
           <div className="flex flex-col space-y-2">
             <Button
               variant={"outline"}
-              className="border-none"
+              className="relative"
               size={"lg"}
               onClick={(e) => handleSubmit(e, "google")}
             >
               Continue with Google
+              {isClient && lastMethod === "google" ? <LastUsedBadge /> : null}
             </Button>
             <Button
               variant={"outline"}
-              className="border-none"
+              className="relative"
               size={"lg"}
               onClick={(e) => handleSubmit(e, "github")}
             >
               Continue with Github
+              {isClient && lastMethod === "github" ? <LastUsedBadge /> : null}
             </Button>
           </div>
         </div>
@@ -101,6 +114,20 @@ const Auth = () => {
         </div>
       </div>
       <div className="flex-1 border"></div>
+    </div>
+  );
+};
+
+const LastUsedBadge = () => {
+  return (
+    <div
+      className="absolute top-2.5 right-2 
+      bg-primary/10 text-primary 
+      text-[10px] font-medium 
+      px-2 py-0.5 rounded-full 
+      shadow-sm"
+    >
+      Last used
     </div>
   );
 };

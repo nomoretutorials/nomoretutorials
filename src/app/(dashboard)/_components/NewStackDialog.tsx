@@ -13,6 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CornerDownLeft } from "lucide-react";
 import React, { useState } from "react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+// TODO: Will be shown to only first time users.
 
 const NewStackDialog = () => {
   const [open, setOpen] = useState(true);
@@ -45,7 +48,7 @@ const NewStackDialog = () => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle className="text-lg">
+          <DialogTitle className="text-2xl">
             Tell us about your tech stack
           </DialogTitle>
           <DialogDescription className="text-sm">
@@ -53,7 +56,27 @@ const NewStackDialog = () => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 pt-3">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Experience Level</Label>
+            <RadioGroup
+              defaultValue="beginner"
+              className="flex items-center gap-3"
+            >
+              <label className="flex items-center gap-3 cursor-pointer rounded-md border border-border px-3 py-2 hover:bg-accent/50">
+                <RadioGroupItem value="beginner" id="beginner" />
+                <Label htmlFor="beginner">Beginner</Label>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer rounded-md border border-border px-3 py-2 hover:bg-accent/50">
+                <RadioGroupItem value="intermediate" id="intermediate" />
+                <Label htmlFor="intermediate">Intermediate</Label>
+              </label>
+            </RadioGroup>
+            <span className="text-xs text-muted-foreground">
+              *generated content will be modified as per your selection.
+            </span>
+          </div>
+
           {/* Frontend */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Frontend</Label>
@@ -87,6 +110,9 @@ const NewStackDialog = () => {
               </label>
             </div>
           </div>
+          <span className="text-xs text-muted-foreground">
+            *more stacks coming soon.
+          </span>
         </div>
 
         <DialogFooter className="flex items-center justify-end gap-2 pt-2">

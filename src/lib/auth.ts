@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./prisma";
 import { lastLoginMethod, magicLink } from "better-auth/plugins";
+import { magicLinkMail } from "./resend";
 
 // TODO: 1. Implement T3 Env
 // TODO: 2. Implement Google One Tap Login
@@ -21,10 +22,18 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    lastLoginMethod(),
+    lastLoginMethod({
+      customResolveMethod: (ctx) => {
+        if (ctx.path === "/magic-link/verify") {
+          return "magic-link";
+        }
+
+        return null;
+      },
+    }),
     magicLink({
-      sendMagicLink: async ({ email, token, url }, request) => {
-        // TODO: Implement Resend Email Sending
+      sendMagicLink: async ({ email, url }) => {
+        magicLinkMail(email, url);
       },
     }),
   ],

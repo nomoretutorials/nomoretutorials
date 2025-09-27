@@ -16,6 +16,7 @@ import React, { useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 // TODO: Will be shown to only first time users.
+// TODO: Make it 2 step ask for name also.
 
 const NewStackDialog = () => {
   const [open, setOpen] = useState(true);

@@ -1,5 +1,5 @@
 import Navbar from "./_components/Navbar";
-import NewStackDialog from "./_components/NewStackDialog";
+import NewUserOnboarding from "./_components/NewUserOnboarding";
 import ProjectsSection from "./_components/ProjectsSection";
 
 export default function Home() {
@@ -7,7 +7,7 @@ export default function Home() {
     <div className="bg-sidebar min-h-lvh">
       <Navbar />
       <ProjectsSection />
-      <NewStackDialog />
+      <NewUserOnboarding />
     </div>
   );
 }

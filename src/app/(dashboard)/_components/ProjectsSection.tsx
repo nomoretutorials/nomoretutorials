@@ -6,35 +6,30 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { EllipsisVerticalIcon } from "lucide-react";
+import { BookmarkIcon, EllipsisVerticalIcon, MapIcon } from "lucide-react";
 import NewProjectCard from "./NewProjectComponent";
 
 const ProjectsSection = () => {
   return (
     <div className="h-[calc(100vh-4rem)] px-2 overflow-hidden pb-2">
-      <div className="h-full rounded-2xl bg-gradient-to-b from-white/1 to-transparent border bg-background shadow-sm px-8 py-6 space-y-10 overflow-y-auto pb-1">
+      <div className="h-full rounded-2xl bg-gradient-to-b from-white/1 to-transparent border bg-background shadow-sm px-9 pt-8 space-y-10 overflow-y-auto pb-1">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <div>
-            <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
-              ⚡ Quick actions
+            <h2 className="text-2xl font-semibold tracking-tight flex items-center gap-3">
+              <div className="border p-2 rounded-lg bg-card">
+                <MapIcon className="size-4" />
+              </div>
+              <span>Quick Action</span>
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Start something new or explore an auto-generated project
-            </p>
           </div>
           <div className="hidden sm:flex items-center gap-2">
-            <Button variant="outline">Import</Button>
             <Button>New</Button>
           </div>
         </div>
 
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 auto-rows-fr">
           <NewProjectCard />
-          <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-neutral-900/10 to-neutral-900/0 dark:from-neutral-100/10 dark:to-neutral-100/0"
-            />
+          <Card className="bg-card border border-border h-full relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
             <CardHeader className="flex items-center justify-between">
               <Button
                 size="sm"
@@ -66,14 +61,17 @@ const ProjectsSection = () => {
           </Card>
         </div>
 
-        <div className="flex items-center justify-between border-b border-border pb-4">
+        <div
+          id="all-projects"
+          className="flex items-center justify-between border-b border-border pb-4"
+        >
           <div>
-            <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
-              📂 Recent projects
+            <h2 className="text-2xl font-semibold tracking-tight flex items-center gap-3">
+              <div className="border p-2 rounded-lg bg-card">
+                <BookmarkIcon className="size-4" />
+              </div>
+              <span>All Projects</span>
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Your latest workspaces
-            </p>
           </div>
           <div className="hidden sm:flex items-center gap-2">
             <Button variant="outline">Sort</Button>

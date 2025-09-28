@@ -1,22 +1,23 @@
-import { headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { error, success } from "@/app/utils/apiResponse";
+import { getServerUserSession } from "@/app/utils/getServerUserSession";
 
-import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+// TODO: Implement zod validation.
+
 export async function GET() {
-  const data = await auth.api.getSession({
-    headers: await headers(),
-  });
+  try {
+    const user = await getServerUserSession();
 
-  if (!data?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!user) return error("Unauthorized", 401);
 
-  const projects = await prisma.project.findMany({
-    where: { userId: data.user.id },
-    orderBy: { updatedAt: "desc" },
-  });
+    const projects = await prisma.project.findMany({
+      where: { userId: user.id },
+      orderBy: { updatedAt: "desc" },
+    });
 
-  console.log("Projects:", projects);
-
-  return NextResponse.json(projects);
+    return success(projects);
+  } catch {
+    return error("Internal Server Error", 500);
+  }
 }

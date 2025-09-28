@@ -61,6 +61,7 @@ const NewStackDialog = () => {
       setOpen(false);
     } catch (error) {
       console.error("Onboarding failed:", error);
+      throw new Error("Error completing onboarding");
     }
   };
 

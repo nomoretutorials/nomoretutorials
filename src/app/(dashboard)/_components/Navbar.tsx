@@ -15,6 +15,11 @@ import UserAvatar from "./UserAvatar";
 import { FaGithub } from "react-icons/fa";
 
 import { usePathname } from "next/navigation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -22,7 +27,7 @@ const Navbar = () => {
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboardIcon },
-    { href: "/projects", label: "Projects", icon: FolderOpenDotIcon },
+    { href: "#all-projects", label: "Projects", icon: FolderOpenDotIcon },
   ];
 
   return (
@@ -70,7 +75,17 @@ const Navbar = () => {
           <SearchComponent open={open} setOpen={setOpen} />
         </div>
         <div className="w-px h-6 bg-border" />
-        <FaGithub size={23} />
+        <Tooltip>
+          <TooltipTrigger>
+            <a
+              href="https://github.com/nomoretutorials/nomoretutorials"
+              target="_blank"
+            >
+              <FaGithub size={23} />
+            </a>
+          </TooltipTrigger>
+          <TooltipContent>Github Repository</TooltipContent>
+        </Tooltip>
         <div className="w-px h-6 bg-border" />
 
         <UserAvatar />

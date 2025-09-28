@@ -20,18 +20,41 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import React from "react";
+import React, { useState, useTransition } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { generateProjectMetadata } from "@/actions/ai/generateProjectMetadata";
+import { createNewProject } from "@/actions/project/createNewProject";
 
 // TODO: Add Form Integration in the Dialog
+// TODO: fix submit on enter. currently pressing enter submits even if on title or description. change it to ctrl + enter.
 
 const NewProjectDialog = () => {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [idea, setIdea] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = () => {
-    // TODO: Implement actual form submission logic here
-    console.log("Project form submitted");
-    setOpen(false);
+  const generateMetadata = () => {
+    startTransition(async () => {
+      try {
+        const { title, description } = await generateProjectMetadata(idea);
+        setTitle(title || "");
+        setDescription(description || "");
+      } catch (error) {
+        console.error("Failed to generate metadata:", error);
+      }
+    });
+  };
+
+  const handleSubmit = async () => {
+    try {
+      await createNewProject({ title, description });
+      console.log(idea, title, description);
+      setOpen(false);
+    } catch {
+      throw new Error("Error creating project.");
+    }
   };
 
   const handleCancel = () => {
@@ -39,7 +62,6 @@ const NewProjectDialog = () => {
     setOpen(false);
   };
 
-  // Keyboard shortcut handler: Ctrl+P / Cmd+P to open, Enter to submit, Escape to cancel
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
@@ -75,13 +97,23 @@ const NewProjectDialog = () => {
           {/* Idea */}
           <div className="grid gap-2">
             <Label htmlFor="idea">Idea</Label>
-            <Input id="idea" placeholder="e.g. AI Powered TODO Application" />
+            <Input
+              id="idea"
+              placeholder="e.g. AI Powered TODO Application"
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+            />
           </div>
 
           {/* Name */}
           <div className="grid gap-2">
             <Label htmlFor="name">Project name</Label>
-            <Input id="name" placeholder="TodoGPT" />
+            <Input
+              id="name"
+              placeholder="TodoGPT"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </div>
 
           {/* Description */}
@@ -91,6 +123,8 @@ const NewProjectDialog = () => {
               id="description"
               placeholder="Enter project description..."
               rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </div>
         </div>
@@ -107,6 +141,8 @@ const NewProjectDialog = () => {
             variant="secondary"
             size="sm"
             className="flex items-center gap-1"
+            onClick={generateMetadata}
+            disabled={isPending}
           >
             <Sparkles className="w-4 h-4" />
             Generate
@@ -125,7 +161,7 @@ const NewProjectDialog = () => {
 
 const NewProjectCard = () => {
   return (
-    <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+    <Card className="h-full relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       {/* subtle gradient top */}
       <div
         aria-hidden

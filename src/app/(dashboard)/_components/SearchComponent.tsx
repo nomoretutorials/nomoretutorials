@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { User, Settings, KeyRound } from "lucide-react";
+import { KeyRound, Settings, User } from "lucide-react";
 
 import {
   CommandDialog,

@@ -1,6 +1,6 @@
-import { PrismaClient } from "../src/generated/prisma";
 import {
   ExperienceLevel,
+  PrismaClient,
   ProjectStatus,
   TechStackCategory,
 } from "../src/generated/prisma";
@@ -12,9 +12,7 @@ async function main() {
 
   // Skip demo seeding in production
   if (process.env.NODE_ENV === "production") {
-    console.warn(
-      "⚠️ Production environment detected. Seeding only reference data..."
-    );
+    console.warn("⚠️ Production environment detected. Seeding only reference data...");
     await seedTechStacks();
     console.log("✅ Reference data seeded (production-safe).");
     return;

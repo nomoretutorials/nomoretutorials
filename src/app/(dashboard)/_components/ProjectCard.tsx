@@ -1,5 +1,8 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
+import { Calendar1Icon, EllipsisVerticalIcon } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,8 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Calendar1Icon, EllipsisVerticalIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
 
 interface Project {
   id: string;
@@ -73,7 +74,7 @@ const ProjectCard = () => {
         return (
           <Card
             key={item.id}
-            className="relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+            className="relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
           >
             <div
               className="absolute inset-0 z-0"
@@ -85,16 +86,11 @@ const ProjectCard = () => {
                 backgroundSize: "32px 32px",
                 WebkitMaskImage:
                   "radial-gradient(ellipse 80% 80% at 100% 0%, #000 50%, transparent 90%)",
-                maskImage:
-                  "radial-gradient(ellipse 80% 80% at 100% 0%, #000 50%, transparent 90%)",
+                maskImage: "radial-gradient(ellipse 80% 80% at 100% 0%, #000 50%, transparent 90%)",
               }}
             />
             <CardHeader className="">
-              <Button
-                variant={"secondary"}
-                size={"sm"}
-                className="z-10 justify-self-start"
-              >
+              <Button variant={"secondary"} size={"sm"} className="z-10 justify-self-start">
                 <Calendar1Icon style={{ color: "#6b7280" }} />{" "}
                 {new Date(item.createdAt).toLocaleDateString("en-US", {
                   month: "short",
@@ -109,12 +105,10 @@ const ProjectCard = () => {
               </CardAction>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-muted-foreground line-clamp-3">
-                {item.description}
-              </div>
+              <div className="text-muted-foreground line-clamp-3 text-sm">{item.description}</div>
             </CardContent>
-            <CardFooter className="border-t border-border flex items-center justify-between">
-              <CardTitle className="capitalize tracking-tighter text-xl flex items-center gap-2">
+            <CardFooter className="border-border flex items-center justify-between border-t">
+              <CardTitle className="flex items-center gap-2 text-xl tracking-tighter capitalize">
                 <span className="text-xl" aria-hidden></span>
                 <span>{item.title}</span>
               </CardTitle>
@@ -122,7 +116,7 @@ const ProjectCard = () => {
                 className={
                   "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium capitalize " +
                   (stackStyles[primaryStack] ??
-                    "bg-secondary text-secondary-foreground border border-border")
+                    "bg-secondary text-secondary-foreground border-border border")
                 }
               >
                 {primaryStack}

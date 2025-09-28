@@ -1,15 +1,15 @@
 import * as React from "react";
 import {
-  Html,
-  Head,
-  Preview,
   Body,
-  Container,
-  Section,
-  Heading,
-  Text,
   Button,
+  Container,
+  Head,
+  Heading,
   Hr,
+  Html,
+  Preview,
+  Section,
+  Text,
 } from "@react-email/components";
 
 interface MagicLinkEmailProps {
@@ -69,8 +69,8 @@ const MagicLinkEmail = ({ magicLink }: MagicLinkEmailProps) => {
               Your magic link is here ✨
             </Heading>
             <Text style={{ fontSize: "1rem", color: "#374151" }}>
-              Click the button below to log in securely to{" "}
-              <b>NoMoreTutorials</b>. This link will expire in 5 minutes.
+              Click the button below to log in securely to <b>NoMoreTutorials</b>. This link will
+              expire in 5 minutes.
             </Text>
 
             {/* CTA */}

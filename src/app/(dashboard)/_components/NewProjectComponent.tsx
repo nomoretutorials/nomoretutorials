@@ -1,14 +1,12 @@
 "use client";
 
-import {
-  Card,
-  CardFooter,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Plus, Sparkles, CornerDownLeft } from "lucide-react";
+import React, { useState, useTransition } from "react";
+import { generateProjectMetadata } from "@/actions/ai/generateProjectMetadata";
+import { createNewProject } from "@/actions/project/createNewProject";
+import { CornerDownLeft, Plus, Sparkles } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -20,10 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import React, { useState, useTransition } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { generateProjectMetadata } from "@/actions/ai/generateProjectMetadata";
-import { createNewProject } from "@/actions/project/createNewProject";
 
 // TODO: Add Form Integration in the Dialog
 // TODO: fix submit on enter. currently pressing enter submits even if on title or description. change it to ctrl + enter.
@@ -132,9 +127,7 @@ const NewProjectDialog = () => {
         <DialogFooter className="flex items-center justify-end gap-2 pt-2">
           <Button variant="outline" size="sm" onClick={handleCancel}>
             Cancel
-            <kbd className="ml-1 rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
-              Esc
-            </kbd>
+            <kbd className="bg-muted ml-1 rounded px-1.5 py-0.5 font-mono text-xs">Esc</kbd>
           </Button>
           <Button
             type="button"
@@ -144,12 +137,12 @@ const NewProjectDialog = () => {
             onClick={generateMetadata}
             disabled={isPending}
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="h-4 w-4" />
             Generate
           </Button>
           <Button size="sm" onClick={handleSubmit}>
             Create project
-            <kbd className="ml-1 rounded bg-muted/10 px-1.5 py-0.5 text-xs font-mono">
+            <kbd className="bg-muted/10 ml-1 rounded px-1.5 py-0.5 font-mono text-xs">
               <CornerDownLeft />
             </kbd>
           </Button>
@@ -161,29 +154,29 @@ const NewProjectDialog = () => {
 
 const NewProjectCard = () => {
   return (
-    <Card className="h-full relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
+    <Card className="relative h-full overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       {/* subtle gradient top */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-primary/15 to-transparent"
+        className="from-primary/15 pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b to-transparent"
       />
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-lg">
-          <span className="inline-flex size-9 items-center justify-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/30">
+          <span className="bg-primary/15 text-primary ring-primary/30 inline-flex size-9 items-center justify-center rounded-lg ring-1">
             <Plus className="size-5" />
           </span>
           Start a new project
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Spin up a blank project. You can add stacks and integrations any time.
         </p>
       </CardContent>
-      <CardFooter className="border-t border-border flex items-center justify-between">
+      <CardFooter className="border-border flex items-center justify-between border-t">
         <NewProjectDialog />
-        <span className="text-xs text-muted-foreground">
-          Shortcut: <kbd className="rounded bg-muted px-1 py-0.5">Ctrl + P</kbd>
+        <span className="text-muted-foreground text-xs">
+          Shortcut: <kbd className="bg-muted rounded px-1 py-0.5">Ctrl + P</kbd>
         </span>
       </CardFooter>
     </Card>

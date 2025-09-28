@@ -1,15 +1,16 @@
 "use client";
 
+import Link from "next/link";
+import React, { useEffect, useState } from "react";
+import { Loader2Icon } from "lucide-react";
+import { FaGithub } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
+import { toast } from "sonner";
+
 import AuthCard from "@/components/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
-import Link from "next/link";
-import React, { useState, useEffect } from "react";
-import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
-import { toast } from "sonner";
-import { Loader2Icon } from "lucide-react";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -23,10 +24,7 @@ const Auth = () => {
     setLastMethod(authClient.getLastUsedLoginMethod());
   }, []);
 
-  const handleSubmit = async (
-    e: React.FormEvent,
-    type: "google" | "github" | "magic-link"
-  ) => {
+  const handleSubmit = async (e: React.FormEvent, type: "google" | "github" | "magic-link") => {
     e.preventDefault();
 
     if (isLoading) return;
@@ -66,23 +64,21 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex max-w-4xl lg:w-4xl w-full items-center justify-between p-4 sm:p-6 lg:p-8 gap-12 h-screen md:h-full overflow-y-auto">
-      <div className="flex-1 flex flex-col items-start justify-center gap-8">
-        <div className="flex items-center justify-center gap-3 mb-1 w-full">
-          <span className="font-extralight italic text-xl mb-10">
-            NoMoreTutorials
-          </span>
+    <div className="flex h-screen w-full max-w-4xl items-center justify-between gap-12 overflow-y-auto p-4 sm:p-6 md:h-full lg:w-4xl lg:p-8">
+      <div className="flex flex-1 flex-col items-start justify-center gap-8">
+        <div className="mb-1 flex w-full items-center justify-center gap-3">
+          <span className="mb-10 text-xl font-extralight italic">NoMoreTutorials</span>
         </div>
         <div className="">
           <h1 className="text-2xl font-normal">Get Started</h1>
-          <p className="font-light text-muted-foreground">
+          <p className="text-muted-foreground font-light">
             Continue with anyone below to login to your account.
           </p>
         </div>
-        <div className="flex flex-col space-y-4 w-full ">
+        <div className="flex w-full flex-col space-y-4">
           <form
             onSubmit={(e) => handleSubmit(e, "magic-link")}
-            className="flex flex-col gap-3 w-full"
+            className="flex w-full flex-col gap-3"
           >
             <div className="relative">
               <Input
@@ -94,20 +90,12 @@ const Auth = () => {
                 disabled={isLoading}
                 aria-label="Email address"
               />
-              {isClient && lastMethod === "magic-link" ? (
-                <LastUsedBadge />
-              ) : null}
+              {isClient && lastMethod === "magic-link" ? <LastUsedBadge /> : null}
             </div>
-            <Button
-              size={"sm"}
-              type="submit"
-              className="lg:bg-foreground"
-              disabled={isLoading}
-            >
+            <Button size={"sm"} type="submit" className="lg:bg-foreground" disabled={isLoading}>
               {isLoading && loadingType === "magic-link" ? (
-                <div className="flex gap-3 items-center">
-                  <Loader2Icon className="animate-spin" />{" "}
-                  <span>Sending ...</span>
+                <div className="flex items-center gap-3">
+                  <Loader2Icon className="animate-spin" /> <span>Sending ...</span>
                 </div>
               ) : (
                 "Submit"
@@ -156,13 +144,12 @@ const Auth = () => {
             </Button>
           </div>
         </div>
-        <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4 w-full">
-          By clicking continue, you agree to our{" "}
-          <Link href="/terms">Terms of Service</Link> and{" "}
+        <div className="text-muted-foreground *:[a]:hover:text-primary w-full text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
+          By clicking continue, you agree to our <Link href="/terms">Terms of Service</Link> and{" "}
           <a href="/privacy-policy">Privacy Policy</a>.
         </div>
       </div>
-      <div className="lg:block flex-1 h-full hidden">
+      <div className="hidden h-full flex-1 lg:block">
         <AuthCard />
       </div>
     </div>
@@ -171,13 +158,7 @@ const Auth = () => {
 
 const LastUsedBadge = () => {
   return (
-    <div
-      className="absolute top-2.5 right-2 
-      bg-primary/10 text-primary 
-      text-[10px] font-medium 
-      px-2 py-0.5 rounded-full 
-      shadow-sm"
-    >
+    <div className="bg-primary/10 text-primary absolute top-2.5 right-2 rounded-full px-2 py-0.5 text-[10px] font-medium shadow-sm">
       Last used
     </div>
   );

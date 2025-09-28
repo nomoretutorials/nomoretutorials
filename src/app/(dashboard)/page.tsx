@@ -1,10 +1,11 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+
 import { auth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import Navbar from "./_components/Navbar";
 import NewUserOnboarding from "./_components/NewUserOnboarding";
 import ProjectsSection from "./_components/ProjectsSection";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import prisma from "@/lib/prisma";
 
 export default async function Home() {
   const session = await auth.api.getSession({

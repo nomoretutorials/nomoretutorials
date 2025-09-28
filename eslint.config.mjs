@@ -11,6 +11,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...compat.extends("prettier"), // Add this to disable conflicting rules
   {
     ignores: [
       "node_modules/**",
@@ -18,6 +19,9 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "dist/**", // Add this if you have a dist folder
+      "public/**", // Optional: ignore public assets,
+      "src/generated/prisma",
     ],
   },
 ];

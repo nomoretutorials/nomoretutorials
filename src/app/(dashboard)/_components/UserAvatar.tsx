@@ -1,8 +1,10 @@
-import { authClient } from "@/lib/auth-client";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import React, { useMemo } from "react";
 import { glass } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
-import Image from "next/image";
-import React, { useMemo } from "react";
+import { CreditCard, LogOut, Settings, User } from "lucide-react";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, Settings, CreditCard, User } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 const UserAvatar = () => {
   const { data: session } = authClient.useSession();
@@ -40,31 +41,18 @@ const UserAvatar = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div
-          className="size-8 
-        rounded-full 
-        overflow-hidden 
-        flex items-center justify-center 
-        cursor-pointer 
-        transition-transform duration-200 ease-in-out 
-        hover:scale-110 
-        active:scale-95"
-        >
+        <div className="flex size-8 cursor-pointer items-center justify-center overflow-hidden rounded-full transition-transform duration-200 ease-in-out hover:scale-110 active:scale-95">
           <Image src={avatarUri} alt="User Avatar" width={"38"} height={"38"} />
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
         sideOffset={10}
-        className="w-56 bg-popover border-border/50 shadow-lg"
+        className="bg-popover border-border/50 w-56 shadow-lg"
       >
-        <div className="px-3 py-2 space-y-1">
-          <p className="text font-medium leading-none">
-            {session?.user.name || "Anonymous"}
-          </p>
-          <p className="text-xs text-muted-foreground truncate">
-            {session?.user.email}
-          </p>
+        <div className="space-y-1 px-3 py-2">
+          <p className="text leading-none font-medium">{session?.user.name || "Anonymous"}</p>
+          <p className="text-muted-foreground truncate text-xs">{session?.user.email}</p>
         </div>
         <DropdownMenuSeparator />
 

@@ -1,11 +1,12 @@
 "use server";
 
-import { onboardingPayload } from "@/app/(dashboard)/_components/NewUserOnboarding";
-import { ExperienceLevel } from "@/generated/prisma";
-import { auth } from "@/lib/auth";
-import prisma from "@/lib/prisma";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { onboardingPayload } from "@/app/(dashboard)/_components/NewUserOnboarding";
+import { ExperienceLevel } from "@/generated/prisma";
+
+import { auth } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 
 export async function completeOnboarding({
   experienceLevel,
@@ -16,8 +17,7 @@ export async function completeOnboarding({
     headers: await headers(),
   });
 
-  if (!data?.user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!data?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     const userId = data.user.id;

@@ -1,7 +1,8 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import prisma from "./prisma";
 import { lastLoginMethod, magicLink } from "better-auth/plugins";
+
+import prisma from "./prisma";
 import { magicLinkMail } from "./resend";
 
 // TODO: 1. Implement T3 Env

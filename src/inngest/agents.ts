@@ -4,8 +4,7 @@ import { createAgent, openai } from "@inngest/agent-kit";
 
 export const projectMetadataAgent = createAgent({
   name: "Project Metadata Generator",
-  description:
-    "Takes a raw project idea and outputs a concise title and description.",
+  description: "Takes a raw project idea and outputs a concise title and description.",
   system: `You are a branding assistant.
         Generate a JSON object with exactly two fields:
 

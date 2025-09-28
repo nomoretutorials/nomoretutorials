@@ -1,5 +1,10 @@
 "use client";
 
+import React, { useState } from "react";
+import { completeOnboarding } from "@/actions/user/completeOnboarding";
+import { CornerDownLeft } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -10,11 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { CornerDownLeft } from "lucide-react";
-import React, { useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { completeOnboarding } from "@/actions/user/completeOnboarding";
 
 export interface onboardingPayload {
   experienceLevel: string;
@@ -87,9 +88,7 @@ const NewStackDialog = () => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
-            Tell us about your tech stack
-          </DialogTitle>
+          <DialogTitle className="text-2xl">Tell us about your tech stack</DialogTitle>
           <DialogDescription className="text-sm">
             Select the tools you are familiar with.
           </DialogDescription>
@@ -106,17 +105,17 @@ const NewStackDialog = () => {
               }}
               className="flex items-center gap-3"
             >
-              <label className="flex items-center gap-3 cursor-pointer rounded-md border border-border px-3 py-2 hover:bg-accent/50">
+              <label className="border-border hover:bg-accent/50 flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2">
                 <RadioGroupItem value="BEGINNER" id="beginner" />
                 <Label htmlFor="beginner">Beginner</Label>
               </label>
-              <label className="flex items-center gap-3 cursor-pointer rounded-md border border-border px-3 py-2 hover:bg-accent/50">
+              <label className="border-border hover:bg-accent/50 flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2">
                 <RadioGroupItem value="INTERMEDIATE" id="intermediate" />
                 <Label htmlFor="intermediate">Intermediate</Label>
               </label>
             </RadioGroup>
             {error && <p className="text-xs text-red-500">{error}</p>}
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               *generated content will be modified as per your selection.
             </span>
           </div>
@@ -125,23 +124,19 @@ const NewStackDialog = () => {
           <div className="space-y-2">
             <Label className="text-sm font-medium">Frontend</Label>
             <div className="grid grid-cols-2 gap-2">
-              <label className="flex items-center gap-2 cursor-pointer rounded-md border border-border px-3 py-2 hover:bg-accent/50">
+              <label className="border-border hover:bg-accent/50 flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2">
                 <Checkbox
                   id="frontend-react"
                   checked={frontend.includes("react")}
-                  onCheckedChange={() =>
-                    toggleStack("react", frontend, setFrontend)
-                  }
+                  onCheckedChange={() => toggleStack("react", frontend, setFrontend)}
                 />
                 <span className="text-sm">React</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer rounded-md border border-border px-3 py-2 hover:bg-accent/50">
+              <label className="border-border hover:bg-accent/50 flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2">
                 <Checkbox
                   id="frontend-next"
                   checked={frontend.includes("next")}
-                  onCheckedChange={() =>
-                    toggleStack("next", frontend, setFrontend)
-                  }
+                  onCheckedChange={() => toggleStack("next", frontend, setFrontend)}
                 />
                 <span className="text-sm">Next.js</span>
               </label>
@@ -152,53 +147,43 @@ const NewStackDialog = () => {
           <div className="space-y-2">
             <Label className="text-sm font-medium">Backend</Label>
             <div className="grid grid-cols-3 gap-2">
-              <label className="flex items-center gap-2 cursor-pointer rounded-md border border-border px-3 py-2 hover:bg-accent/50">
+              <label className="border-border hover:bg-accent/50 flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2">
                 <Checkbox
                   id="backend-next"
                   checked={backend.includes("next")}
-                  onCheckedChange={() =>
-                    toggleStack("next", backend, setBackend)
-                  }
+                  onCheckedChange={() => toggleStack("next", backend, setBackend)}
                 />
                 <span className="text-sm">Next.js</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer rounded-md border border-border px-3 py-2 hover:bg-accent/50">
+              <label className="border-border hover:bg-accent/50 flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2">
                 <Checkbox
                   id="backend-express"
                   checked={backend.includes("express")}
-                  onCheckedChange={() =>
-                    toggleStack("express", backend, setBackend)
-                  }
+                  onCheckedChange={() => toggleStack("express", backend, setBackend)}
                 />
                 <span className="text-sm">Express.js</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer rounded-md border border-border px-3 py-2 hover:bg-accent/50">
+              <label className="border-border hover:bg-accent/50 flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2">
                 <Checkbox
                   id="backend-hono"
                   checked={backend.includes("hono")}
-                  onCheckedChange={() =>
-                    toggleStack("hono", backend, setBackend)
-                  }
+                  onCheckedChange={() => toggleStack("hono", backend, setBackend)}
                 />
                 <span className="text-sm">Hono.js</span>
               </label>
             </div>
           </div>
-          <span className="text-xs text-muted-foreground">
-            *more stacks coming soon.
-          </span>
+          <span className="text-muted-foreground text-xs">*more stacks coming soon.</span>
         </div>
 
         <DialogFooter className="flex items-center justify-end gap-2 pt-2">
           <Button variant="outline" size="sm" onClick={handleSkip}>
             Skip for Now
-            <kbd className="ml-1 rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
-              Esc
-            </kbd>
+            <kbd className="bg-muted ml-1 rounded px-1.5 py-0.5 font-mono text-xs">Esc</kbd>
           </Button>
           <Button size="sm" onClick={handleSubmit}>
             Submit
-            <kbd className="ml-1 rounded bg-muted/10 px-1.5 py-0.5 text-xs font-mono">
+            <kbd className="bg-muted/10 ml-1 rounded px-1.5 py-0.5 font-mono text-xs">
               <CornerDownLeft />
             </kbd>
           </Button>

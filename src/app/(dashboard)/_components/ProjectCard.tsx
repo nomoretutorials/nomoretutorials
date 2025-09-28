@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,50 +10,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Calendar1Icon, EllipsisVerticalIcon } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
-const projects = [
-  {
-    id: 1,
-    title: "inngest agent",
-    icon: "⚙️",
-    description:
-      "Python service collecting application metrics and pushing to Prometheus.",
-    primaryStack: "nextjs",
-  },
-  {
-    id: 2,
-    title: "marketing site",
-    icon: "🪄",
-    description:
-      "A fast, content-driven Next.js site with MDX, analytics, and image optimization.",
-    primaryStack: "nextjs",
-  },
-  {
-    id: 3,
-    title: "customer portal",
-    icon: "👤",
-    description:
-      "React SPA for account management, billing history, and usage insights.",
-    primaryStack: "react",
-  },
-  {
-    id: 4,
-    title: "workflow service",
-    icon: "🧩",
-    description:
-      "Node-based job runner orchestrating queues, retries, and scheduled tasks.",
-    primaryStack: "node",
-  },
-  {
-    id: 5,
-    title: "metrics exporter",
-    icon: "📊",
-    description:
-      "Python service collecting application metrics and pushing to Prometheus.",
-    primaryStack: "python",
-  },
-];
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  techStacks: string[];
+  createdAt: string;
+  updatedAt: string;
+  status: string;
+  repositoryUrl?: string;
+  features?: Record<string, unknown>;
+}
 
 const stackStyles: Record<string, string> = {
   nextjs:
@@ -61,83 +32,105 @@ const stackStyles: Record<string, string> = {
   node: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100 border border-emerald-200 dark:border-emerald-800",
   python:
     "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100 border border-amber-200 dark:border-amber-800",
+  typescript:
+    "bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-100 border border-blue-200 dark:border-blue-800",
+  javascript:
+    "bg-yellow-100 text-yellow-900 dark:bg-yellow-900/40 dark:text-yellow-100 border border-yellow-200 dark:border-yellow-800",
 };
 
-const stackGradients: Record<string, string> = {
-  nextjs:
-    "from-neutral-900/10 to-neutral-900/0 dark:from-neutral-100/10 dark:to-neutral-100/0",
-  react: "from-sky-500/15 to-sky-500/0",
-  node: "from-emerald-500/15 to-emerald-500/0",
-  python: "from-amber-500/15 to-amber-500/0",
-};
-
-const stackBackgrounds: Record<string, string> = {
-  nextjs:
-    "bg-gradient-to-br from-neutral-500/5 to-transparent dark:from-neutral-400/5",
-  react: "bg-gradient-to-br from-sky-500/5 to-transparent",
-  node: "bg-gradient-to-br from-emerald-500/5 to-transparent",
-  python: "bg-gradient-to-br from-amber-500/5 to-transparent",
+// Helper function to get primary stack from techStacks array
+const getPrimaryStack = (techStacks: string[]): string => {
+  if (!techStacks || techStacks.length === 0) return "unknown";
+  return techStacks[0].toLowerCase();
 };
 
 const ProjectCard = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    fetch("/api/projects")
+      .then((res) => {
+        console.log("Fetch response status:", res.status);
+        console.log("Fetch response ok:", res.ok);
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Fetched data:", data);
+        setProjects(data);
+      })
+      .catch((error) => {
+        console.error("Fetch error:", error);
+      });
+  }, []);
+
+  console.log(projects);
+
   return (
     <>
-      {projects.map((item) => (
-        <Card
-          key={item.id}
-          className={
-            "relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 " +
-            (stackBackgrounds[item.primaryStack] ?? "")
-          }
-        >
-          <div
-            aria-hidden
-            className={
-              "pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b " +
-              (stackGradients[item.primaryStack] ??
-                "from-primary/10 to-transparent")
-            }
-          />
-          <CardHeader className="">
-            <Button
-              variant={"secondary"}
-              size={"sm"}
-              className="z-10 justify-self-start"
-            >
-              <Calendar1Icon /> Sep 09, 2024
-            </Button>
-            <CardAction>
-              <Button variant={"ghost"}>
-                <EllipsisVerticalIcon />
+      {projects.map((item) => {
+        const primaryStack = getPrimaryStack(item.techStacks);
+
+        return (
+          <Card
+            key={item.id}
+            className="relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+          >
+            <div
+              className="absolute inset-0 z-0"
+              style={{
+                backgroundImage: `
+                  linear-gradient(to right, #d1d5db 1px, transparent 1px),
+                  linear-gradient(to bottom, #d1d5db 1px, transparent 1px)
+                `,
+                backgroundSize: "32px 32px",
+                WebkitMaskImage:
+                  "radial-gradient(ellipse 80% 80% at 100% 0%, #000 50%, transparent 90%)",
+                maskImage:
+                  "radial-gradient(ellipse 80% 80% at 100% 0%, #000 50%, transparent 90%)",
+              }}
+            />
+            <CardHeader className="">
+              <Button
+                variant={"secondary"}
+                size={"sm"}
+                className="z-10 justify-self-start"
+              >
+                <Calendar1Icon style={{ color: "#6b7280" }} />{" "}
+                {new Date(item.createdAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "2-digit",
+                  year: "numeric",
+                })}
               </Button>
-            </CardAction>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm text-muted-foreground line-clamp-3">
-              {item.description}
-            </div>
-          </CardContent>
-          <CardFooter className="border-t border-border flex items-center justify-between">
-            <CardTitle className="capitalize tracking-tighter text-xl flex items-center gap-2">
-              {item.icon ? (
-                <span className="text-xl" aria-hidden>
-                  {item.icon}
-                </span>
-              ) : null}
-              <span>{item.title}</span>
-            </CardTitle>
-            <span
-              className={
-                "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium capitalize " +
-                (stackStyles[item.primaryStack] ??
-                  "bg-secondary text-secondary-foreground border border-border")
-              }
-            >
-              {item.primaryStack}
-            </span>
-          </CardFooter>
-        </Card>
-      ))}
+              <CardAction>
+                <Button variant={"ghost"}>
+                  <EllipsisVerticalIcon style={{ color: "#6b7280" }} />
+                </Button>
+              </CardAction>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-muted-foreground line-clamp-3">
+                {item.description}
+              </div>
+            </CardContent>
+            <CardFooter className="border-t border-border flex items-center justify-between">
+              <CardTitle className="capitalize tracking-tighter text-xl flex items-center gap-2">
+                <span className="text-xl" aria-hidden></span>
+                <span>{item.title}</span>
+              </CardTitle>
+              <span
+                className={
+                  "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium capitalize " +
+                  (stackStyles[primaryStack] ??
+                    "bg-secondary text-secondary-foreground border border-border")
+                }
+              >
+                {primaryStack}
+              </span>
+            </CardFooter>
+          </Card>
+        );
+      })}
     </>
   );
 };

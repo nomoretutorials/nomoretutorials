@@ -29,11 +29,12 @@ export async function createNewProject({
         description,
         userId: data.user.id,
       },
+      select: {
+        id: true,
+      },
     });
 
-    console.log(project);
-
-    return { success: true };
+    return { success: true, project };
   } catch (error) {
     console.error("Onboarding error:", error);
     return { error: "Something went wrong" };

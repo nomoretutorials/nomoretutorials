@@ -2,6 +2,8 @@
 
 import { projectMetadataAgent } from "@/inngest/agents";
 
+// TODO: Either title or description will be empty. whatever is generate.
+
 export async function generateProjectMetadata(projectIdea: string) {
   const { output } = await projectMetadataAgent.run(projectIdea);
 

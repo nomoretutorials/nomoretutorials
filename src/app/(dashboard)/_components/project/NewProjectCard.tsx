@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { generateProjectMetadata } from "@/actions/ai/generateProjectMetadata";
 import { createNewProject } from "@/actions/project/createNewProject";
 import { CornerDownLeft, Plus, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,33 +30,46 @@ const NewProjectDialog = () => {
   const [idea, setIdea] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [isPending, startTransition] = useTransition();
-
-  const generateMetadata = () => {
-    startTransition(async () => {
-      try {
-        const { title, description } = await generateProjectMetadata(idea);
-        setTitle(title || "");
-        setDescription(description || "");
-      } catch (error) {
-        console.error("Failed to generate metadata:", error);
-      }
-    });
-  };
+  const router = useRouter();
 
   const handleSubmit = async () => {
     try {
-      await createNewProject({ title, description });
-      console.log(idea, title, description);
-      setOpen(false);
+      let finalTitle = title;
+      let finalDescription = description;
+
+
+      if (!finalTitle || !finalDescription) {
+        if (!idea) {
+          return toast.error("Please enter an idea to generate project.");
+        }
+        const { title: genTitle, description: genDescription } =
+          await generateProjectMetadata(idea);
+
+        finalTitle = genTitle;
+        finalDescription = genDescription;
+
+        setTitle(finalTitle);
+        setDescription(finalDescription);
+      }
+
+      const { project } = await createNewProject({
+        title: finalTitle,
+        description: finalDescription,
+      });
+
+      if (!project) return toast.error("Error creating project in database");
+
+      router.push(`/project/${project.id}`);
     } catch {
-      throw new Error("Error creating project.");
+      return toast.error("Error creating project.");
     }
   };
 
   const handleCancel = () => {
-    console.log("Project creation cancelled");
     setOpen(false);
+    setIdea("");
+    setTitle("");
+    setDescription("");
   };
 
   React.useEffect(() => {
@@ -62,7 +77,7 @@ const NewProjectDialog = () => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
         e.preventDefault();
         setOpen(true);
-      } else if (open && e.key === "Enter") {
+      } else if (open && (e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
         handleSubmit();
       } else if (open && e.key === "Escape") {
@@ -134,8 +149,7 @@ const NewProjectDialog = () => {
             variant="secondary"
             size="sm"
             className="flex items-center gap-1"
-            onClick={generateMetadata}
-            disabled={isPending}
+            onClick={handleSubmit}
           >
             <Sparkles className="h-4 w-4" />
             Generate

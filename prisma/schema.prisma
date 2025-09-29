@@ -51,10 +51,28 @@ model Project {
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   ProjectTechStack ProjectTechStack[]
+  Steps            Steps[]
 
   @@index([userId])
   @@index([userId, status])
   @@map("projects")
+}
+
+model Steps {
+  id    String @id @default(uuid())
+  index Int
+
+  title   String
+  status  StepStatus @default(PENDING)
+  content Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, index])
 }
 
 model Session {
@@ -154,6 +172,12 @@ model Verification {
   updatedAt  DateTime @default(now()) @updatedAt
 
   @@map("verification")
+}
+
+enum StepStatus {
+  PENDING
+  IN_PROGRESS
+  ROADMAP
 }
 
 enum ProjectStatus {

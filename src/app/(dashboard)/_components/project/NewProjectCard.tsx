@@ -154,7 +154,7 @@ const NewProjectDialog = () => {
 
 const NewProjectCard = () => {
   return (
-    <Card className="group border-border/70 bg-card relative flex h-68 w-full max-w-sm flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl">
+    <Card className="group border-border/70 bg-card relative flex h-64 w-full max-w-sm flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl">
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent)]" />
       </div>

@@ -51,7 +51,7 @@ const ProjectCard = () => {
         return (
           <Card
             key={item.id}
-            className="group border-border/70 bg-card relative flex h-68 w-full max-w-sm flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl"
+            className="group border-border/70 bg-card relative flex h-64 w-full max-w-sm flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl"
           >
             {/* Card Header */}
             <CardHeader className="flex items-start justify-between">

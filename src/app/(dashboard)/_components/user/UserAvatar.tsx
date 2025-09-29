@@ -1,10 +1,21 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { glass } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
-import { CreditCard, LogOut, Settings, User } from "lucide-react";
+import { CornerDownLeft, CreditCard, LogOut, Settings, User } from "lucide-react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,19 +27,8 @@ import { authClient } from "@/lib/auth-client";
 
 const UserAvatar = () => {
   const { data: session } = authClient.useSession();
-  const router = useRouter();
 
   const seed = session?.user?.id || "default";
-
-  const handleSignout = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push("/auth");
-        },
-      },
-    });
-  };
 
   const avatarSvg = useMemo(() => {
     return createAvatar(glass, {
@@ -69,15 +69,65 @@ const UserAvatar = () => {
           Subscription
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="cursor-pointer text-red-500 focus:text-red-500"
-          onClick={handleSignout}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+          <LogOutButton />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+};
+
+const LogOutButton = () => {
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  const handleSignout = async () => {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/auth");
+        },
+      },
+    });
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (open && e.key === "Enter") {
+        e.preventDefault();
+        handleSignout();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <div className="cursor-pointer flex items-center">
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </div>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Sign out</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to sign out? You’ll need to log in again to access your account.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleSignout}>
+            Sign Out
+            <kbd className="bg-muted/10 ml-1 rounded px-1.5 py-0.5 font-mono text-xs">
+              <CornerDownLeft />
+            </kbd>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

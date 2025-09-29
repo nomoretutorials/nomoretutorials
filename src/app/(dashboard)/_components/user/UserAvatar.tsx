@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { glass } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
 import { CreditCard, LogOut, Settings, User } from "lucide-react";

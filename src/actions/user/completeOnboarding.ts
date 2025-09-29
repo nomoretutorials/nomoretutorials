@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { onboardingPayload } from "@/app/(dashboard)/_components/NewUserOnboarding";
+import { onboardingPayload } from "@/app/(dashboard)/_components/user/NewUserOnboarding";
 import { ExperienceLevel } from "@/generated/prisma";
 
 import { auth } from "@/lib/auth";

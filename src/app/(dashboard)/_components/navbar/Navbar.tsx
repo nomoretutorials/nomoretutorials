@@ -10,8 +10,8 @@ import { FaGithub } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Command, CommandInput } from "@/components/ui/command";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import SearchComponent from "./SearchComponent";
-import UserAvatar from "./UserAvatar";
+import SearchComponent from "../search/SearchBar";
+import UserAvatar from "../user/UserAvatar";
 
 const Navbar = () => {
   const pathname = usePathname();

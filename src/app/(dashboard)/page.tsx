@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { getServerUserSession } from "../utils/getServerUserSession";
 import Navbar from "./_components/navbar/Navbar";
-import NewUserOnboarding from "./_components/NewUserOnboarding";
-import ProjectsSection from "./_components/ProjectsSection";
+import ProjectsSection from "./_components/project/ProjectsSection";
+import NewUserOnboarding from "./_components/user/NewUserOnboarding";
 
 export default async function Home() {
   const user = await getServerUserSession();

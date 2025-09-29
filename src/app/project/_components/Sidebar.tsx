@@ -14,7 +14,7 @@ export default function Sidebar({ id }: SidebarProps) {
   const [sidebarWidth, setSidebarWidth] = useState<number>(280);
   const [isDragging, setIsDragging] = useState(false);
 
-  const MIN = 180;
+  const MIN = 270;
   const MAX = 560;
 
   const resizerRef = useRef<HTMLDivElement | null>(null);
@@ -101,12 +101,6 @@ export default function Sidebar({ id }: SidebarProps) {
 
           {/* Footer controls */}
           <div className="flex items-center gap-2">
-            <button
-              className="text-muted-foreground hover:bg-muted/10 rounded-md px-2 py-1 text-sm"
-              onClick={() => setSidebarWidth((w) => (w > 60 ? 56 : 280))}
-            >
-              {sidebarWidth > 60 ? "Collapse" : "Expand"}
-            </button>
             <div className="text-muted-foreground ml-auto text-xs">
               {Math.round(sidebarWidth)}px
             </div>

@@ -100,8 +100,8 @@ const ProjectCard = () => {
 
             <div className="mt-auto flex flex-col gap-6">
               <CardContent className="flex flex-col items-start gap-1">
-                <h1 className="text-xl font-medium">TodoGPT</h1>
-                <p className="text-xs font-light">Organize your life with TodoGPT, Your AI Powered task manager.</p>
+                <h1 className="text-xl font-medium">{item.title}</h1>
+                <p className="text-xs font-light">{item.description}</p>
               </CardContent>
 
               <CardFooter className="border-border flex items-center justify-between border-t pt-3">

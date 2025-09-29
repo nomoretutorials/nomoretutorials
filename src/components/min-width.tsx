@@ -38,7 +38,7 @@ export default function MinWidth({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <div className="hidden xl:block">{children}</div>
+      <div className="hidden lg:block">{children}</div>
 
       <div className="bg-background relative mx-auto flex h-screen w-screen max-w-lg items-center justify-center px-6 text-white xl:hidden">
         <Button

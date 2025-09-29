@@ -1,9 +1,4 @@
-import {
-  ExperienceLevel,
-  PrismaClient,
-  ProjectStatus,
-  TechStackCategory,
-} from "../src/generated/prisma";
+import { ExperienceLevel, PrismaClient, ProjectStatus, TechStackCategory } from "@prisma/client";
 
 const prisma = new PrismaClient();
 

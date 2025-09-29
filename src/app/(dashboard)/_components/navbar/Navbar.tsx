@@ -10,6 +10,7 @@ import { FaGithub } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Command, CommandInput } from "@/components/ui/command";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useScrollTo } from "@/hooks/useScrollTo";
 import SearchComponent from "../search/SearchBar";
 import UserAvatar from "../user/UserAvatar";
 
@@ -19,31 +20,42 @@ const Navbar = () => {
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboardIcon },
-    { href: "#all-projects", label: "Projects", icon: FolderOpenDotIcon },
+    { href: "#", label: "Projects", icon: FolderOpenDotIcon },
   ];
+
+  const scrollTo = useScrollTo();
+  const handleScrollToProjects = () => scrollTo("all-projects");
 
   return (
     <div className="bg-sidebar flex h-16 w-full items-center justify-between px-11">
       <div className="flex items-center gap-6">
-        {/* Branding */}
         <Link href="/" className="flex items-center gap-2">
           <Image src="/logo-dark.png" alt="logo" height={32} width={60} />
         </Link>
 
-        {/* Nav links */}
         <div className="flex gap-2">
           {navItems.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href;
             return (
               <Button
                 key={href}
-                asChild
                 variant={isActive ? "secondary" : "ghost"}
-                className={`flex items-center gap-2`}
+                className="flex items-center gap-2"
+                onClick={() => {
+                  if (label === "Projects") {
+                    handleScrollToProjects();
+                  }
+                }}
               >
-                <Link href={href}>
-                  <Icon className="h-4 w-4" /> {label}
-                </Link>
+                {href === "#" ? (
+                  <>
+                    <Icon className="h-4 w-4" /> {label}
+                  </>
+                ) : (
+                  <Link href={href} className="flex items-center gap-2">
+                    <Icon className="h-4 w-4" /> {label}
+                  </Link>
+                )}
               </Button>
             );
           })}

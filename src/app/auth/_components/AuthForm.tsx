@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 
-const LoginForm = () => {
+const AuthForm = () => {
   const [email, setEmail] = useState("");
   const [lastMethod, setLastMethod] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -65,7 +65,7 @@ const LoginForm = () => {
   if (submitted) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center">
-        <div className="flex flex-col items-center justify-center gap-3 text-center">
+        <div className="flex flex-col items-center justify-center gap-5 text-center">
           <div className="bg-sidebar rounded-full border p-4">
             <MailCheckIcon size={"25"} />
           </div>
@@ -76,6 +76,13 @@ const LoginForm = () => {
               <span className="font-medium">{email}</span>
             </p>
           </div>
+          <Button
+            size="sm"
+            className="bg-foreground hidden md:inline-flex"
+            onClick={() => window.open("https://mail.google.com", "_blank")}
+          >
+            Open Gmail
+          </Button>
         </div>
       </div>
     );
@@ -173,4 +180,4 @@ const LastUsedBadge = () => {
   );
 };
 
-export default LoginForm;
+export default AuthForm;

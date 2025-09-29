@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
-import { FullscreenIcon, LogOutIcon } from "lucide-react";
+import { FullscreenIcon, LoaderCircleIcon, LogOutIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth-client";
@@ -14,6 +14,7 @@ export default function MinWidth({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [isTooSmall, setIsTooSmall] = useState(false);
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const isExcluded = EXCLUDED_PATHS.includes(pathname);
 
@@ -29,6 +30,7 @@ export default function MinWidth({ children }: { children: ReactNode }) {
 
   const handleSignOut = async () => {
     try {
+      setLoading(true);
       await authClient.signOut({
         fetchOptions: {
           onSuccess: () => {
@@ -38,6 +40,8 @@ export default function MinWidth({ children }: { children: ReactNode }) {
       });
     } catch {
       toast.error("Error Signing Out");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,8 +55,16 @@ export default function MinWidth({ children }: { children: ReactNode }) {
           variant={"outline"}
           onClick={handleSignOut}
         >
-          <LogOutIcon />
-          <span>Sign Out</span>
+          {loading ? (
+            <div className="animate-spin">
+              <LoaderCircleIcon />
+            </div>
+          ) : (
+            <>
+              <LogOutIcon />
+              <span>Sign Out</span>
+            </>
+          )}
         </Button>
         <div className="flex flex-col items-start justify-start space-y-10">
           <div className="bg-sidebar rounded-2xl p-4">

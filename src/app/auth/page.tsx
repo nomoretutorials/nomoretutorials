@@ -1,8 +1,8 @@
 // app/auth/page.tsx
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import AuthCard from "@/app/auth/_components/AuthCard";
 
-import AuthCard from "@/components/AuthCard";
 import { auth } from "@/lib/auth"; // your server-side auth utility
 
 // TODO: Remove toast when magic link sent show a component

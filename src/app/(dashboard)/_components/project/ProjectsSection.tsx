@@ -1,14 +1,16 @@
 import { BookmarkIcon, MapIcon } from "lucide-react";
 
+
+
 import { Button } from "@/components/ui/button";
 import NewProjectCard from "./NewProjectCard";
 import ProjectCard from "./ProjectCard";
-import SystemProjectCard from "./SystemProjectCard";
+
 
 const ProjectsSection = () => {
   return (
     <div className="h-[calc(100vh-4rem)] overflow-hidden px-2 pb-2">
-      <div className="bg-background h-full space-y-10 overflow-y-auto rounded-2xl border bg-gradient-to-b from-white/1 to-transparent px-9 pt-8 pb-1 shadow-sm">
+      <div className="bg-background h-full space-y-10 overflow-y-auto rounded-2xl border bg-gradient-to-b from-white/1 to-transparent px-9 py-8 shadow-sm">
         <div className="border-border flex items-center justify-between border-b pb-4">
           <div>
             <h2 className="flex items-center gap-3 text-2xl font-semibold tracking-tight">
@@ -25,7 +27,6 @@ const ProjectsSection = () => {
 
         <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <NewProjectCard />
-          <SystemProjectCard />
         </div>
 
         <div
@@ -45,7 +46,7 @@ const ProjectsSection = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <ProjectCard />
         </div>
       </div>

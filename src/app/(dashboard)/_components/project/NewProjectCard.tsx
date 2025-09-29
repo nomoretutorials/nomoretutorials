@@ -154,31 +154,39 @@ const NewProjectDialog = () => {
 
 const NewProjectCard = () => {
   return (
-    <Card className="relative h-full overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      {/* subtle gradient top */}
-      <div
-        aria-hidden
-        className="from-primary/15 pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b to-transparent"
-      />
+    <Card className="group border-border/70 bg-card relative flex h-68 w-full max-w-sm flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl">
+      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent)]" />
+      </div>
+
       <CardHeader>
-        <CardTitle className="flex items-center gap-3 text-lg">
-          <span className="bg-primary/15 text-primary ring-primary/30 inline-flex size-9 items-center justify-center rounded-lg ring-1">
-            <Plus className="size-5" />
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold tracking-tight">
+          <span className="bg-primary/10 ring-primary/20 group-hover:ring-primary/40 relative flex size-10 items-center justify-center rounded-xl ring-1 transition group-hover:scale-110">
+            <span className="border-primary/30 absolute inset-0 rounded-xl border-2 border-dashed" />
+            <Plus className="text-primary relative z-10 size-5" />
           </span>
-          Start a new project
+          <span className="text-foreground">Start a new project</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground text-sm">
-          Spin up a blank project. You can add stacks and integrations any time.
-        </p>
-      </CardContent>
-      <CardFooter className="border-border flex items-center justify-between border-t">
-        <NewProjectDialog />
-        <span className="text-muted-foreground text-xs">
-          Shortcut: <kbd className="bg-muted rounded px-1 py-0.5">Ctrl + P</kbd>
-        </span>
-      </CardFooter>
+
+      <div className="mt-auto flex flex-col gap-6">
+        <CardContent>
+          <p className="text-muted-foreground text-sm leading-snug">
+            Kick off a fresh project powered by AI. Add stacks and integrations anytime — no setup
+            required.
+          </p>
+        </CardContent>
+
+        <CardFooter className="border-border flex items-center justify-between border-t pt-3">
+          <NewProjectDialog />
+          <span className="text-muted-foreground text-xs">
+            Shortcut:{" "}
+            <kbd className="bg-muted rounded px-1.5 py-0.5 font-mono text-[10px] shadow-sm">
+              Ctrl + P
+            </kbd>
+          </span>
+        </CardFooter>
+      </div>
     </Card>
   );
 };

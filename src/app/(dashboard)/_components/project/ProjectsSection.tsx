@@ -1,11 +1,10 @@
 import { BookmarkIcon, MapIcon } from "lucide-react";
 
-
-
 import { Button } from "@/components/ui/button";
 import NewProjectCard from "./NewProjectCard";
 import ProjectCard from "./ProjectCard";
 
+// TODO: Sort the last updated project and show beside create new proj.
 
 const ProjectsSection = () => {
   return (
@@ -19,9 +18,6 @@ const ProjectsSection = () => {
               </div>
               <span>Quick Action</span>
             </h2>
-          </div>
-          <div className="hidden items-center gap-2 sm:flex">
-            <Button>New</Button>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, MailCheckIcon } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ const LoginForm = () => {
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingType, setLoadingType] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -49,7 +50,7 @@ const LoginForm = () => {
 
         case "magic-link":
           await authClient.signIn.magicLink({ email });
-          toast.success("Magic link sent! Check your inbox.");
+          setSubmitted(true);
           break;
       }
     } catch (error) {
@@ -61,8 +62,38 @@ const LoginForm = () => {
     }
   };
 
+  if (submitted) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center gap-3 text-center">
+          <div className="bg-sidebar rounded-full border p-4">
+            <MailCheckIcon size={"25"} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold">Check your email</h2>
+            <p className="text-muted-foreground truncate text-sm">
+              We sent a verification link to <br />
+              <span className="font-medium">{email}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex w-full flex-col space-y-4">
+      <div className="mb-8">
+        <div className="flex w-full items-center justify-center gap-3">
+          <span className="mb-10 text-xl font-extralight italic">NoMoreTutorials</span>
+        </div>
+        <div className="">
+          <h1 className="text-2xl font-normal">Get Started</h1>
+          <p className="text-muted-foreground text-[16px] font-light">
+            Continue with anyone below to login to your account.
+          </p>
+        </div>
+      </div>
       <form onSubmit={(e) => handleSubmit(e, "magic-link")} className="flex w-full flex-col gap-3">
         <div className="relative">
           <Input

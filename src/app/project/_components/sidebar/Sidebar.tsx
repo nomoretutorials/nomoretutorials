@@ -1,23 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { identicon } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
 import { FaGithub } from "react-icons/fa";
+
+import { useResizableSidebar } from "@/hooks/useSidebar";
 
 type SidebarProps = {
   id: string;
 };
 
 export default function Sidebar({ id }: SidebarProps) {
-  const [sidebarWidth, setSidebarWidth] = useState<number>(280);
-  const [isDragging, setIsDragging] = useState(false);
-
-  const MIN = 270;
-  const MAX = 560;
-
-  const resizerRef = useRef<HTMLDivElement | null>(null);
+  const { sidebarWidth, isDragging, resizerRef, onPointerDown } = useResizableSidebar(id);
 
   const avatarDataUri = useMemo(() => {
     try {
@@ -27,41 +23,6 @@ export default function Sidebar({ id }: SidebarProps) {
       return "data:image/svg+xml;base64,=";
     }
   }, [id]);
-
-  useEffect(() => {
-    function handlePointerMove(e: PointerEvent) {
-      if (!isDragging) return;
-      const container = resizerRef.current?.parentElement;
-      if (!container) return;
-      const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const clamped = Math.max(MIN, Math.min(MAX, x));
-      setSidebarWidth(clamped);
-    }
-
-    function handlePointerUp() {
-      if (!isDragging) return;
-      setIsDragging(false);
-      try {
-        resizerRef.current?.releasePointerCapture?.(0 as number);
-      } catch {}
-    }
-
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-    return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-    };
-  }, [isDragging]);
-
-  function onPointerDown(e: React.PointerEvent) {
-    setIsDragging(true);
-    const el = e.currentTarget as HTMLElement;
-    try {
-      el.setPointerCapture(e.pointerId);
-    } catch {}
-  }
 
   return (
     <>
@@ -92,14 +53,12 @@ export default function Sidebar({ id }: SidebarProps) {
             </div>
           </div>
 
-          {/* Placeholder content area */}
           <div className="flex-1 space-y-3 overflow-auto">
             <div className="bg-card text-muted-foreground rounded-md p-3 text-sm">
               Add your sidebar content here
             </div>
           </div>
 
-          {/* Footer controls */}
           <div className="flex items-center gap-2">
             <div className="text-muted-foreground ml-auto text-xs">
               {Math.round(sidebarWidth)}px
@@ -108,14 +67,11 @@ export default function Sidebar({ id }: SidebarProps) {
         </div>
       </aside>
 
-      {/* Resizer */}
       <div
         id="resizer"
         ref={resizerRef}
         role="separator"
         aria-orientation="vertical"
-        aria-valuemin={MIN}
-        aria-valuemax={MAX}
         aria-valuenow={Math.round(sidebarWidth)}
         className={`flex w-3 cursor-col-resize items-center justify-center transition-colors select-none ${
           isDragging ? "bg-muted/10" : "bg-transparent"

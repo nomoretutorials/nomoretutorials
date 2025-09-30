@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import Sidebar from "../_components/Sidebar";
+import Sidebar from "../_components/sidebar/Sidebar";
 
 type Props = {
   params: { id: string };

@@ -2,7 +2,7 @@
 CREATE TYPE "public"."StepStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'ROADMAP');
 
 -- CreateTable
-CREATE TABLE "public"."Steps" (
+CREATE TABLE "public"."steps" (
     "id" TEXT NOT NULL,
     "index" INTEGER NOT NULL,
     "title" TEXT NOT NULL,
@@ -12,11 +12,11 @@ CREATE TABLE "public"."Steps" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "projectId" TEXT NOT NULL,
 
-    CONSTRAINT "Steps_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "steps_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE INDEX "Steps_projectId_index_idx" ON "public"."Steps"("projectId", "index");
+CREATE INDEX "steps_projectId_index_idx" ON "public"."steps"("projectId", "index");
 
 -- AddForeignKey
-ALTER TABLE "public"."Steps" ADD CONSTRAINT "Steps_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "public"."projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."steps" ADD CONSTRAINT "steps_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "public"."projects"("id") ON DELETE CASCADE ON UPDATE CASCADE;

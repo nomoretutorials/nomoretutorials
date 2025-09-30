@@ -51,14 +51,14 @@ model Project {
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   ProjectTechStack ProjectTechStack[]
-  Steps            Steps[]
+  Steps            Step[]
 
   @@index([userId])
   @@index([userId, status])
   @@map("projects")
 }
 
-model Steps {
+model Step {
   id    String @id @default(uuid())
   index Int
 
@@ -73,6 +73,7 @@ model Steps {
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId, index])
+  @@map("steps")
 }
 
 model Session {

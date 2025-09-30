@@ -1,8 +1,7 @@
 "use server";
 
-import { headers } from "next/headers";
+import { getServerUserSession } from "@/app/utils/getServerUserSession";
 
-import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 // TODO: Input zod validation
@@ -14,20 +13,16 @@ export async function createNewProject({
   title: string;
   description: string;
 }) {
-  const data = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!data?.user) {
-    return { error: "Unauthorized" };
-  }
+  const user = await getServerUserSession();
+  if (!user) return { success: false, message: "Unauthorized" };
 
   try {
     const project = await prisma.project.create({
       data: {
         title,
         description,
-        userId: data.user.id,
+        userId: user.id,
+        status: "DRAFT",
       },
       select: {
         id: true,

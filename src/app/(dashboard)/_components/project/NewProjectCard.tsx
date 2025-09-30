@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { generateProjectMetadata } from "@/actions/ai/generateProjectMetadata";
+import { parseProjectMetadataAgent } from "@/actions/ai/parseProjectMetadataAgent";
 import { createNewProject } from "@/actions/project/createNewProject";
 import { CornerDownLeft, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -37,13 +37,12 @@ const NewProjectDialog = () => {
       let finalTitle = title;
       let finalDescription = description;
 
-
       if (!finalTitle || !finalDescription) {
         if (!idea) {
           return toast.error("Please enter an idea to generate project.");
         }
         const { title: genTitle, description: genDescription } =
-          await generateProjectMetadata(idea);
+          await parseProjectMetadataAgent(idea);
 
         finalTitle = genTitle;
         finalDescription = genDescription;

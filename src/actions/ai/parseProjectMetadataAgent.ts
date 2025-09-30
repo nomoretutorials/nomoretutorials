@@ -4,10 +4,11 @@ import { projectMetadataAgent } from "@/inngest/agents/projectMetadataAgent";
 
 // TODO: Either title or description will be empty. whatever is generate.
 
-export async function generateProjectMetadata(projectIdea: string) {
+export async function parseProjectMetadataAgent(projectIdea: string) {
   const { output } = await projectMetadataAgent.run(projectIdea);
 
   let parsed: { title: string; tagline: string };
+
   try {
     const firstOutput = output[0];
     if (!firstOutput || !("content" in firstOutput)) {
@@ -15,7 +16,6 @@ export async function generateProjectMetadata(projectIdea: string) {
     }
     const content = firstOutput.content as string;
     parsed = JSON.parse(content);
-    console.log("Parsed result:", parsed.title);
   } catch (error) {
     console.error("Failed to parse agent result:", error);
     throw new Error("Agent returned invalid JSON");

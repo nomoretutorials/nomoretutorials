@@ -37,13 +37,14 @@ model User {
 }
 
 model Project {
-  id            String        @id @default(uuid())
-  title         String
-  description   String
-  status        ProjectStatus @default(DRAFT)
-  techStacks    String[]      @default([])
-  repositoryUrl String?
-  features      Json?
+  id               String        @id @default(uuid())
+  title            String
+  description      String
+  status           ProjectStatus @default(DRAFT)
+  techStacks       String[]      @default([])
+  repositoryUrl    String?
+  features         Json?
+  currentStepIndex Int           @default(0)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -55,6 +56,7 @@ model Project {
 
   @@index([userId])
   @@index([userId, status])
+  @@index([userId, currentStepIndex])
   @@map("projects")
 }
 
@@ -66,13 +68,18 @@ model Step {
   status  StepStatus @default(PENDING)
   content Json?
 
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@index([projectId, index])
+  @@unique([projectId, index])
+  @@index([projectId, status])
+  @@index([projectId, isCompleted])
   @@map("steps")
 }
 
@@ -177,12 +184,14 @@ model Verification {
 
 enum StepStatus {
   PENDING
+  GENERATING
+  COMPLETED // ai generated the step content .
   IN_PROGRESS
-  ROADMAP
 }
 
 enum ProjectStatus {
   DRAFT
+  CONFIGURING
   ACTIVE
   COMPLETED
   ON_HOLD

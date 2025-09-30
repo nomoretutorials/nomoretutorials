@@ -1,5 +1,5 @@
-import { error, success } from "@/app/utils/apiResponse";
-import { getServerUserSession } from "@/app/utils/getServerUserSession";
+import { error, success } from "@/utils/apiResponse";
+import { getServerUserSession } from "@/utils/getServerUserSession";
 
 import prisma from "@/lib/prisma";
 

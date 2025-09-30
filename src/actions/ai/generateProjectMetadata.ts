@@ -1,6 +1,6 @@
 "use server";
 
-import { projectMetadataAgent } from "@/inngest/agents";
+import { projectMetadataAgent } from "@/inngest/agents/projectMetadataAgent";
 
 // TODO: Either title or description will be empty. whatever is generate.
 

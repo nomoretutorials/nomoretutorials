@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import { useMemo } from "react";
 import { identicon } from "@dicebear/collection";
@@ -7,6 +5,7 @@ import { createAvatar } from "@dicebear/core";
 import { FaGithub } from "react-icons/fa";
 
 import { useResizableSidebar } from "@/hooks/useSidebar";
+import SidebarSteps from "./SidebarSteps";
 
 type SidebarProps = {
   id: string;
@@ -54,9 +53,7 @@ export default function Sidebar({ id }: SidebarProps) {
           </div>
 
           <div className="flex-1 space-y-3 overflow-auto">
-            <div className="bg-card text-muted-foreground rounded-md p-3 text-sm">
-              Add your sidebar content here
-            </div>
+            <SidebarSteps />
           </div>
 
           <div className="flex items-center gap-2">

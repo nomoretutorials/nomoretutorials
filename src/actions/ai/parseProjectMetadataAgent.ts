@@ -1,28 +1,19 @@
 "use server";
 
-import { projectMetadataAgent } from "@/inngest/agents/projectMetadataAgent";
-
 // TODO: Either title or description will be empty. whatever is generate.
+import { projectMetadataAgent } from "@/inngest/agents/projectMetadataAgent";
+import { projectMetadata, projectMetadataSchema } from "@/schemas/agentResponseValidation";
+import { runAndValidateAgent } from "@/utils/runAndValidateAgent";
 
 export async function parseProjectMetadataAgent(projectIdea: string) {
-  const { output } = await projectMetadataAgent.run(projectIdea);
-
-  let parsed: { title: string; tagline: string };
-
-  try {
-    const firstOutput = output[0];
-    if (!firstOutput || !("content" in firstOutput)) {
-      throw new Error("No content found in agent output");
-    }
-    const content = firstOutput.content as string;
-    parsed = JSON.parse(content);
-  } catch (error) {
-    console.error("Failed to parse agent result:", error);
-    throw new Error("Agent returned invalid JSON");
-  }
+  const parsed = await runAndValidateAgent<projectMetadata>(
+    projectMetadataAgent,
+    projectIdea,
+    projectMetadataSchema
+  );
 
   return {
     title: parsed.title,
-    description: parsed.tagline,
+    description: parsed.description,
   };
 }

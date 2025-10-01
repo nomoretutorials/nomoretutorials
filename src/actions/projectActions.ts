@@ -35,3 +35,26 @@ export async function createNewProject({
     return { error: "Something went wrong" };
   }
 }
+
+export async function getProject(projectId: string) {
+  const user = await getServerUserSession();
+  if (!user) return { success: false, message: "Unauthorized" };
+
+  try {
+    const project = await prisma.project.findUnique({
+      where: {
+        id: projectId,
+      },
+      include: {
+        Steps: {
+          orderBy: { index: "asc" },
+        },
+      },
+    });
+
+    return { success: true, project };
+  } catch (error) {
+    console.error("Onboarding error:", error);
+    return { error: "Something went wrong" };
+  }
+}

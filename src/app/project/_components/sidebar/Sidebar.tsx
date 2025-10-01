@@ -2,26 +2,41 @@ import Image from "next/image";
 import { useMemo } from "react";
 import { identicon } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
+import { Prisma } from "@prisma/client";
 import { FaGithub } from "react-icons/fa";
 
 import { useResizableSidebar } from "@/hooks/useSidebar";
 import SidebarSteps from "./SidebarSteps";
 
-type SidebarProps = {
-  id: string;
+export type SidebarProps = {
+  steps: Array<{
+    id: string;
+    index: number;
+    title: string;
+    status: string;
+    content: Prisma.JsonValue;
+    isCompleted: boolean;
+    projectId: string;
+  }>;
+  title: string;
+  currentStepIndex: number;
+  onStepSelect: (index: number) => void;
 };
 
-export default function Sidebar({ id }: SidebarProps) {
-  const { sidebarWidth, isDragging, resizerRef, onPointerDown } = useResizableSidebar(id);
+export default function Sidebar({ steps, title, currentStepIndex, onStepSelect }: SidebarProps) {
+  const projectId = steps[0]?.projectId || "unknown";
+  const { sidebarWidth, isDragging, resizerRef, onPointerDown } = useResizableSidebar(projectId);
+
+  console.log("Specific Project Page Client - Project Id: ", projectId);
 
   const avatarDataUri = useMemo(() => {
     try {
-      const svg = createAvatar(identicon, { seed: id }).toString();
+      const svg = createAvatar(identicon, { seed: projectId }).toString();
       return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
     } catch {
       return "data:image/svg+xml;base64,=";
     }
-  }, [id]);
+  }, [projectId]);
 
   return (
     <>
@@ -43,8 +58,10 @@ export default function Sidebar({ id }: SidebarProps) {
                 className="h-12 w-12 rounded-lg border"
               />
               <div>
-                <div className="font-semibold">Project</div>
-                <div className="text-muted-foreground max-w-[160px] truncate text-sm">{id}</div>
+                <div className="font-semibold">{title}</div>
+                <div className="text-muted-foreground max-w-[160px] truncate text-sm">
+                  {projectId}
+                </div>
               </div>
             </div>
             <div>
@@ -53,7 +70,11 @@ export default function Sidebar({ id }: SidebarProps) {
           </div>
 
           <div className="flex-1 space-y-3 overflow-auto">
-            <SidebarSteps />
+            <SidebarSteps
+              steps={steps}
+              currentStepIndex={currentStepIndex}
+              onStepSelect={onStepSelect}
+            />
           </div>
 
           <div className="flex items-center gap-2">
@@ -70,7 +91,7 @@ export default function Sidebar({ id }: SidebarProps) {
         role="separator"
         aria-orientation="vertical"
         aria-valuenow={Math.round(sidebarWidth)}
-        className={`flex w-3 cursor-col-resize items-center justify-center transition-colors select-none ${
+        className={`-ml-3 flex w-3 cursor-col-resize items-center justify-center transition-colors select-none ${
           isDragging ? "bg-muted/10" : "bg-transparent"
         }`}
         onPointerDown={onPointerDown}

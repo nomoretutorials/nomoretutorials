@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getProject } from "@/actions/projectActions";
 
-import SpecificProjectPageClient from "../_components/SpecificProjectPageClient";
+import ProjectPageClient from "../_components/ProjectPageClient";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -9,7 +9,7 @@ type Props = {
 
 // TODO: Implement try/catch
 
-export default async function SpecificProjectPage({ params }: Props) {
+export default async function ProjectPage({ params }: Props) {
   const { id } = await params;
   const { project } = await getProject(id);
 
@@ -17,5 +17,5 @@ export default async function SpecificProjectPage({ params }: Props) {
     notFound();
   }
 
-  return <SpecificProjectPageClient project={project} />;
+  return <ProjectPageClient project={project} />;
 }

@@ -9,5 +9,5 @@ export async function parseFeaturesAgent(title: string, description: string) {
     FeatureListSchema
   );
 
-  return parsed.features;
+  return parsed;
 }

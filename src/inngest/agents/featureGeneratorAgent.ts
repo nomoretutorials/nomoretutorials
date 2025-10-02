@@ -86,10 +86,10 @@ export const featureGeneratorAgent = createAgent({
     "Understands a project idea from title and description, then generates 12–14 core features",
   system: PROMPT,
   model: openai({
-    model: "gpt-4-turbo",
+    model: "gpt-5-nano",
     defaultParameters: {
-      temperature: 0.6,
-      max_completion_tokens: 1000,
+      // temperature: 0.6,
+      max_completion_tokens: 4000,
     },
   }),
 });

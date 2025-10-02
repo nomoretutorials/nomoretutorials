@@ -115,3 +115,64 @@ export async function saveSelectedFeatures(projectId: string, featureIds: string
 
   return { success: "true" };
 }
+
+export async function getAllTechStacks() {
+  const user = await getServerUserSession();
+  if (!user) return { success: false, message: "Unauthorized" };
+
+  try {
+    return await prisma.techStack.findMany({
+      orderBy: [{ category: "asc" }, { name: "asc" }],
+    });
+  } catch {
+    console.error("Something Went Wrong");
+    return [];
+  }
+}
+
+export async function saveProjectConfiguration(
+  projectId: string,
+  featureIds: string[],
+  techStackIds: string[]
+) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  if (!project) {
+    throw new Error("Project not found");
+  }
+
+  const allFeatures = project.features as Feature[];
+  const selectedFeatures = allFeatures.filter((f) => featureIds.includes(f.id));
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      techStacks: techStackIds,
+      status: "ACTIVE",
+    },
+  });
+
+  await prisma.projectTechStack.createMany({
+    data: techStackIds.map((stackId, index) => ({
+      projectId,
+      techStackId: stackId,
+      isPrimary: index == 0,
+    })),
+    skipDuplicates: true,
+  });
+
+  await inngest.send({
+    name: "project/steps.generate",
+    data: {
+      projectId,
+      selectedFeatures,
+      selectedTechStack: techStackIds,
+    },
+  });
+
+  revalidatePath(`/project/${projectId}`);
+
+  return { success: "true" };
+}

@@ -23,3 +23,15 @@ export const FeatureListSchema = z.object({
 
 export type Feature = z.infer<typeof FeatureSchema>;
 export type FeaturesList = z.infer<typeof FeatureListSchema>;
+
+export const BuildStepSchema = z.object({
+  id: z.string().regex(/^\d+$/, "ID must be a numeric string"),
+  title: z.string().min(1, "Build title cannot be empty"),
+});
+
+export const BuildStepListSchema = z.object({
+  steps: z.array(BuildStepSchema).min(8).max(35),
+});
+
+export type BuildSteps = z.infer<typeof BuildStepSchema>;
+export type BuildStepsList = z.infer<typeof BuildStepListSchema>;

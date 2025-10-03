@@ -122,7 +122,7 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
           />
 
           <main className="relative flex h-full min-h-full flex-1 flex-col overflow-y-auto">
-            <div className="max-w-4xl flex-1 p-8">
+            <div className="mx-auto ml-10 w-4xl flex-1 p-8">
               <div className="space-y-6">
                 {currentStep ? (
                   <div className="space-y-4">
@@ -143,42 +143,52 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
 
                         {currentStep.status === "COMPLETED" && features.length > 0 && (
                           <>
-                            <p className="text-muted-foreground mb-4">
+                            <p className="text-muted-foreground mb-4 text-base font-medium">
                               Select the features you want to include in your project
                             </p>
-                            <div className="space-y-3">
-                              {features.map((feature) => (
-                                <div
-                                  key={feature.id}
-                                  className="hover:bg-accent flex items-start space-x-3 rounded-lg border p-4"
-                                >
-                                  <Checkbox
-                                    id={feature.id}
-                                    checked={selectedFeatures.includes(feature.id)}
-                                    onCheckedChange={() => toggleFeature(feature.id)}
-                                  />
-                                  <div className="flex-1">
-                                    <Label
-                                      htmlFor={feature.id}
-                                      className="cursor-pointer text-sm leading-none font-medium"
-                                    >
-                                      {feature.name}
-                                    </Label>
-                                    <p className="text-muted-foreground mt-1 text-sm">
-                                      {feature.description}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
 
                             {selectedFeatures.length > 0 && (
-                              <div className="mt-4 rounded-lg bg-blue-50 p-3">
-                                <p className="text-sm text-blue-700">
-                                  {selectedFeatures.length} feature(s) selected
+                              <div className="mt-5 flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-3 shadow-sm">
+                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+                                  {selectedFeatures.length}
+                                </span>
+                                <p className="text-sm font-medium text-blue-800">
+                                  Feature
+                                  {selectedFeatures.length > 1 ? "s" : ""} selected
                                 </p>
                               </div>
                             )}
+
+                            <div className="flex flex-col space-y-3">
+                              {features.map((feature) => {
+                                const isSelected = selectedFeatures.includes(feature.id);
+                                return (
+                                  <div
+                                    key={feature.id}
+                                    className={`group hover:border-primary/40 relative flex cursor-pointer items-start space-x-3 rounded-lg border p-4 transition-all hover:shadow-sm ${isSelected ? "border-primary bg-primary/5" : "border-muted"}`}
+                                    onClick={() => toggleFeature(feature.id)}
+                                  >
+                                    <Checkbox
+                                      id={feature.id}
+                                      checked={isSelected}
+                                      onCheckedChange={() => toggleFeature(feature.id)}
+                                      className="mt-1"
+                                    />
+                                    <div className="flex-1">
+                                      <Label
+                                        htmlFor={feature.id}
+                                        className="cursor-pointer text-base leading-tight font-semibold"
+                                      >
+                                        {feature.name}
+                                      </Label>
+                                      <p className="text-muted-foreground mt-1 text-sm leading-snug">
+                                        {feature.description}
+                                      </p>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </>
                         )}
                       </>

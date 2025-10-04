@@ -2,7 +2,7 @@
 
 // TODO: Either title or description will be empty. whatever is generate.
 import { projectMetadataAgent } from "@/inngest/agents/projectMetadataAgent";
-import { projectMetadata, projectMetadataSchema } from "@/schemas/agentResponseValidation";
+import { projectMetadata, projectMetadataSchema } from "@/schemas/agent-response-validation";
 import { runAndValidateAgent } from "@/utils/run-and-validate-agent";
 
 export async function parseProjectMetadataAgent(projectIdea: string) {

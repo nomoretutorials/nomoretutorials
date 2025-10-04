@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { inngest } from "@/inngest/client";
-import { Feature } from "@/schemas/agentResponseValidation";
+import { Feature } from "@/schemas/agent-response-validation";
 import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";

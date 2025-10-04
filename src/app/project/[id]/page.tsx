@@ -1,5 +1,5 @@
-import { notFound } from "next/navigation";
-import { getProject } from "@/actions/projectActions";
+import { notFound, redirect } from "next/navigation";
+import { getAllTechStacks, getProject } from "@/actions/project-actions";
 
 import ProjectPageClient from "../_components/ProjectPageClient";
 
@@ -7,15 +7,25 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-// TODO: Implement try/catch
-
 export default async function ProjectPage({ params }: Props) {
   const { id } = await params;
-  const { project } = await getProject(id);
+  const [projectResult, techStacksResult] = await Promise.all([getProject(id), getAllTechStacks()]);
 
-  if (!project) {
+  if (!projectResult.success) {
+    if (projectResult.message === "Unauthorized") {
+      notFound();
+      redirect("/auth");
+    }
+    console.error("Project fetch failed:", projectResult.message);
     notFound();
   }
 
-  return <ProjectPageClient project={project} />;
+  if (!techStacksResult?.success) {
+    console.error("Tech stack fetch failed:", techStacksResult.message);
+    return <ProjectPageClient project={projectResult.data.project} techStacks={[]} />;
+  }
+
+  return (
+    <ProjectPageClient project={projectResult.data.project} techStacks={techStacksResult.data} />
+  );
 }

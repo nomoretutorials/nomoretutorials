@@ -4,11 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
-import { CommandIcon, FolderOpenDotIcon, LayoutDashboardIcon } from "lucide-react";
+import { FolderOpenDotIcon, LayoutDashboardIcon } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 
 import { Button } from "@/components/ui/button";
 import { Command, CommandInput } from "@/components/ui/command";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useScrollTo } from "@/hooks/useScrollTo";
 import SearchComponent from "../search/SearchBar";
@@ -72,8 +73,11 @@ const Navbar = () => {
             />
           </Command>
 
-          <div className="bg-muted/70 text-muted-foreground pointer-events-none absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[13px] shadow-sm">
-            <CommandIcon className="h-3 w-3" /> K
+          <div className=" absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1 ">
+            <KbdGroup className="bg-none">
+              <Kbd>Ctrl</Kbd>
+              <Kbd>K</Kbd>
+            </KbdGroup>
           </div>
 
           <SearchComponent open={open} setOpen={setOpen} />

@@ -43,15 +43,15 @@ const AuthForm = () => {
     try {
       switch (type) {
         case "google":
-          await authClient.signIn.social({ provider: "google", callbackURL: "/onboarding" });
+          await authClient.signIn.social({ provider: "google" });
           break;
 
         case "github":
-          await authClient.signIn.social({ provider: "github", callbackURL: "/onboarding" });
+          await authClient.signIn.social({ provider: "github" });
           break;
 
         case "magic-link":
-          await authClient.signIn.magicLink({ email, callbackURL: "/onboarding" });
+          await authClient.signIn.magicLink({ email });
           setSubmitted(true);
           break;
       }

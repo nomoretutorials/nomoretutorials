@@ -1,6 +1,6 @@
 import { featureGeneratorAgent } from "@/inngest/agents/featureGeneratorAgent";
 import { FeatureListSchema, FeaturesList } from "@/schemas/agentResponseValidation";
-import { runAndValidateAgent } from "@/utils/runAndValidateAgent";
+import { runAndValidateAgent } from "@/utils/run-and-validate-agent";
 
 export async function parseFeaturesAgent(title: string, description: string) {
   const parsed = await runAndValidateAgent<FeaturesList>(

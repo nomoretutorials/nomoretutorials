@@ -171,3 +171,17 @@ export async function saveProjectConfiguration(
     return { success: false, message: "Something went wrong" };
   }
 }
+
+export async function deleteProject(projectId: string): Promise<ActionResponse<null>> {
+  const user = await getServerUserSession();
+  if (!user) return { success: false, message: "Unauthorized" };
+  try {
+    await prisma.project.delete({
+      where: { id: projectId },
+    });
+    return { success: true, data: null };
+  } catch (error) {
+    console.error("Failed to delete project:", error);
+    return { success: false, message: "Failed to delele project." };
+  }
+}

@@ -38,6 +38,16 @@ const ProjectsSection = () => {
   const latestProject = projects.length > 0 ? projects[0] : null;
   const restProjects = projects.length > 1 ? projects.slice(1) : [];
 
+  const handleDelete = (id: string, opts?: { rollback?: boolean; project?: Project }) => {
+    setProjects((prev) => {
+      if (opts?.rollback && opts.project) {
+        return [...prev, opts.project];
+      }
+
+      return prev.filter((proj) => proj.id !== id);
+    });
+  };
+
   return (
     <div className="h-[calc(100vh-4rem)] overflow-hidden px-2">
       <div className="bg-background h-full space-y-8 overflow-y-auto rounded-2xl border bg-gradient-to-b from-white/1 to-transparent px-9 py-8 shadow-sm">
@@ -58,7 +68,14 @@ const ProjectsSection = () => {
 
         <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <NewProjectCard />
-          {latestProject && <ProjectCard key={latestProject.id} project={latestProject} isLatest/>}
+          {latestProject && (
+            <ProjectCard
+              key={latestProject.id}
+              project={latestProject}
+              isLatest
+              onDelete={handleDelete}
+            />
+          )}
         </div>
 
         <section id="all-projects">
@@ -85,7 +102,7 @@ const ProjectsSection = () => {
           ) : projects.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
               {restProjects.map((p) => (
-                <ProjectCard key={p.id} project={p} />
+                <ProjectCard key={p.id} project={p} onDelete={handleDelete} />
               ))}
             </div>
           ) : (

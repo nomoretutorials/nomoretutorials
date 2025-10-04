@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import prisma from "@/lib/prisma";
-import { getServerUserSession } from "../../utils/getServerUserSession";
+import { getServerUserSession } from "../../utils/get-server-user-session";
 import Navbar from "./_components/navbar/Navbar";
 import ProjectsSection from "./_components/project/ProjectsSection";
 import ShowOnboarding from "./_components/user/ShowOnboarding";

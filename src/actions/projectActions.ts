@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { inngest } from "@/inngest/client";
 import { Feature } from "@/schemas/agentResponseValidation";
-import { getServerUserSession } from "@/utils/getServerUserSession";
+import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";
 

@@ -1,6 +1,6 @@
 "use server";
 
-import { getServerUserSession } from "@/utils/getServerUserSession";
+import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";
 

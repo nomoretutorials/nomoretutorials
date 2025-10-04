@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { saveProjectConfiguration, saveSelectedFeatures } from "@/actions/projectActions";
+import { saveProjectConfiguration, saveSelectedFeatures } from "@/actions/project-actions";
 import { Prisma } from "@prisma/client";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,7 +12,7 @@ import StepContentView, { StepContent } from "./StepContentView";
 import TechStackSelection from "./TechStackSelection";
 
 // TODO: Implement Zustand for State management
-type Project = {
+export type Project = {
   id: string;
   title: string;
   description: string;
@@ -28,7 +28,7 @@ type Project = {
   }>;
 };
 
-type TechStack = {
+export type TechStack = {
   id: string;
   name: string;
   slug: string;

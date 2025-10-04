@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { completeOnboarding } from "@/actions/userActions";
+import { completeOnboarding } from "@/actions/user-actions";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 

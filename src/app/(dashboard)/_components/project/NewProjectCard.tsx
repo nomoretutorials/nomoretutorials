@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
-import { parseProjectMetadataAgent } from "@/actions/ai/parseProjectMetadataAgent";
+import { parseProjectMetadataAgent } from "@/actions/ai/parse-project-metadata-agent";
 import { createNewProject } from "@/actions/projectActions";
 import { CornerDownLeft, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";

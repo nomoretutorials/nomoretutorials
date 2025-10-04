@@ -1,5 +1,5 @@
-import { parseBuildStepsAgent } from "@/actions/ai/parseBuildStepsAgent";
-import { BuildStepsList, Feature } from "@/schemas/agentResponseValidation";
+import { parseBuildStepsAgent } from "@/actions/ai/parse-build-steps-agent";
+import { BuildStepsList, Feature } from "@/schemas/agent-response-validation";
 
 import prisma from "@/lib/prisma";
 import { inngest } from "../client";

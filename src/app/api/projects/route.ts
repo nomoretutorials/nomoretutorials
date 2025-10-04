@@ -1,9 +1,7 @@
-import { error, success } from "@/utils/apiResponse";
-import { getServerUserSession } from "@/utils/getServerUserSession";
+import { error, success } from "@/utils/api-response";
+import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";
-
-// TODO: Implement zod validation.
 
 export async function GET() {
   try {

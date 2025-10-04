@@ -54,14 +54,16 @@ const NewProjectDialog = () => {
         setDescription(finalDescription);
       }
 
-      const { project } = await createNewProject({
+      const response = await createNewProject({
         title: finalTitle,
         description: finalDescription,
       });
 
-      if (!project) return toast.error("Error creating project in database");
+      if (!response.success) return toast.error("Error creating project in database");
 
-      router.push(`/project/${project.id}`);
+      const { projectId } = response.data;
+
+      router.push(`/project/${projectId}`);
     } catch {
       return toast.error("Error creating project.");
     } finally {

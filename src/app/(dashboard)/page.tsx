@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { getServerUserSession } from "../../utils/getServerUserSession";
 import Navbar from "./_components/navbar/Navbar";
 import ProjectsSection from "./_components/project/ProjectsSection";
-import NewUserOnboarding from "./_components/user/NewUserOnboarding";
+import ShowOnboarding from "./_components/user/ShowOnboarding";
 
 export default async function Home() {
   const user = await getServerUserSession();
@@ -24,7 +24,7 @@ export default async function Home() {
     <div className="bg-sidebar min-h-lvh">
       <Navbar />
       <ProjectsSection />
-      {showOnboarding && <NewUserOnboarding />}
+      <ShowOnboarding show={showOnboarding} />
     </div>
   );
 }

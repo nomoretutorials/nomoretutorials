@@ -16,7 +16,7 @@ export type TechStack = {
   category: string;
 };
 
-export type Features = {
+export type Feature = {
   id: string;
   name: string;
   description: string;

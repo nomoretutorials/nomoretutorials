@@ -7,8 +7,6 @@ import { getServerUserSession } from "@/utils/getServerUserSession";
 
 import prisma from "@/lib/prisma";
 
-// TODO: Input zod validation
-
 export async function createNewProject({
   title,
   description,

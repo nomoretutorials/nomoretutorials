@@ -1,9 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Project, TechStack } from "@/app/project/_components/ProjectPageClient";
 import { inngest } from "@/inngest/client";
 import { Feature } from "@/schemas/agent-response-validation";
+import { Project, TechStack } from "@/types/project";
 import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";

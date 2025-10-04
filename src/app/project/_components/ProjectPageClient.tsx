@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { saveProjectConfiguration, saveSelectedFeatures } from "@/actions/project-actions";
-import { Prisma } from "@prisma/client";
+import { Features, Project, TechStack } from "@/types/project";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -15,42 +15,12 @@ import StepContentView, { StepContent } from "./StepContentView";
 import TechStackSelection from "./TechStackSelection";
 
 // TODO: Implement Zustand for State management
-export type Project = {
-  id: string;
-  title: string;
-  description: string;
-  features: Prisma.JsonValue;
-  Steps: Array<{
-    id: string;
-    index: number;
-    title: string;
-    status: string;
-    content: Prisma.JsonValue;
-    isCompleted: boolean;
-    projectId: string;
-  }>;
-};
-
-export type TechStack = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  category: string;
-};
-
-type Features = {
-  id: string;
-  name: string;
-  description: string;
-};
+// TODO: Selected step index goes to negative on step change.
 
 type Props = {
   project: Project;
   techStacks: TechStack[];
 };
-
-// TODO: Selected step index goes to negative on step change.
 
 export default function ProjectPageClient({ project, techStacks }: Props) {
   const [selectedStepIndex, setSelectedStepIndex] = useState(0);
@@ -242,7 +212,7 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
             </div>
             <Button
               onClick={handleClick}
-              className="text-muted-foreground absolute top-3 right-3 hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground absolute top-3 right-3"
               size={"sm"}
               variant={"link"}
             >

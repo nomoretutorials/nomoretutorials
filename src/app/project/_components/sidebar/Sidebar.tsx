@@ -1,23 +1,15 @@
 import Image from "next/image";
 import { useMemo } from "react";
+import { Step } from "@/types/project";
 import { identicon } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
-import { Prisma } from "@prisma/client";
 import { FaGithub } from "react-icons/fa";
 
 import { useResizableSidebar } from "@/hooks/useSidebar";
 import SidebarSteps from "./SidebarSteps";
 
 export type SidebarProps = {
-  steps: Array<{
-    id: string;
-    index: number;
-    title: string;
-    status: string;
-    content: Prisma.JsonValue;
-    isCompleted: boolean;
-    projectId: string;
-  }>;
+  steps: Step[];
   title: string;
   currentStepIndex: number;
   onStepSelect: (index: number) => void;

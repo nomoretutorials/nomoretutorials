@@ -1,0 +1,38 @@
+import { Prisma, StepStatus } from "@prisma/client";
+
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  features: Prisma.JsonValue;
+  Steps: Step[];
+}
+
+export type TechStack = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  category: string;
+};
+
+export type Features = {
+  id: string;
+  name: string;
+  description: string;
+};
+
+export interface Step {
+  id: string;
+  index: number;
+  title: string;
+  status: StepStatus;
+  content: Prisma.JsonValue;
+  isCompleted: boolean;
+  projectId: string;
+}
+
+export interface StepContent {
+  // Define your step content structure
+  [key: string]: unknown;
+}

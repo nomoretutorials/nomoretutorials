@@ -1,9 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { saveProjectConfiguration, saveSelectedFeatures } from "@/actions/project-actions";
 import { Prisma } from "@prisma/client";
+import { ArrowLeft } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import ChangeStep from "./ChangeStep";
@@ -53,6 +56,7 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
   const [selectedStepIndex, setSelectedStepIndex] = useState(0);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [selectedTechStacks, setSelectedTechStacks] = useState<string[]>([]);
+  const router = useRouter();
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -109,6 +113,11 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
   } catch (e) {
     console.error("Invalid features JSON:", e);
   }
+
+  const handleClick = () => {
+    // TODO: Ensure everything is saved
+    router.push("/");
+  };
 
   return (
     <div className="h-lvh overflow-hidden p-2">
@@ -231,6 +240,15 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
                 )}
               </div>
             </div>
+            <Button
+              onClick={handleClick}
+              className="text-muted-foreground absolute top-3 right-3 hover:text-foreground"
+              size={"sm"}
+              variant={"link"}
+            >
+              <ArrowLeft />
+              Back to Dashboard
+            </Button>
             <ChangeStep
               currentStepIndex={selectedStepIndex}
               totalSteps={project.Steps.length}

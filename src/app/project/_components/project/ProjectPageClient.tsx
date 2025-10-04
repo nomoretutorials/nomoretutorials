@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useProjectStore } from "@/store/project-store";
 import { Project, TechStack } from "@/types/project";
 import { parseStepFeatures } from "@/utils/project-step-utils";
@@ -40,13 +40,13 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
 
   const { handleSaveAndContinue } = useProjectSave(project.id);
 
-  const currentStep = useMemo(() => {
+  useEffect(() => {
     if (selectedStepIndex < 0 || selectedStepIndex >= project.Steps.length) {
       setSelectedStepIndex(0);
-      return project.Steps[0];
     }
-    return project.Steps[selectedStepIndex];
-  }, [project.Steps, selectedStepIndex, setSelectedStepIndex]);
+  }, [selectedStepIndex, project.Steps.length, setSelectedStepIndex]);
+
+  const currentStep = project.Steps[selectedStepIndex] ?? project.Steps[0];
 
   const features = useMemo(() => {
     if (currentStep?.index === 0) {

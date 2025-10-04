@@ -6,6 +6,8 @@ import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
+// TODO: add debouncing and rate limitting. add client side error handling.
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
@@ -41,15 +43,15 @@ const AuthForm = () => {
     try {
       switch (type) {
         case "google":
-          await authClient.signIn.social({ provider: "google" });
+          await authClient.signIn.social({ provider: "google", callbackURL: "/onboarding" });
           break;
 
         case "github":
-          await authClient.signIn.social({ provider: "github" });
+          await authClient.signIn.social({ provider: "github", callbackURL: "/onboarding" });
           break;
 
         case "magic-link":
-          await authClient.signIn.magicLink({ email });
+          await authClient.signIn.magicLink({ email, callbackURL: "/onboarding" });
           setSubmitted(true);
           break;
       }
@@ -111,10 +113,17 @@ const AuthForm = () => {
             required
             disabled={isLoading}
             aria-label="Email address"
+            autoComplete="email"
           />
           {isClient && lastMethod === "magic-link" ? <LastUsedBadge /> : null}
         </div>
-        <Button size="sm" type="submit" className="lg:bg-foreground" disabled={isLoading}>
+        <Button
+          size="sm"
+          type="submit"
+          className="lg:bg-foreground"
+          disabled={isLoading}
+          aria-busy={isLoading}
+        >
           {isLoading && loadingType === "magic-link" ? (
             <div className="flex items-center gap-3">
               <Loader2Icon className="animate-spin" /> <span>Sending ...</span>
@@ -138,6 +147,7 @@ const AuthForm = () => {
           size="lg"
           onClick={(e) => handleSubmit(e, "google")}
           disabled={isLoading}
+          aria-busy={isLoading}
         >
           {isLoading && loadingType === "google" ? (
             "Connecting..."
@@ -156,6 +166,7 @@ const AuthForm = () => {
           size="lg"
           onClick={(e) => handleSubmit(e, "github")}
           disabled={isLoading}
+          aria-busy={isLoading}
         >
           {isLoading && loadingType === "github" ? (
             "Connecting..."

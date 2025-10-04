@@ -1,21 +1,16 @@
-// app/auth/page.tsx
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import AuthCard from "@/app/auth/_components/AuthCard";
-
-import { auth } from "@/lib/auth"; // your server-side auth utility
-
-// TODO: Remove toast when magic link sent show a component
+import { getServerUserSession } from "@/utils/getServerUserSession";
 
 import AuthForm from "./_components/AuthForm";
 
-export default async function AuthPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export const metadata = { title: "Authentication", description: "Get started with your account." };
 
-  if (session?.user) {
-    redirect("/"); // instantly redirect if logged in
+export default async function AuthPage() {
+  const user = await getServerUserSession();
+
+  if (user) {
+    redirect("/");
   }
 
   return (

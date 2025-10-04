@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { parseProjectMetadataAgent } from "@/actions/ai/parseProjectMetadataAgent";
 import { createNewProject } from "@/actions/projectActions";
 import { CornerDownLeft, Plus, Sparkles } from "lucide-react";
@@ -21,9 +21,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 
-// TODO: Add Form Integration in the Dialog
 // TODO: fix submit on enter. currently pressing enter submits even if on title or description. change it to ctrl + enter.
 
 const NewProjectDialog = () => {
@@ -32,8 +32,10 @@ const NewProjectDialog = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
+    setIsLoading(true);
     try {
       let finalTitle = title;
       let finalDescription = description;
@@ -62,8 +64,10 @@ const NewProjectDialog = () => {
       router.push(`/project/${project.id}`);
     } catch {
       return toast.error("Error creating project.");
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [idea, title, description, router]);
 
   const handleCancel = () => {
     setOpen(false);
@@ -87,7 +91,7 @@ const NewProjectDialog = () => {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
+  }, [open, handleSubmit]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -150,12 +154,25 @@ const NewProjectDialog = () => {
             size="sm"
             className="flex items-center gap-1"
             onClick={handleSubmit}
+            disabled={isLoading}
           >
             <Sparkles className="h-4 w-4" />
-            Generate
+            {isLoading ? (
+              <div>
+                <Spinner />
+              </div>
+            ) : (
+              "Generate"
+            )}
           </Button>
-          <Button size="sm" onClick={handleSubmit}>
-            Create project
+          <Button size="sm" onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? (
+              <div>
+                <Spinner />
+              </div>
+            ) : (
+              "Generate"
+            )}
             <kbd className="bg-muted/10 ml-1 rounded px-1.5 py-0.5 font-mono text-xs">
               <CornerDownLeft />
             </kbd>
@@ -197,7 +214,7 @@ const NewProjectCard = () => {
             Shortcut:{" "}
             <KbdGroup>
               <Kbd>Ctrl</Kbd>
-              <Kbd>K</Kbd>
+              <Kbd>P</Kbd>
             </KbdGroup>
           </span>
         </CardFooter>

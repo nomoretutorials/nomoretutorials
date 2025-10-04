@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import * as Sentry from "@sentry/nextjs";
 
 import prisma from "@/lib/prisma";
 import { getServerUserSession } from "../../utils/get-server-user-session";
@@ -13,12 +14,34 @@ export default async function Home() {
     redirect("/auth");
   }
 
-  const userExist = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { isOnboarded: true },
+  Sentry.setUser({
+    id: user.id,
+    email: user.email,
   });
 
-  const showOnboarding = !userExist?.isOnboarded;
+  let userExist = null;
+  let showOnboarding = false;
+
+  try {
+    userExist = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { isOnboarded: true },
+    });
+
+    showOnboarding = !userExist?.isOnboarded;
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: {
+        component: "Dashboard",
+        operation: "fetch_user_session",
+      },
+      extra: {
+        userId: user.id,
+      },
+    });
+
+    showOnboarding = false;
+  }
 
   return (
     <div className="bg-sidebar min-h-lvh">

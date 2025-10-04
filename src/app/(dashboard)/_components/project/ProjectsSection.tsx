@@ -68,13 +68,17 @@ const ProjectsSection = () => {
 
         <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <NewProjectCard />
-          {latestProject && (
-            <ProjectCard
-              key={latestProject.id}
-              project={latestProject}
-              isLatest
-              onDelete={handleDelete}
-            />
+          {loading ? (
+            <ProjectCardSkeleton />
+          ) : (
+            latestProject && (
+              <ProjectCard
+                key={latestProject.id}
+                project={latestProject}
+                isLatest
+                onDelete={handleDelete}
+              />
+            )
           )}
         </div>
 

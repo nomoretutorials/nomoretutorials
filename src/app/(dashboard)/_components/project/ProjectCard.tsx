@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Calendar1Icon, EllipsisVerticalIcon, XIcon } from "lucide-react";
+import { Calendar1Icon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,13 +16,17 @@ import { Project } from "./ProjectsSection";
 
 interface ProjectCardProps {
   project: Project;
+  isLatest?: boolean;
 }
 
-const ProjectCard = ({ project }: ProjectCardProps) => {
-  const [open, setOpen] = useState(false);
-
+const ProjectCard = ({ project, isLatest }: ProjectCardProps) => {
   return (
-    <Card className="group border-border/70 bg-card relative flex h-64 w-full max-w-sm flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl">
+    <Card className="group border-border/70 bg-card relative flex h-64 w-full max-w-sm flex-col rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl">
+      {isLatest && (
+        <div className="bg-primary/80 text-background absolute -top-2.5 right-4 z-10 rounded-full px-2.5 py-0.5 text-xs font-medium shadow-sm">
+          Last Updated
+        </div>
+      )}
       {/* Header */}
       <CardHeader className="flex items-start justify-between">
         <CardTitle className="flex items-center gap-3 text-lg font-semibold tracking-tight">
@@ -47,15 +50,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
           </span>
         </CardTitle>
 
-        <CardAction>
-          <Button variant="ghost" size="icon" onClick={() => setOpen(!open)}>
-            {open ? (
-              <XIcon className="text-muted-foreground h-5 w-5" />
-            ) : (
-              <EllipsisVerticalIcon className="text-muted-foreground h-5 w-5" />
-            )}
-          </Button>
-        </CardAction>
+        <CardAction></CardAction>
       </CardHeader>
 
       {/* Content */}
@@ -77,14 +72,6 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
           </span>
         </CardFooter>
       </div>
-
-      {/* Drawer */}
-      {open && (
-        <div className="bg-background/95 border-border/40 absolute inset-0 z-20 rounded-xl border-t backdrop-blur-md">
-          {/* Close + drawer content */}
-          ...
-        </div>
-      )}
     </Card>
   );
 };

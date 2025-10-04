@@ -35,6 +35,9 @@ const ProjectsSection = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const latestProject = projects.length > 0 ? projects[0] : null;
+  const restProjects = projects.length > 1 ? projects.slice(1) : [];
+
   return (
     <div className="h-[calc(100vh-4rem)] overflow-hidden px-2">
       <div className="bg-background h-full space-y-8 overflow-y-auto rounded-2xl border bg-gradient-to-b from-white/1 to-transparent px-9 py-8 shadow-sm">
@@ -55,6 +58,7 @@ const ProjectsSection = () => {
 
         <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <NewProjectCard />
+          {latestProject && <ProjectCard key={latestProject.id} project={latestProject} isLatest/>}
         </div>
 
         <section id="all-projects">
@@ -80,7 +84,7 @@ const ProjectsSection = () => {
             </div>
           ) : projects.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
-              {projects.map((p) => (
+              {restProjects.map((p) => (
                 <ProjectCard key={p.id} project={p} />
               ))}
             </div>

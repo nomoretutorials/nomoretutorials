@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { glass } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
+import * as Sentry from "@sentry/nextjs";
 import { CornerDownLeft, CreditCard, LogOut, Settings, User } from "lucide-react";
 
 import {
@@ -82,13 +83,41 @@ const LogOutButton = () => {
   const router = useRouter();
 
   const handleSignout = async () => {
-    await authClient.signOut({
-      fetchOptions: {
-        onSuccess: () => {
-          router.push("/auth");
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            Sentry.setUser(null);
+
+            Sentry.addBreadcrumb({
+              category: "auth",
+              message: "User signed out successfully",
+              level: "info",
+            });
+
+            router.push("/auth");
+          },
+          onError: (ctx) => {
+            Sentry.captureException(ctx.error, {
+              tags: {
+                component: "Navbar",
+                operation: "signout",
+              },
+              extra: {
+                context: ctx,
+              },
+            });
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          component: "Navbar",
+          operation: "signout",
+        },
+      });
+    }
   };
 
   useEffect(() => {
@@ -105,7 +134,7 @@ const LogOutButton = () => {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <div className="cursor-pointer flex items-center">
+        <div className="flex cursor-pointer items-center">
           <LogOut className="mr-2 h-4 w-4" />
           Logout
         </div>

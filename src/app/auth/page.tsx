@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import AuthCard from "@/app/auth/_components/AuthCard";
-import { getServerUserSession } from "@/utils/getServerUserSession";
+import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import AuthForm from "./_components/AuthForm";
 

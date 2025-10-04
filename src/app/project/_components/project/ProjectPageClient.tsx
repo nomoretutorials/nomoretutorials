@@ -9,12 +9,12 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
 import { useProjectSave } from "@/hooks/useProjectSave";
+import Sidebar from "../sidebar/Sidebar";
+import UnsavedChangesDialog from "../UnsavedChangesDialog";
 import ChangeStep from "./ChangeStep";
 import FeatureSelection from "./FeatureSelection";
-import Sidebar from "./sidebar/Sidebar";
 import StepContentRenderer from "./StepContentRenderer";
 import TechStackSelection from "./TechStackSelection";
-import UnsavedChangesDialog from "./UnsavedChangesDialog";
 
 type Props = {
   project: Project;

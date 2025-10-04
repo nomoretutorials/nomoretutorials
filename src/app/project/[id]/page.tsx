@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getAllTechStacks, getProject } from "@/actions/project-actions";
 
-import ProjectPageClient from "../_components/ProjectPageClient";
+import ProjectPageClient from "../_components/project/ProjectPageClient";
 
 type Props = {
   params: Promise<{ id: string }>;

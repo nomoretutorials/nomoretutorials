@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { BookmarkIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import EmptyProject from "./EmptyProject";
@@ -9,6 +11,7 @@ import NewProjectCard from "./NewProjectCard";
 import ProjectCard from "./ProjectCard";
 import ProjectCardSkeleton from "./ProjectCardSkeleton";
 
+// TODO: move this to src/types
 export interface Project {
   id: string;
   title: string;
@@ -26,12 +29,42 @@ const ProjectsSection = () => {
   const [projects, setProjects] = useState<Project[]>([]);
 
   useEffect(() => {
+    Sentry.addBreadcrumb({
+      category: "http",
+      message: "Fetching products from API",
+      level: "info",
+    });
+
     fetch("/api/projects")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        return res.json();
+      })
       .then((data) => {
         setProjects(data.data);
+
+        Sentry.addBreadcrumb({
+          category: "http",
+          message: `Successfully fetched ${data.data?.length || 0} projects`,
+          level: "info",
+        });
       })
-      .catch((error) => console.error("Fetch error:", error))
+      .catch((error) => {
+        Sentry.captureException(error, {
+          tags: {
+            component: "ProjectsSection",
+            operation: "fetch_projects",
+          },
+          extra: {
+            endpoint: "/api/projects",
+          },
+        });
+
+        toast.error("Error Fetching Projects. Try Again!");
+      })
       .finally(() => setLoading(false));
   }, []);
 

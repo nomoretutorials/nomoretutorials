@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import { parseProjectMetadataAgent } from "@/actions/ai/parse-project-metadata-agent";
 import { createNewProject } from "@/actions/project-actions";
+import * as Sentry from "@sentry/nextjs";
 import { CornerDownLeft, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -32,44 +33,120 @@ const NewProjectDialog = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = useCallback(async () => {
-    setIsLoading(true);
+  const handleGenerate = useCallback(async () => {
+    if (!idea) return toast.error("Please enter an idea to generate project details.");
+
+    setIsGenerating(true);
+
+    Sentry.addBreadcrumb({
+      category: "ai",
+      message: "User generating project metadata with AI",
+      level: "info",
+      data: {
+        idea: idea.length,
+      },
+    });
+
     try {
-      let finalTitle = title;
-      let finalDescription = description;
+      const { title: genTitle, description: genDescription } =
+        await parseProjectMetadataAgent(idea);
 
-      if (!finalTitle || !finalDescription) {
-        if (!idea) {
-          return toast.error("Please enter an idea to generate project.");
-        }
-        const { title: genTitle, description: genDescription } =
-          await parseProjectMetadataAgent(idea);
+      if (!title) setTitle(genTitle);
+      if (!description) setDescription(genDescription);
 
-        finalTitle = genTitle;
-        finalDescription = genDescription;
-
-        setTitle(finalTitle);
-        setDescription(finalDescription);
-      }
-
-      const response = await createNewProject({
-        title: finalTitle,
-        description: finalDescription,
+      Sentry.addBreadcrumb({
+        category: "ai",
+        message: "AI generation successful",
+        level: "info",
       });
 
-      if (!response.success) return toast.error("Error creating project in database");
+      toast.success("Generated project details!");
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          component: "NewProjectDialog",
+          operation: "ai_generate",
+        },
+        extra: {
+          ideaLength: idea.length,
+          hasTitle: !!title,
+          hasDescription: !!description,
+        },
+      });
+
+      toast.error("Error generating project details.");
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [idea, title, description]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!title || !description)
+      return toast.error("Please fill in title and description before submitting.");
+
+    Sentry.addBreadcrumb({
+      category: "project",
+      message: "User creating new project",
+      level: "info",
+      data: {
+        titleLength: title.length,
+        descriptionLength: description.length,
+      },
+    });
+
+    setIsSubmitting(true);
+    try {
+      const response = await createNewProject({
+        title,
+        description,
+      });
+
+      if (!response.success) {
+        Sentry.captureException(new Error("Failed to create project in database"), {
+          tags: {
+            component: "NewProjectDialog",
+            operation: "create_project",
+          },
+          extra: {
+            response,
+            title,
+            descriptionLength: description.length,
+          },
+        });
+        return toast.error("Error creating project in database");
+      }
 
       const { projectId } = response.data;
 
+      Sentry.addBreadcrumb({
+        category: "project",
+        message: "Project created successfully",
+        level: "info",
+        data: {
+          projectId,
+        },
+      });
+
       router.push(`/project/${projectId}`);
-    } catch {
-      return toast.error("Error creating project.");
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          component: "NewProjectDialog",
+          operation: "create_project",
+        },
+        extra: {
+          title,
+          descriptionLength: description.length,
+        },
+      });
+      toast.error("Error creating project.");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
-  }, [idea, title, description, router]);
+  }, [title, description, router]);
 
   const handleCancel = () => {
     setOpen(false);
@@ -155,11 +232,11 @@ const NewProjectDialog = () => {
             variant="secondary"
             size="sm"
             className="flex items-center gap-1"
-            onClick={handleSubmit}
-            disabled={isLoading}
+            onClick={handleGenerate}
+            disabled={isGenerating}
           >
             <Sparkles className="h-4 w-4" />
-            {isLoading ? (
+            {isGenerating ? (
               <div>
                 <Spinner />
               </div>
@@ -167,8 +244,8 @@ const NewProjectDialog = () => {
               "Generate"
             )}
           </Button>
-          <Button size="sm" onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? (
+          <Button size="sm" onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? (
               <div>
                 <Spinner />
               </div>
@@ -205,8 +282,7 @@ const NewProjectCard = () => {
       <div className="mt-auto flex flex-col gap-6">
         <CardContent>
           <p className="text-muted-foreground text-sm leading-snug">
-            Kick off a fresh project powered by AI. Add stacks and integrations anytime — no setup
-            required.
+            Kick off a fresh project powered by AI. Choose features and tech stack and start building right away.
           </p>
         </CardContent>
 

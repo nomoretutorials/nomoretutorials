@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { deleteProject } from "@/actions/project-actions";
+import * as Sentry from "@sentry/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { Calendar1Icon, EllipsisVerticalIcon, Github, Trash2, XIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -179,16 +180,56 @@ const DeleteAlertDialog = ({ project, onDelete }: DeleteAlertDialogProps) => {
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
+    Sentry.addBreadcrumb({
+      category: "project",
+      message: "User attempting to delete project",
+      level: "info",
+      data: {
+        projectId: project.id,
+        projectTitle: project.title,
+      },
+    });
     try {
       setDeleting(true);
       onDelete(project.id);
 
       const res = await deleteProject(project.id);
-      if (!res.success) throw new Error(res.message);
+      if (!res.success) {
+        Sentry.captureException(new Error(res.message || "Failed to delete project"), {
+          tags: {
+            component: "ProjectCard",
+            operation: "delete_project",
+          },
+          extra: {
+            projectId: project.id,
+            projectTitle: project.title,
+            response: res,
+          },
+        });
 
+        throw new Error(res.message);
+      }
+
+      Sentry.addBreadcrumb({
+        category: "project",
+        message: "Project deleted successfully",
+        level: "info",
+        data: {
+          projectId: project.id,
+        },
+      });
       toast.success("Project deleted successfully.");
     } catch (error) {
-      console.error("Error deleting project:", error);
+      Sentry.captureException(error, {
+        tags: {
+          component: "ProjectCard",
+          operation: "delete_project",
+        },
+        extra: {
+          projectId: project.id,
+          projectTitle: project.title,
+        },
+      });
       onDelete(project.id, { rollback: true, project });
       toast.error("Failed to delete project.");
     } finally {

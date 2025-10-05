@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const ProjectCardSkeleton = () => {
   return (
-    <Card className="border-border/70 bg-card relative flex h-64 w-full max-w-sm flex-col overflow-hidden rounded-2xl border shadow-sm">
+    <Card className="border-border/70 bg-card relative flex h-68 w-full max-w-sm flex-col overflow-hidden rounded-2xl border shadow-sm">
       <CardHeader className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <Skeleton className="h-5 w-20 rounded-full" />

@@ -35,7 +35,7 @@ const ProjectsSection = () => {
       level: "info",
     });
 
-    fetch("/api/projects")
+    fetch("/api/project")
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);

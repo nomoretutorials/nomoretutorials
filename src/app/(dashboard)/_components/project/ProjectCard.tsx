@@ -40,7 +40,7 @@ const ProjectCard = ({ project, isLatest, onDelete }: ProjectCardProps) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <Card className="group border-border/70 bg-card relative flex h-64 w-full max-w-sm flex-col rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl">
+    <Card className="group border-border/70 bg-card relative flex h-68 w-full max-w-sm flex-col rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl">
       {/* --- Latest Tag --- */}
       {isLatest && (
         <div className="bg-primary/80 text-background absolute -top-2.5 right-4 z-10 rounded-full px-2.5 py-0.5 text-xs font-medium shadow-sm">
@@ -89,9 +89,15 @@ const ProjectCard = ({ project, isLatest, onDelete }: ProjectCardProps) => {
 
       {/* --- Content --- */}
       <div className="mt-auto flex flex-col gap-6">
-        <CardContent className="flex flex-col items-start gap-1">
-          <h1 className="text-xl font-medium">{project.title}</h1>
-          <p className="text-xs font-light">{project.description}</p>
+        <CardContent className="flex flex-col gap-2 px-5 pt-1">
+          {/* Title */}
+          <h1 className="text-foreground group-hover:text-primary line-clamp-1 text-xl font-semibold tracking-tight transition-colors">
+            {project.title}
+          </h1>
+          {/* Description */}
+          <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+            {project.description || "No description available."}
+          </p>
         </CardContent>
 
         <CardFooter className="border-border flex items-center justify-between border-t pt-3">
@@ -112,14 +118,14 @@ const ProjectCard = ({ project, isLatest, onDelete }: ProjectCardProps) => {
         {open && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
+            animate={{ height: "25vh", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="border-border/40 bg-card/95 absolute right-0 bottom-0 left-0 z-20 overflow-hidden rounded-2xl border-t shadow-2xl backdrop-blur-md"
           >
-            <div className="p-5">
+            <div className="flex h-full flex-col justify-between p-5">
               {/* Header Row */}
-              <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium">Project Details</h3>
               </div>
 

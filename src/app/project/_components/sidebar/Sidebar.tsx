@@ -1,25 +1,43 @@
 import Image from "next/image";
-import { useMemo } from "react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { addGithubRepoURL } from "@/actions/project-actions";
 import { Step } from "@/types/project";
 import { identicon } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
+import { Check, ExternalLink } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { useResizableSidebar } from "@/hooks/useSidebar";
 import SidebarSteps from "./SidebarSteps";
 
 export type SidebarProps = {
   steps: Step[];
   title: string;
+  repoUrl: string;
   currentStepIndex: number;
   onStepSelect: (index: number) => void;
 };
 
-export default function Sidebar({ steps, title, currentStepIndex, onStepSelect }: SidebarProps) {
+export default function Sidebar({
+  steps,
+  title,
+  repoUrl,
+  currentStepIndex,
+  onStepSelect,
+}: SidebarProps) {
   const projectId = steps[0]?.projectId || "unknown";
-  const { sidebarWidth, isDragging, resizerRef, onPointerDown } = useResizableSidebar(projectId);
 
-  console.log("Specific Project Page Client - Project Id: ", projectId);
+  const { sidebarWidth, isDragging, resizerRef, onPointerDown } = useResizableSidebar(projectId);
+  const [showGithubInput, setShowGithubInput] = useState(false);
+  const [githubUrl, setGithubUrl] = useState(repoUrl);
+  const [isValid, setIsValid] = useState(true);
+  const [error, setError] = useState("");
+  const [githubRepoAdded, setGithubRepoAdded] = useState(!!repoUrl);
 
   const avatarDataUri = useMemo(() => {
     try {
@@ -29,6 +47,32 @@ export default function Sidebar({ steps, title, currentStepIndex, onStepSelect }
       return "data:image/svg+xml;base64,=";
     }
   }, [projectId]);
+
+  const handleGithubToggle = () => {
+    setShowGithubInput((prev) => !prev);
+  };
+
+  const handleGithubChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setGithubUrl(value);
+    setError("");
+
+    const githubRegex = /^(https?:\/\/)?(www\.)?github\.com\/[\w-]+(\/[\w-]+)?\/?$/;
+    setIsValid(!value || githubRegex.test(value));
+  };
+
+  const handleSave = async () => {
+    if (!isValid || !githubUrl) {
+      setError("Enter a valid Github URL");
+    }
+
+    try {
+      await addGithubRepoURL(projectId, githubUrl);
+      setGithubRepoAdded(true);
+    } catch (error) {}
+
+    setShowGithubInput(false);
+  };
 
   return (
     <>
@@ -56,10 +100,50 @@ export default function Sidebar({ steps, title, currentStepIndex, onStepSelect }
                 </div>
               </div>
             </div>
-            <div>
+            <div onClick={handleGithubToggle}>
               <FaGithub size={23} />
             </div>
           </div>
+          {showGithubInput && (
+            <div>
+              <Label htmlFor="github" className="text-muted-foreground text-xs font-medium">
+                GitHub Repository
+              </Label>
+              <div className="mt-1.5 flex items-center gap-2">
+                <Input
+                  id="github"
+                  placeholder="https://github.com/username/repo"
+                  value={githubUrl || ""}
+                  onChange={handleGithubChange}
+                  className={cn(
+                    "text-sm",
+                    !isValid && "border-destructive focus-visible:ring-destructive"
+                  )}
+                />
+                {githubRepoAdded ? (
+                  <Link
+                    href={githubUrl.startsWith("http") ? githubUrl : `https://${githubUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button variant="outline" size="icon" disabled={!githubUrl || !isValid}>
+                      <ExternalLink size={14} />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleSave}
+                    disabled={!githubUrl || !isValid}
+                  >
+                    <Check size={14} />
+                  </Button>
+                )}
+              </div>
+              {!error && <p className="text-destructive mt-1 text-xs">{error}</p>}
+            </div>
+          )}
 
           <div className="flex-1 space-y-3 overflow-auto">
             <SidebarSteps

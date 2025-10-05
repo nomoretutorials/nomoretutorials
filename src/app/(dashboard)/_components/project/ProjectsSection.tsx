@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Project } from "@/types/project";
 import * as Sentry from "@sentry/nextjs";
 import { BookmarkIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -10,19 +11,6 @@ import EmptyProject from "./EmptyProject";
 import NewProjectCard from "./NewProjectCard";
 import ProjectCard from "./ProjectCard";
 import ProjectCardSkeleton from "./ProjectCardSkeleton";
-
-// TODO: move this to src/types
-export interface Project {
-  id: string;
-  title: string;
-  description: string;
-  techStacks: string[];
-  createdAt: string;
-  updatedAt: string;
-  status: string;
-  repositoryUrl?: string;
-  features?: Record<string, unknown>;
-}
 
 const ProjectsSection = () => {
   const [loading, setLoading] = useState(true);

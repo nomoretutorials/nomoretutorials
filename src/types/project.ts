@@ -4,8 +4,13 @@ export interface Project {
   id: string;
   title: string;
   description: string;
-  features: Prisma.JsonValue;
-  Steps: Step[];
+  techStacks: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  status: string;
+  repositoryUrl?: string | null;
+  features?: Prisma.JsonValue;
+  Steps?: Step[];
 }
 
 export type TechStack = {
@@ -30,6 +35,7 @@ export interface Step {
   content: Prisma.JsonValue;
   isCompleted: boolean;
   projectId: string;
+  repositoryURL?: string;
 }
 
 export interface StepContent {

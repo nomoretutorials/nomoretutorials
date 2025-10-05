@@ -69,6 +69,7 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
             <Sidebar
               steps={project.Steps}
               title={project.title}
+              repoUrl={project.repositoryUrl!}
               currentStepIndex={selectedStepIndex}
               onStepSelect={setSelectedStepIndex}
             />

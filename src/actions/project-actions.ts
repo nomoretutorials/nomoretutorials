@@ -185,3 +185,21 @@ export async function deleteProject(projectId: string): Promise<ActionResponse<n
     return { success: false, message: "Failed to delele project." };
   }
 }
+
+export async function addGithubRepoURL(
+  projectId: string,
+  repositoryUrl: string
+): Promise<ActionResponse<null>> {
+  const user = await getServerUserSession();
+  if (!user) return { success: false, message: "Unauthorized" };
+  try {
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { repositoryUrl },
+    });
+    return { success: true, data: null };
+  } catch (error) {
+    console.error("Failed to delete project:", error);
+    return { success: false, message: "Failed to delele project." };
+  }
+}

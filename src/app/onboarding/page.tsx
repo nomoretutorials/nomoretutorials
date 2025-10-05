@@ -3,10 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { completeOnboarding } from "@/actions/user-actions";
+import * as Sentry from "@sentry/nextjs";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 import { Spinner } from "@/components/ui/spinner";
+
+// TODO: Rewrite it.
 
 const steps = [
   {
@@ -29,11 +32,30 @@ const OnboardingPage = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
+    Sentry.addBreadcrumb({
+      category: "onboarding",
+      message: "User attempting to complete onboarding",
+      level: "info",
+    });
+
     try {
       setIsLoading(true);
       await completeOnboarding();
+
+      Sentry.addBreadcrumb({
+        category: "onboarding",
+        message: "Onboarding completed successfully",
+        level: "info",
+      });
       router.push("/");
-    } catch {
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          component: "Onboarding",
+          operation: "complete_onboarding",
+        },
+      });
+
       toast.error("Error completing onboarding. Try again !");
     } finally {
       setIsLoading(false);

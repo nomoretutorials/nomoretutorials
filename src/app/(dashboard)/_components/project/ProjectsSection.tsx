@@ -29,43 +29,43 @@ const ProjectsSection = () => {
   const [projects, setProjects] = useState<Project[]>([]);
 
   useEffect(() => {
-    Sentry.addBreadcrumb({
-      category: "http",
-      message: "Fetching products from API",
-      level: "info",
-    });
+    const fetchProjects = async () => {
+      Sentry.addBreadcrumb({
+        category: "http",
+        message: "Fetching projects from API",
+        level: "info",
+      });
+      try {
+        const response = await fetch("/api/project");
 
-    fetch("/api/project")
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-        return res.json();
-      })
-      .then((data) => {
+        const data = await response.json();
         setProjects(data.data);
 
         Sentry.addBreadcrumb({
           category: "http",
-          message: `Successfully fetched ${data.data?.length || 0} projects`,
+          message: `Successfully fetched: ${data.data?.length || 0} projects`,
           level: "info",
         });
-      })
-      .catch((error) => {
+
+        setLoading(false);
+      } catch (error) {
         Sentry.captureException(error, {
           tags: {
             component: "ProjectsSection",
             operation: "fetch_projects",
           },
           extra: {
-            endpoint: "/api/projects",
+            endpoint: "/api/project",
           },
         });
 
         toast.error("Error Fetching Projects. Try Again!");
-      })
-      .finally(() => setLoading(false));
+      }
+    };
+
+    fetchProjects();
   }, []);
 
   const latestProject = projects.length > 0 ? projects[0] : null;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { deleteProject } from "@/actions/project-actions";
+import { Project } from "@/types/project";
 import * as Sentry from "@sentry/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { Calendar1Icon, EllipsisVerticalIcon, Github, Trash2, XIcon } from "lucide-react";
@@ -28,7 +29,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Project } from "./ProjectsSection";
 
 interface ProjectCardProps {
   project: Project;
@@ -104,12 +104,6 @@ const ProjectCard = ({ project, isLatest, onDelete }: ProjectCardProps) => {
           <Link href={`/project/${project.id}`}>
             <Button size="sm">Continue</Button>
           </Link>
-          <span className="text-muted-foreground text-xs">
-            Shortcut:{" "}
-            <kbd className="bg-muted rounded px-1.5 py-0.5 font-mono text-[10px] shadow-sm">
-              Ctrl + P
-            </kbd>
-          </span>
         </CardFooter>
       </div>
 

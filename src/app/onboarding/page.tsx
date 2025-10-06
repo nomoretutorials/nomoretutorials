@@ -1,13 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { completeOnboarding } from "@/actions/user-actions";
 import * as Sentry from "@sentry/nextjs";
 import { motion } from "framer-motion";
-import { toast } from "sonner";
 
 import { Spinner } from "@/components/ui/spinner";
+import { useServerAction } from "@/hooks/useServerAction";
 
 // TODO: Rewrite it.
 
@@ -29,7 +28,26 @@ const steps = [
 
 const OnboardingPage = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+
+  const { execute: finishOnboarding, isPending: isLoading } = useServerAction(completeOnboarding, {
+    successMessage: "Onboarding completed!",
+    onSuccess: () => {
+      Sentry.addBreadcrumb({
+        category: "onboarding",
+        message: "Onboarding completed successfully",
+        level: "info",
+      });
+      router.push("/");
+    },
+    onError: (error) => {
+      Sentry.captureException(new Error(error), {
+        tags: {
+          component: "Onboarding",
+          operation: "complete_onboarding",
+        },
+      });
+    },
+  });
 
   const handleSubmit = async () => {
     Sentry.addBreadcrumb({
@@ -38,28 +56,7 @@ const OnboardingPage = () => {
       level: "info",
     });
 
-    try {
-      setIsLoading(true);
-      await completeOnboarding();
-
-      Sentry.addBreadcrumb({
-        category: "onboarding",
-        message: "Onboarding completed successfully",
-        level: "info",
-      });
-      router.push("/");
-    } catch (error) {
-      Sentry.captureException(error, {
-        tags: {
-          component: "Onboarding",
-          operation: "complete_onboarding",
-        },
-      });
-
-      toast.error("Error completing onboarding. Try again !");
-    } finally {
-      setIsLoading(false);
-    }
+    await finishOnboarding();
   };
 
   return (

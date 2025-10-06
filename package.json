@@ -16,6 +16,7 @@
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.42",
     "@dicebear/collection": "^9.2.4",
     "@dicebear/core": "^9.2.4",
     "@inngest/agent-kit": "^0.13.0",
@@ -30,6 +31,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-email/components": "^0.5.5",
     "@sentry/nextjs": "^10",
+    "ai": "^5.0.60",
     "better-auth": "^1.3.11",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

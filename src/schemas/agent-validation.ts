@@ -1,0 +1,11 @@
+import z from "zod";
+
+export const metadataAgentSchema = z.object({
+  title: z
+    .string()
+    .min(1)
+    .max(12, "Title must be short.")
+    .refine((t) => t.split(" ").length <= 2, "Title must be 1 or 2 words.")
+    .describe("A short brand-style name (1-2 words, max 12 characters"),
+  description: z.string().describe("A brief description ( max 120 characters )"),
+});

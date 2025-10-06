@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
+import { generateMetadata } from "@/actions/ai/generateMetadata";
 // Agent removed: previously imported parseProjectMetadataAgent from "@/actions/ai/parse-project-metadata-agent"
 import { createNewProject } from "@/actions/project-actions";
 import * as Sentry from "@sentry/nextjs";
@@ -49,9 +50,11 @@ const NewProjectDialog = () => {
         idea: idea.length,
       },
     });
-
     try {
-      // Agent removed: previously generated title/description via parseProjectMetadataAgent(idea)
+      const result = await generateMetadata(idea);
+
+      if (!title) setTitle(result.data?.title || "");
+      if (!description) setDescription(result.data?.description || "");
 
       Sentry.addBreadcrumb({
         category: "ai",

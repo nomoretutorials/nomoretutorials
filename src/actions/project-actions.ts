@@ -1,9 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { inngest } from "@/inngest/client";
-import { Feature } from "@/schemas/agent-response-validation";
-import { Project, TechStack } from "@/types/project";
+import { Feature, Project, TechStack } from "@/types/project";
 import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";
@@ -33,14 +31,7 @@ export async function createNewProject({
       },
     });
 
-    await inngest.send({
-      name: "project/features.generate",
-      data: {
-        projectId: project.id,
-        title,
-        description,
-      },
-    });
+    // Inngest removed: previously sent event "project/features.generate" with { projectId, title, description }
 
     return { success: true, data: { projectId: project.id } };
   } catch (error) {
@@ -159,10 +150,7 @@ export async function saveProjectConfiguration(
       }),
     ]);
 
-    await inngest.send({
-      name: "project/steps.generate",
-      data: { projectId, selectedFeatures, selectedTechStack: techStackIds },
-    });
+    // Inngest removed: previously sent event "project/steps.generate" with { projectId, selectedFeatures, selectedTechStack }
 
     revalidatePath(`/project/${projectId}`);
     return { success: true, data: null };

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
-import { parseProjectMetadataAgent } from "@/actions/ai/parse-project-metadata-agent";
+// Agent removed: previously imported parseProjectMetadataAgent from "@/actions/ai/parse-project-metadata-agent"
 import { createNewProject } from "@/actions/project-actions";
 import * as Sentry from "@sentry/nextjs";
 import { CornerDownLeft, Plus, Sparkles } from "lucide-react";
@@ -51,11 +51,7 @@ const NewProjectDialog = () => {
     });
 
     try {
-      const { title: genTitle, description: genDescription } =
-        await parseProjectMetadataAgent(idea);
-
-      if (!title) setTitle(genTitle);
-      if (!description) setDescription(genDescription);
+      // Agent removed: previously generated title/description via parseProjectMetadataAgent(idea)
 
       Sentry.addBreadcrumb({
         category: "ai",
@@ -282,7 +278,8 @@ const NewProjectCard = () => {
       <div className="mt-auto flex flex-col gap-6">
         <CardContent>
           <p className="text-muted-foreground text-base leading-snug">
-            Kick off a fresh project powered by AI. Choose features and tech stack and start building right away.
+            Kick off a fresh project powered by AI. Choose features and tech stack and start
+            building right away.
           </p>
         </CardContent>
 

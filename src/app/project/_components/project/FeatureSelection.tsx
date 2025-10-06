@@ -15,7 +15,11 @@ type Props = {
   onToggleFeature: (featureId: string) => void;
 };
 
-export default function FeatureSelection({ features, selectedFeatures, onToggleFeature }: Props) {
+export default function FeatureSelection({
+  features,
+  selectedFeatures,
+  onToggleFeature,
+}: Props) {
   return (
     <>
       <p className="text-muted-foreground mb-4 text-base font-medium">

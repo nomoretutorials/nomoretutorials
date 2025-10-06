@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ type Props = {
   onNext: () => void;
   onPrev: () => void;
   onSaveAndContinue?: () => Promise<void>;
+  areStepsLocked?: boolean;
 };
 
 const ChangeStep = ({
@@ -20,9 +22,10 @@ const ChangeStep = ({
   onNext,
   onPrev,
   onSaveAndContinue,
+  areStepsLocked,
 }: Props) => {
   const isFirstStep = currentStepIndex === 0;
-  const isLastStep = currentStepIndex >= totalSteps - 1;
+  // const isLastStep = currentStepIndex >= totalSteps - 1;
 
   const isFeatureStep = currentStepIndex === 0;
   const isTechStackStep = currentStepIndex === 1;
@@ -31,10 +34,50 @@ const ChangeStep = ({
   const canProceedFromTechStack = selectedTechStacks.length > 0;
 
   const handleNext = async () => {
-    if ((isFeatureStep || isTechStackStep) && onSaveAndContinue) {
-      await onSaveAndContinue();
-    } else {
-      onNext();
+    Sentry.addBreadcrumb({
+      category: "navigation",
+      message: `User proceeding from step ${currentStepIndex + 1}`,
+      level: "info",
+      data: {
+        currentStep: currentStepIndex + 1,
+        totalSteps,
+        isFeatureStep,
+        isTechStackStep,
+        selectedFeaturesCount: selectedFeatures.length,
+        selectedTechStacksCount: selectedTechStacks.length,
+      },
+    });
+    try {
+      if ((isFeatureStep || isTechStackStep) && !areStepsLocked && onSaveAndContinue) {
+        await onSaveAndContinue();
+
+        Sentry.addBreadcrumb({
+          category: "project",
+          message: `Saved ${isFeatureStep ? "features" : "tech stacks"} successfully`,
+          level: "info",
+          data: {
+            step: currentStepIndex + 1,
+            itemsCount: isFeatureStep ? selectedFeatures.length : selectedTechStacks.length,
+          },
+        });
+      } else {
+        onNext();
+      }
+    } catch (error) {
+      Sentry.captureException(error, {
+        tags: {
+          component: "ChangeStep",
+          operation: "save_and_continue",
+          step: isFeatureStep ? "features" : "tech_stacks",
+        },
+        extra: {
+          currentStep: currentStepIndex + 1,
+          selectedFeaturesCount: selectedFeatures.length,
+          selectedTechStacksCount: selectedTechStacks.length,
+        },
+      });
+
+      throw error;
     }
   };
 
@@ -57,11 +100,14 @@ const ChangeStep = ({
         className="cursor-pointer rounded-sm rounded-br-xl"
         onClick={handleNext}
         disabled={
-          (isFeatureStep && !canProceedFromFeatures) ||
-          (isTechStackStep && !canProceedFromTechStack)
+          !areStepsLocked &&
+          ((isFeatureStep && !canProceedFromFeatures) ||
+            (isTechStackStep && !canProceedFromTechStack))
         }
       >
-        <span>{isFeatureStep || isTechStackStep ? "Save & Continue" : "Next Step"}</span>
+        <span>
+          {!areStepsLocked && (isFeatureStep || isTechStackStep) ? "Save & Continue" : "Next Step"}
+        </span>
         <ArrowRight />
       </Button>
     </div>

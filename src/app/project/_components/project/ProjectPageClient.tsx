@@ -40,13 +40,17 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
 
   const { handleSaveAndContinue } = useProjectSave(project.id);
 
+  const areStepsLocked = useMemo(() => {
+    return project.Steps!.length > 2;
+  }, [project.Steps]);
+
   useEffect(() => {
-    if (selectedStepIndex < 0 || selectedStepIndex >= project.Steps.length) {
+    if (selectedStepIndex < 0 || selectedStepIndex >= project.Steps!.length) {
       setSelectedStepIndex(0);
     }
-  }, [selectedStepIndex, project.Steps.length, setSelectedStepIndex]);
+  }, [selectedStepIndex, project.Steps, setSelectedStepIndex]);
 
-  const currentStep = project.Steps[selectedStepIndex] ?? project.Steps[0];
+  const currentStep = project.Steps![selectedStepIndex] ?? project.Steps![0];
 
   const features = useMemo(() => {
     if (currentStep?.index === 0) {
@@ -67,7 +71,7 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
         <div className="bg-background h-full overflow-hidden rounded-2xl border px-0 py-0 shadow-sm">
           <div className="flex h-full">
             <Sidebar
-              steps={project.Steps}
+              steps={project.Steps!}
               title={project.title}
               repoUrl={project.repositoryUrl!}
               currentStepIndex={selectedStepIndex}
@@ -121,12 +125,13 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
 
               <ChangeStep
                 currentStepIndex={selectedStepIndex}
-                totalSteps={project.Steps.length}
+                totalSteps={project.Steps!.length}
                 selectedFeatures={selectedFeatures}
                 selectedTechStacks={selectedTechStacks}
                 onNext={() => setSelectedStepIndex(selectedStepIndex + 1)}
                 onPrev={() => setSelectedStepIndex(selectedStepIndex - 1)}
                 onSaveAndContinue={handleSaveAndContinue}
+                areStepsLocked={areStepsLocked}
               />
             </main>
           </div>

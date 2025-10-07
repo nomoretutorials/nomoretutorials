@@ -25,6 +25,7 @@ export type Feature = {
   id: string;
   title: string;
   description: string;
+  selected?: boolean;
 };
 
 export interface Step {

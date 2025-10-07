@@ -19,3 +19,19 @@ export const featureAgentSchema = z.object({
 export const featuresListSchema = z.object({
   features: z.array(featureAgentSchema).min(3).max(15),
 });
+
+const CATEGORY = ["Setup", "Core", "Polish", "Deployment"] as const;
+
+export const buildStepSchema = z.object({
+  index: z.number().min(1).max(25).describe("Sequential step number starting from 1."),
+  title: z
+    .string()
+    .min(1, "Build step title cannot be empty")
+    .max(60)
+    .describe("A clear, concise step title (max 6 words)"),
+  category: z.enum(CATEGORY).describe("Step category defining its phase in the build process."),
+});
+
+export const buildStepsListSchema = z.object({
+  steps: z.array(buildStepSchema).min(5).max(25),
+});

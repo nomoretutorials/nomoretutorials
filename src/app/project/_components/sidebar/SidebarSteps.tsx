@@ -23,7 +23,7 @@ const SidebarSteps = ({ steps, currentStepIndex, onStepSelect }: SidebarStepsPro
   const visibleSteps = steps.slice(0, 2);
   const remainingSteps = steps.slice(2);
 
-  const hasGeneratedSteps = remainingSteps.length > 0 && remainingSteps[0].status !== "PENDING";
+  const hasGeneratedSteps = remainingSteps.length > 0;
 
   return (
     <div className="space-y-3">

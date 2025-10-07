@@ -5,6 +5,7 @@ import { Feature, Project, TechStack } from "@/types/project";
 import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";
+import { generateFeatures } from "./ai/generate-features";
 
 type ActionResponse<T> = { success: true; data: T } | { success: false; message: string };
 
@@ -31,7 +32,11 @@ export async function createNewProject({
       },
     });
 
-    // Inngest removed: previously sent event "project/features.generate" with { projectId, title, description }
+    console.log("Started generating features");
+
+    generateFeatures(project.id).catch((error) => {
+      console.error("Failed to generate features:", error);
+    });
 
     return { success: true, data: { projectId: project.id } };
   } catch (error) {

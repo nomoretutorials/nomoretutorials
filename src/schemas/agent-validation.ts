@@ -9,3 +9,13 @@ export const metadataAgentSchema = z.object({
     .describe("A short brand-style name (1-2 words, max 12 characters"),
   description: z.string().describe("A brief description ( max 120 characters )"),
 });
+
+export const featureAgentSchema = z.object({
+  id: z.string().regex(/^\d+$/, "ID must be a numeric string"),
+  title: z.string().min(1, "Feature title cannot be empty"),
+  description: z.string().min(5, "Feature description must be at least 5 characters"),
+});
+
+export const featuresListSchema = z.object({
+  features: z.array(featureAgentSchema).min(3).max(15),
+});

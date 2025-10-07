@@ -23,7 +23,7 @@ export type TechStack = {
 
 export type Feature = {
   id: string;
-  name: string;
+  title: string;
   description: string;
 };
 

@@ -32,8 +32,6 @@ export async function createNewProject({
       },
     });
 
-    console.log("Started generating features");
-
     generateFeatures(project.id).catch((error) => {
       console.error("Failed to generate features:", error);
     });

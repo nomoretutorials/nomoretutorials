@@ -34,7 +34,7 @@ const SidebarSteps = ({ steps, currentStepIndex, onStepSelect }: SidebarStepsPro
       <div className="space-y-1.5">
         {visibleSteps.map((step) => (
           <StepButton
-            key={step.id}
+            key={step.index}
             step={step}
             isActive={currentStepIndex === step.index}
             onClick={() => onStepSelect(step.index)}
@@ -90,7 +90,7 @@ function StepButton({
           step.isCompleted ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
         )}
       >
-        {step.isCompleted ? "✓" : step.index + 1}
+        {step.isCompleted ? "✓" : step.index}
       </span>
       <span className="truncate">{step.title}</span>
     </Button>

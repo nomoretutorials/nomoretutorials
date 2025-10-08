@@ -33,7 +33,7 @@ export default async function ProjectPage({ params }: Props) {
   const [projectResult, techStacksResult] = await Promise.all([getProject(id), getAllTechStacks()]);
 
   if (!projectResult.success) {
-    if (projectResult.message === "Unauthorized") {
+    if (projectResult.error === "Unauthorized") {
       Sentry.captureException(new Error("Unauthorized project access"), {
         tags: {
           component: "ProjectPage",
@@ -47,7 +47,7 @@ export default async function ProjectPage({ params }: Props) {
       redirect("/auth");
     }
 
-    Sentry.captureException(new Error(projectResult.message || "Failed to fetch project"), {
+    Sentry.captureException(new Error(projectResult.error || "Failed to fetch project"), {
       tags: {
         component: "ProjectPage",
         operation: "fetch_project",
@@ -61,7 +61,7 @@ export default async function ProjectPage({ params }: Props) {
   }
 
   if (!techStacksResult?.success) {
-    Sentry.captureException(new Error(techStacksResult.message || "Failed to fetch tech stacks"), {
+    Sentry.captureException(new Error(techStacksResult.error || "Failed to fetch tech stacks"), {
       tags: {
         component: "ProjectPage",
         operation: "fetch_tech_stacks",

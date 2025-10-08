@@ -222,7 +222,7 @@ const NewProjectDialog = () => {
                 <Spinner />
               </div>
             ) : (
-              "Generate"
+              "Continue"
             )}
             <kbd className="bg-muted/10 ml-1 rounded px-1.5 py-0.5 font-mono text-xs">
               <CornerDownLeft />

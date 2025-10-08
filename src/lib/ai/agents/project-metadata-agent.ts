@@ -1,11 +1,10 @@
-import { metadataAgentSchema } from "@/schemas/agent-validation";
 import { openai } from "@ai-sdk/openai";
-import { generateObject } from "ai";
+import { generateText } from "ai";
 
 export async function projectMetadataAgent(projectIdea: string) {
-  const result = await generateObject({
-    model: openai("gpt-5"),
-    schema: metadataAgentSchema,
+  const { text } = await generateText({
+    model: openai("gpt-4o-mini"),
+    // schema: metadataAgentSchema,
     prompt: `You are a branding assistant.
 Your task: Take a raw project idea and output a JSON object with exactly two fields:
 
@@ -69,5 +68,7 @@ Reason: Title too long, not brand-like. Description is bland.
 
 Now, generate the JSON output for this ${projectIdea}.`,
   });
-  return result.object;
+
+  const metadata = JSON.parse(text);
+  return metadata
 }

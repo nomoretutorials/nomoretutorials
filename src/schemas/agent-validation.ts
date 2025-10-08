@@ -10,6 +10,8 @@ export const metadataAgentSchema = z.object({
   description: z.string().describe("A brief description ( max 120 characters )"),
 });
 
+export type metadataAgentType = z.infer<typeof metadataAgentSchema>;
+
 export const featureAgentSchema = z.object({
   id: z.string().regex(/^\d+$/, "ID must be a numeric string"),
   title: z.string().min(1, "Feature title cannot be empty"),
@@ -34,4 +36,12 @@ export const buildStepSchema = z.object({
 
 export const buildStepsListSchema = z.object({
   steps: z.array(buildStepSchema).min(5).max(25),
+});
+
+export type buildStepListType = z.infer<typeof buildStepsListSchema>;
+
+export const stepContentAgentSchema = z.object({
+  overview: z.string().describe("2-3 sentences explaining what this step accomplishes"),
+  instructions: z.array(z.string()).describe("5-8 actionable guidance points (not complete code)"),
+  checkpoints: z.array(z.string()).describe("2-3 ways to verify progress"),
 });

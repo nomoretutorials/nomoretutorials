@@ -41,9 +41,12 @@ export const generateBuildStepsJob = inngest.createFunction(
       });
     });
 
-    await step.run("Trigger content generation", async () => {
-      // Implement content function caling
-    })
+    await step.sendEvent("Trigger content generation", {
+      name: "app/build-step-content.generate",
+      data: {
+        projectId,
+      },
+    });
 
     return { stepsGenerated: buildSteps.length };
   }

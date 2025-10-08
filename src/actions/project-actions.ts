@@ -7,7 +7,6 @@ import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";
 import { ActionResponse } from "@/hooks/useServerAction";
-import { generateFeatures } from "./ai/generate-features";
 
 export async function createNewProject({
   title,
@@ -29,11 +28,23 @@ export async function createNewProject({
       },
       select: {
         id: true,
+        userId: true,
+        title: true,
+        description: true,
       },
     });
 
-    generateFeatures(project.id).catch((error) => {
-      console.error("Failed to generate features:", error);
+    if (project.userId !== user.id)
+      return { success: false, error: "Project does not belongs to the user." };
+
+    await inngest.send({
+      name: "app/features.generate",
+      data: {
+        projectId: project.id,
+        userId: user.id,
+        title: project.title,
+        description: project.description,
+      },
     });
 
     return { success: true, data: { projectId: project.id } };
@@ -170,6 +181,8 @@ export async function saveProjectConfiguration(
         techStackNames,
       },
     });
+
+    console.log("Started generating steps for step 2");
 
     revalidatePath(`/project/${projectId}`);
     return { success: true, data: null };

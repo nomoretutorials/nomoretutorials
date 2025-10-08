@@ -8,7 +8,7 @@ export const generateFeatureJob = inngest.createFunction(
   async ({ event, step }) => {
     const { title, description, projectId } = event.data;
 
-    const output = await step.run("Generate features with AI", async () => {
+    const features = await step.run("Generate features with AI", async () => {
       return await projectFeaturesAgent(title, description);
     });
 
@@ -16,7 +16,7 @@ export const generateFeatureJob = inngest.createFunction(
       await prisma.project.update({
         where: { id: projectId },
         data: {
-          features: output.features,
+          features: features,
           status: "CONFIGURING",
         },
       });
@@ -32,14 +32,14 @@ export const generateFeatureJob = inngest.createFunction(
         },
         update: {
           status: "COMPLETED",
-          content: output.features,
+          content: features,
         },
         create: {
           projectId,
           index: 0,
           title: "Choose Features",
           status: "COMPLETED",
-          content: output.features,
+          content: features,
         },
       });
 
@@ -62,6 +62,6 @@ export const generateFeatureJob = inngest.createFunction(
       });
     });
 
-    return output.features;
+    return features;
   }
 );

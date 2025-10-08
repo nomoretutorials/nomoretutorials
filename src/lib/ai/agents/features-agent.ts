@@ -1,11 +1,10 @@
 import { featuresListSchema } from "@/schemas/agent-validation";
 import { openai } from "@ai-sdk/openai";
-import { generateObject } from "ai";
+import { generateText } from "ai";
 
 export async function projectFeaturesAgent(title: string, description: string) {
-  const result = await generateObject({
-    model: openai("gpt-5-nano"),
-    schema: featuresListSchema,
+  const { text } = await generateText({
+    model: openai("gpt-4o-mini"),
     prompt: `
         You are a Product Planning Assistant.
 
@@ -91,7 +90,16 @@ export async function projectFeaturesAgent(title: string, description: string) {
         `,
   });
 
-  console.log("Features Agent: ", result)
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    json = null;
+  }
 
-  return result.object;
+  const { success, data: content } = featuresListSchema.safeParse(json);
+
+  if (!success) throw new Error("AI Generated Invalid Response");
+
+  return content.features;
 }

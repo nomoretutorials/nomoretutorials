@@ -45,3 +45,5 @@ export const stepContentAgentSchema = z.object({
   instructions: z.array(z.string()).describe("5-8 actionable guidance points (not complete code)"),
   checkpoints: z.array(z.string()).describe("2-3 ways to verify progress"),
 });
+
+export type stepContentType = z.infer<typeof stepContentAgentSchema>;

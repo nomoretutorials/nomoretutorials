@@ -24,7 +24,7 @@ Rules:
 
 ---
 
-### ✅ Few-shot examples
+✅ Few-shot examples
 
 INPUT: "An AI tool that summarizes YouTube videos."
 OUTPUT: {
@@ -69,7 +69,5 @@ Reason: Title too long, not brand-like. Description is bland.
 
 Now, generate the JSON output for this ${projectIdea}.`,
   });
-
-  console.log("Metadata Agent: ", result);
   return result.object;
 }

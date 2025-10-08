@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
 import { generateMetadata } from "@/actions/ai/generateMetadata";
-// Agent removed: previously imported parseProjectMetadataAgent from "@/actions/ai/parse-project-metadata-agent"
 import { createNewProject } from "@/actions/project-actions";
 import * as Sentry from "@sentry/nextjs";
 import { CornerDownLeft, Plus, Sparkles } from "lucide-react";
@@ -25,6 +24,7 @@ import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { useServerAction } from "@/hooks/useServerAction";
 
 // TODO: fix submit on enter. currently pressing enter submits even if on title or description. change it to ctrl + enter.
 
@@ -34,53 +34,26 @@ const NewProjectDialog = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const router = useRouter();
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleGenerate = useCallback(async () => {
-    if (!idea) return toast.error("Please enter an idea to generate project details.");
-
-    setIsGenerating(true);
-
-    Sentry.addBreadcrumb({
-      category: "ai",
-      message: "User generating project metadata with AI",
-      level: "info",
-      data: {
-        idea: idea.length,
-      },
-    });
-    try {
-      const result = await generateMetadata(idea);
-
-      if (!title) setTitle(result.data?.title || "");
-      if (!description) setDescription(result.data?.description || "");
+  const { execute: runGenerateMetadata, isPending } = useServerAction(generateMetadata, {
+    successMessage: "Generated project details",
+    onSuccess: (data) => {
+      setTitle((prev) => prev || data.title);
+      setDescription((prev) => prev || data.description);
 
       Sentry.addBreadcrumb({
         category: "ai",
         message: "AI generation successful",
         level: "info",
       });
-
-      toast.success("Generated project details!");
-    } catch (error) {
+    },
+    onError: (error) => {
       Sentry.captureException(error, {
-        tags: {
-          component: "NewProjectDialog",
-          operation: "ai_generate",
-        },
-        extra: {
-          ideaLength: idea.length,
-          hasTitle: !!title,
-          hasDescription: !!description,
-        },
+        tags: { function: "NewProjectCard" },
       });
-
-      toast.error("Error generating project details.");
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [idea, title, description]);
+    },
+  });
 
   const handleSubmit = useCallback(async () => {
     if (!title || !description)
@@ -231,11 +204,11 @@ const NewProjectDialog = () => {
             variant="secondary"
             size="sm"
             className="flex items-center gap-1"
-            onClick={handleGenerate}
-            disabled={isGenerating}
+            onClick={() => runGenerateMetadata(idea)}
+            disabled={isPending}
           >
             <Sparkles className="h-4 w-4" />
-            {isGenerating ? (
+            {isPending ? (
               <div>
                 <Spinner />
               </div>

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
-import { generateMetadata } from "@/actions/ai/generateMetadata";
+import { generateMetadata } from "@/actions/ai/generate-metadata";
 import { createNewProject } from "@/actions/project-actions";
 import * as Sentry from "@sentry/nextjs";
 import { CornerDownLeft, Plus, Sparkles } from "lucide-react";

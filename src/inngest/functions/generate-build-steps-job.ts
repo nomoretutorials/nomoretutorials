@@ -5,43 +5,46 @@ import { inngest } from "../client";
 export const generateBuildStepsJob = inngest.createFunction(
   { id: "generate-build-steps" },
   { event: "app/build-steps.generate" },
-  async ({ event }) => {
+  async ({ event, step }) => {
     const { projectId, title, description, selectedFeatures, techStackNames } = event.data;
-    console.log("Inngest Fired");
-    const buildSteps = await projectBuildStepsAgent(
-      title,
-      description,
-      selectedFeatures,
-      techStackNames
-    );
 
-    const stepsToCreate = buildSteps.map((step) => ({
-      projectId,
-      index: step.index + 1,
-      title: step.title,
-      status: "PENDING" as const,
-    }));
-
-    await prisma.$transaction([
-      prisma.step.deleteMany({
-        where: {
-          projectId,
-          index: { gte: 2 },
-        },
-      }),
-
-      prisma.step.createMany({
-        data: stepsToCreate,
-      }),
-    ]);
-
-    await prisma.project.update({
-      where: { id: projectId },
-      data: {
-        status: "ACTIVE",
-      },
+    const buildSteps = await step.run("Generate Build Steps with AI", async () => {
+      return await projectBuildStepsAgent(title, description, selectedFeatures, techStackNames);
     });
 
-    return buildSteps.length;
+    await step.run("Create steps in DB", async () => {
+      const stepsToCreate = buildSteps.map((step) => ({
+        projectId,
+        index: step.index + 1,
+        title: step.title,
+        status: "PENDING" as const,
+      }));
+
+      await prisma.$transaction([
+        prisma.step.deleteMany({
+          where: {
+            projectId,
+            index: { gte: 2 },
+          },
+        }),
+
+        prisma.step.createMany({
+          data: stepsToCreate,
+        }),
+      ]);
+
+      await prisma.project.update({
+        where: { id: projectId },
+        data: {
+          status: "ACTIVE",
+        },
+      });
+    });
+
+    await step.run("Trigger content generation", async () => {
+      // Implement content function caling
+    })
+
+    return { stepsGenerated: buildSteps.length };
   }
 );

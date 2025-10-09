@@ -1,5 +1,9 @@
 import { ExperienceLevel, PrismaClient, ProjectStatus, TechStackCategory } from "@prisma/client";
 
+
+
+
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -24,10 +28,11 @@ async function main() {
 
 async function seedTechStacks() {
   const techStacksData = [
+    // FRONTEND FRAMEWORKS & LIBRARIES
     {
       name: "React",
       slug: "react",
-      description: "A JavaScript library for building UIs",
+      description: "A JavaScript library for building user interfaces",
       category: TechStackCategory.FRONTEND,
     },
     {
@@ -37,11 +42,49 @@ async function seedTechStacks() {
       category: TechStackCategory.FRONTEND,
     },
     {
+      name: "Vue.js",
+      slug: "vuejs",
+      description: "Progressive JavaScript Framework",
+      category: TechStackCategory.FRONTEND,
+    },
+    {
+      name: "Angular",
+      slug: "angular",
+      description: "Platform for building web applications",
+      category: TechStackCategory.FRONTEND,
+    },
+    {
       name: "TypeScript",
       slug: "typescript",
       description: "Typed JavaScript at Any Scale",
       category: TechStackCategory.FRONTEND,
     },
+    {
+      name: "Tailwind CSS",
+      slug: "tailwindcss",
+      description: "Utility-first CSS framework",
+      category: TechStackCategory.FRONTEND,
+    },
+    {
+      name: "Bootstrap",
+      slug: "bootstrap",
+      description: "Popular CSS framework for responsive design",
+      category: TechStackCategory.FRONTEND,
+    },
+    {
+      name: "Vite",
+      slug: "vite",
+      description: "Next generation frontend tooling",
+      category: TechStackCategory.FRONTEND,
+    },
+    {
+      name: "shadcn/ui",
+      slug: "shadcn-ui",
+      description: "Beautifully designed components built with Radix UI and Tailwind CSS",
+      category: TechStackCategory.FRONTEND,
+    },
+
+    // BACKEND FRAMEWORKS & RUNTIMES
     {
       name: "Node.js",
       slug: "nodejs",
@@ -49,11 +92,85 @@ async function seedTechStacks() {
       category: TechStackCategory.BACKEND,
     },
     {
-      name: "Express",
-      slug: "express",
-      description: "Fast web framework for Node.js",
+      name: "Next.js",
+      slug: "nextjs",
+      description: "A full stack framework by vercel",
       category: TechStackCategory.BACKEND,
     },
+    {
+      name: "Express",
+      slug: "express",
+      description: "Fast, unopinionated web framework for Node.js",
+      category: TechStackCategory.BACKEND,
+    },
+    {
+      name: "NestJS",
+      slug: "nestjs",
+      description: "Progressive Node.js framework for scalable applications",
+      category: TechStackCategory.BACKEND,
+    },
+    {
+      name: "Python",
+      slug: "python",
+      description: "High-level programming language",
+      category: TechStackCategory.BACKEND,
+    },
+    {
+      name: "Django",
+      slug: "django",
+      description: "High-level Python web framework",
+      category: TechStackCategory.BACKEND,
+    },
+    {
+      name: "FastAPI",
+      slug: "fastapi",
+      description: "Modern, fast web framework for building APIs with Python",
+      category: TechStackCategory.BACKEND,
+    },
+    {
+      name: "Flask",
+      slug: "flask",
+      description: "Lightweight web application framework for Python",
+      category: TechStackCategory.BACKEND,
+    },
+    {
+      name: "Ruby on Rails",
+      slug: "ruby-on-rails",
+      description: "Server-side web application framework written in Ruby",
+      category: TechStackCategory.BACKEND,
+    },
+    {
+      name: "PHP",
+      slug: "php",
+      description: "Server-side scripting language",
+      category: TechStackCategory.BACKEND,
+    },
+    {
+      name: "Laravel",
+      slug: "laravel",
+      description: "PHP web application framework",
+      category: TechStackCategory.BACKEND,
+    },
+    {
+      name: "Spring Boot",
+      slug: "spring-boot",
+      description: "Java-based framework for building applications",
+      category: TechStackCategory.BACKEND,
+    },
+    {
+      name: "GraphQL",
+      slug: "graphql",
+      description: "Query language for APIs",
+      category: TechStackCategory.BACKEND,
+    },
+    {
+      name: "tRPC",
+      slug: "trpc",
+      description: "End-to-end typesafe APIs made easy",
+      category: TechStackCategory.BACKEND,
+    },
+
+    // DATABASES
     {
       name: "PostgreSQL",
       slug: "postgresql",
@@ -61,16 +178,172 @@ async function seedTechStacks() {
       category: TechStackCategory.DATABASE,
     },
     {
-      name: "Prisma",
-      slug: "prisma",
-      description: "Next-gen ORM for Node.js & TypeScript",
+      name: "MySQL",
+      slug: "mysql",
+      description: "Popular open-source relational database",
       category: TechStackCategory.DATABASE,
     },
     {
-      name: "Docker",
-      slug: "docker",
-      description: "Platform for containerized apps",
-      category: TechStackCategory.DEVOPS,
+      name: "MongoDB",
+      slug: "mongodb",
+      description: "NoSQL document database",
+      category: TechStackCategory.DATABASE,
+    },
+    {
+      name: "SQLite",
+      slug: "sqlite",
+      description: "Lightweight embedded database",
+      category: TechStackCategory.DATABASE,
+    },
+    {
+      name: "Redis",
+      slug: "redis",
+      description: "In-memory data structure store",
+      category: TechStackCategory.DATABASE,
+    },
+    {
+      name: "Supabase",
+      slug: "supabase",
+      description: "Open source Firebase alternative with PostgreSQL",
+      category: TechStackCategory.DATABASE,
+    },
+    {
+      name: "Firebase",
+      slug: "firebase",
+      description: "Google's mobile and web application development platform",
+      category: TechStackCategory.DATABASE,
+    },
+
+    // ORM
+    {
+      name: "Prisma",
+      slug: "prisma",
+      description: "Next-generation ORM for Node.js & TypeScript",
+      category: TechStackCategory.ORM,
+    },
+    {
+      name: "Drizzle ORM",
+      slug: "drizzle-orm",
+      description: "TypeScript ORM for SQL databases",
+      category: TechStackCategory.ORM,
+    },
+
+    // AUTHENTICATION & AUTHORIZATION
+    {
+      name: "Better Auth",
+      slug: "better-auth",
+      description: "Typescript first authentication library",
+      category: TechStackCategory.AUTHENTICATION,
+    },
+    {
+      name: "Clerk",
+      slug: "clerk",
+      description: "Complete user management and authentication",
+      category: TechStackCategory.AUTHENTICATION,
+    },
+    {
+      name: "Supabase Auth",
+      slug: "supabase-auth",
+      description: "User management and authentication from Supabase",
+      category: TechStackCategory.AUTHENTICATION,
+    },
+    {
+      name: "Firebase Auth",
+      slug: "firebase-auth",
+      description: "Firebase Authentication service",
+      category: TechStackCategory.AUTHENTICATION,
+    },
+
+    // BACKGROUND JOBS & QUEUES
+    {
+      name: "Inngest",
+      slug: "inngest",
+      description: "Durable workflow engine for TypeScript",
+      category: TechStackCategory.QUEUE,
+    },
+    {
+      name: "BullMQ",
+      slug: "bullmq",
+      description: "Queue package for handling distributed jobs",
+      category: TechStackCategory.QUEUE,
+    },
+
+    // PAYMENT
+    {
+      name: "Stripe",
+      slug: "stripe",
+      description: "Payment processing platform",
+      category: TechStackCategory.PAYMENT,
+    },
+    {
+      name: "Razor Pay",
+      slug: "razor pay",
+      description: "Payment processing platform",
+      category: TechStackCategory.PAYMENT,
+    },
+    {
+      name: "Dodo Payments",
+      slug: "dodo payments",
+      description: "Payment processing platform",
+      category: TechStackCategory.PAYMENT,
+    },
+    {
+      name: "PayPal",
+      slug: "paypal",
+      description: "Online payment system",
+      category: TechStackCategory.PAYMENT,
+    },
+    {
+      name: "Lemon Squeezy",
+      slug: "lemon-squeezy",
+      description: "All-in-one platform for digital commerce",
+      category: TechStackCategory.PAYMENT,
+    },
+
+    // CMS
+    {
+      name: "Sanity",
+      slug: "sanity",
+      description: "Platform for structured content",
+      category: TechStackCategory.CMS,
+    },
+    {
+      name: "Contentful",
+      slug: "contentful",
+      description: "Composable content platform",
+      category: TechStackCategory.CMS,
+    },
+    {
+      name: "Strapi",
+      slug: "strapi",
+      description: "Open source headless CMS",
+      category: TechStackCategory.CMS,
+    },
+    {
+      name: "WordPress",
+      slug: "wordpress",
+      description: "Open source content management system",
+      category: TechStackCategory.CMS,
+    },
+
+    // EMAIL
+    {
+      name: "Resend",
+      slug: "resend",
+      description: "Email API for developers",
+      category: TechStackCategory.EMAIL,
+    },
+    {
+      name: "SendGrid",
+      slug: "sendgrid",
+      description: "Email delivery service",
+      category: TechStackCategory.EMAIL,
+    },
+    {
+      name: "Nodemailer",
+      slug: "nodemailer",
+      description: "Email sending module for Node.js",
+      category: TechStackCategory.EMAIL,
     },
   ];
 
@@ -130,7 +403,7 @@ async function seedProjects(
       description: "A full-stack e-commerce solution with React and Node.js",
       status: ProjectStatus.ACTIVE,
       userEmail: "john@example.com",
-      techStacks: ["react", "nodejs", "postgresql"],
+      techStacks: ["react", "nodejs", "postgresql", "stripe", "clerk"],
       repositoryUrl: "https://github.com/johndoe/ecommerce-platform",
       features: {
         authentication: true,
@@ -143,7 +416,7 @@ async function seedProjects(
       description: "A simple task management app for teams",
       status: ProjectStatus.DRAFT,
       userEmail: "jane@example.com",
-      techStacks: ["nextjs", "prisma"],
+      techStacks: ["nextjs", "prisma", "better-auth", "vercel"],
       repositoryUrl: null,
       features: { realTimeUpdates: false, notifications: true },
     },

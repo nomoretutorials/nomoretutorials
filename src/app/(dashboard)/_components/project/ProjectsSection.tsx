@@ -56,8 +56,8 @@ const ProjectsSection = () => {
     fetchProjects();
   }, []);
 
-  const latestProject = projects.length > 0 ? projects[0] : null;
-  const restProjects = projects.length > 1 ? projects.slice(1) : [];
+  const latestProject = projects.length > 1 ? projects[0] : null;
+  const restProjects = projects.length > 1 ? projects.slice(1) : projects;
 
   const handleDelete = (id: string, opts?: { rollback?: boolean; project?: Project }) => {
     setProjects((prev) => {

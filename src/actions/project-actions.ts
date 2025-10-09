@@ -1,14 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { inngest } from "@/inngest/client";
-import { Feature } from "@/schemas/agent-response-validation";
-import { Project, TechStack } from "@/types/project";
+import { headers } from "next/headers";
+import { Feature, Project, TechStack } from "@/types/project";
 import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";
-
-type ActionResponse<T> = { success: true; data: T } | { success: false; message: string };
+import { ActionResponse } from "@/hooks/useServerAction";
 
 export async function createNewProject({
   title,
@@ -18,7 +16,7 @@ export async function createNewProject({
   description: string;
 }): Promise<ActionResponse<{ projectId: string }>> {
   const user = await getServerUserSession();
-  if (!user) return { success: false, message: "Unauthorized" };
+  if (!user) return { success: false, error: "Unauthorized" };
 
   try {
     const project = await prisma.project.create({
@@ -30,28 +28,35 @@ export async function createNewProject({
       },
       select: {
         id: true,
+        userId: true,
+        title: true,
+        description: true,
       },
     });
 
-    await inngest.send({
-      name: "project/features.generate",
-      data: {
-        projectId: project.id,
-        title,
-        description,
+    if (project.userId !== user.id)
+      return { success: false, error: "Project does not belongs to the user." };
+
+    fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/project/${project.id}/features`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: (await headers()).get("cookie") || "",
       },
+    }).catch((err) => {
+      console.error("Failed to trigger feature generation: ", err);
     });
 
     return { success: true, data: { projectId: project.id } };
   } catch (error) {
     console.error("Onboarding error:", error);
-    return { success: false, message: "Error creating project." };
+    return { success: false, error: "Error creating project." };
   }
 }
 
 export async function getProject(projectId: string): Promise<ActionResponse<{ project: Project }>> {
   const user = await getServerUserSession();
-  if (!user) return { success: false, message: "Unauthorized" };
+  if (!user) return { success: false, error: "Unauthorized" };
 
   try {
     const project = await prisma.project.findUnique({
@@ -65,12 +70,12 @@ export async function getProject(projectId: string): Promise<ActionResponse<{ pr
       },
     });
 
-    if (!project) return { success: false, message: "Project not found" };
+    if (!project) return { success: false, error: "Project not found" };
 
     return { success: true, data: { project } };
   } catch (error) {
     console.error("Onboarding error:", error);
-    return { success: false, message: "Error getting projects." };
+    return { success: false, error: "Error getting projects." };
   }
 }
 
@@ -79,12 +84,12 @@ export async function saveSelectedFeatures(
   featureIds: string[]
 ): Promise<ActionResponse<null>> {
   const user = await getServerUserSession();
-  if (!user) return { success: false, message: "Unauthorized" };
+  if (!user) return { success: false, error: "Unauthorized" };
 
   try {
     const project = await prisma.project.findUnique({ where: { id: projectId } });
     if (!project?.features) {
-      return { success: false, message: "No features found" };
+      return { success: false, error: "No features found" };
     }
 
     const allFeatures = project.features as Feature[];
@@ -108,13 +113,13 @@ export async function saveSelectedFeatures(
     return { success: true, data: null };
   } catch (error) {
     console.error("Failed to save features:", error);
-    return { success: false, message: "Something went wrong" };
+    return { success: false, error: "Something went wrong" };
   }
 }
 
 export async function getAllTechStacks(): Promise<ActionResponse<TechStack[]>> {
   const user = await getServerUserSession();
-  if (!user) return { success: false, message: "Unauthorized" };
+  if (!user) return { success: false, error: "Unauthorized" };
 
   try {
     const techStacks = await prisma.techStack.findMany({
@@ -123,7 +128,7 @@ export async function getAllTechStacks(): Promise<ActionResponse<TechStack[]>> {
     return { success: true, data: techStacks };
   } catch (error) {
     console.error("Failed to fetch tech stacks:", error);
-    return { success: false, message: "Something went wrong" };
+    return { success: false, error: "Something went wrong" };
   }
 }
 
@@ -133,13 +138,16 @@ export async function saveProjectConfiguration(
   techStackIds: string[]
 ): Promise<ActionResponse<null>> {
   const user = await getServerUserSession();
-  if (!user) return { success: false, message: "Unauthorized" };
+  if (!user) return { success: false, error: "Unauthorized" };
   try {
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
-    if (!project) return { success: false, message: "Project not found" };
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: { ProjectTechStack: { include: { techStack: true } } },
+    });
 
-    const allFeatures = project.features as Feature[];
-    const selectedFeatures = allFeatures.filter((f) => featureIds.includes(f.id));
+    if (!project) return { success: false, error: "Cannot find project" };
+    if (project.userId !== user.id)
+      return { success: false, error: "Project does not belongs to the user." };
 
     await prisma.$transaction([
       prisma.project.update({
@@ -159,22 +167,27 @@ export async function saveProjectConfiguration(
       }),
     ]);
 
-    await inngest.send({
-      name: "project/steps.generate",
-      data: { projectId, selectedFeatures, selectedTechStack: techStackIds },
+    fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/project/${project.id}/steps`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: (await headers()).get("cookie") || "",
+      },
+    }).catch((err) => {
+      console.error("Failed to trigger build step generation: ", err);
     });
 
     revalidatePath(`/project/${projectId}`);
     return { success: true, data: null };
   } catch (error) {
     console.error("Failed to save project configuration:", error);
-    return { success: false, message: "Something went wrong" };
+    return { success: false, error: "Something went wrong" };
   }
 }
 
 export async function deleteProject(projectId: string): Promise<ActionResponse<null>> {
   const user = await getServerUserSession();
-  if (!user) return { success: false, message: "Unauthorized" };
+  if (!user) return { success: false, error: "Unauthorized" };
   try {
     await prisma.project.delete({
       where: { id: projectId },
@@ -182,7 +195,7 @@ export async function deleteProject(projectId: string): Promise<ActionResponse<n
     return { success: true, data: null };
   } catch (error) {
     console.error("Failed to delete project:", error);
-    return { success: false, message: "Failed to delele project." };
+    return { success: false, error: "Failed to delele project." };
   }
 }
 
@@ -191,7 +204,7 @@ export async function addGithubRepoURL(
   repositoryUrl: string
 ): Promise<ActionResponse<null>> {
   const user = await getServerUserSession();
-  if (!user) return { success: false, message: "Unauthorized" };
+  if (!user) return { success: false, error: "Unauthorized" };
   try {
     await prisma.project.update({
       where: { id: projectId },
@@ -200,6 +213,17 @@ export async function addGithubRepoURL(
     return { success: true, data: null };
   } catch (error) {
     console.error("Failed to delete project:", error);
-    return { success: false, message: "Failed to delele project." };
+    return { success: false, error: "Failed to delele project." };
   }
+}
+
+export async function startGeneratingContent(id: string) {
+  await prisma.step.update({
+    where: {
+      id,
+    },
+    data: {
+      status: "GENERATING",
+    },
+  });
 }

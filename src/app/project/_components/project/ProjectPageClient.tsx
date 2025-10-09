@@ -7,8 +7,10 @@ import { parseStepFeatures } from "@/utils/project-step-utils";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
 import { useProjectSave } from "@/hooks/useProjectSave";
+import { useProjectStream } from "@/hooks/useProjectStream";
 import Sidebar from "../sidebar/Sidebar";
 import UnsavedChangesDialog from "../UnsavedChangesDialog";
 import ChangeStep from "./ChangeStep";
@@ -29,7 +31,22 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
     toggleFeature,
     toggleTechStack,
     setSelectedStepIndex,
+    isNavigating,
   } = useProjectStore();
+
+  const { data: sseData, isConnected } = useProjectStream(project.id);
+
+  const currentProject = useMemo(() => {
+    if (sseData) {
+      return {
+        ...project,
+        features: sseData.features,
+        Steps: sseData.steps,
+        status: sseData.status,
+      };
+    }
+    return project;
+  }, [project, sseData]);
 
   const {
     showUnsavedDialog,
@@ -41,16 +58,16 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
   const { handleSaveAndContinue } = useProjectSave(project.id);
 
   const areStepsLocked = useMemo(() => {
-    return project.Steps!.length > 2;
-  }, [project.Steps]);
+    return currentProject.Steps!.length > 2;
+  }, [currentProject.Steps]);
 
   useEffect(() => {
-    if (selectedStepIndex < 0 || selectedStepIndex >= project.Steps!.length) {
+    if (selectedStepIndex < 0 || selectedStepIndex >= currentProject.Steps!.length) {
       setSelectedStepIndex(0);
     }
-  }, [selectedStepIndex, project.Steps, setSelectedStepIndex]);
+  }, [selectedStepIndex, currentProject.Steps, setSelectedStepIndex]);
 
-  const currentStep = project.Steps![selectedStepIndex] ?? project.Steps![0];
+  const currentStep = currentProject.Steps![selectedStepIndex] ?? currentProject.Steps![0];
 
   const features = useMemo(() => {
     if (currentStep?.index === 0) {
@@ -71,9 +88,10 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
         <div className="bg-background h-full overflow-hidden rounded-2xl border px-0 py-0 shadow-sm">
           <div className="flex h-full">
             <Sidebar
-              steps={project.Steps!}
-              title={project.title}
-              repoUrl={project.repositoryUrl!}
+              projectId={currentProject.id}
+              steps={currentProject.Steps!}
+              title={currentProject.title}
+              repoUrl={currentProject.repositoryUrl!}
               currentStepIndex={selectedStepIndex}
               onStepSelect={setSelectedStepIndex}
             />
@@ -81,6 +99,12 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
             <main className="relative flex h-full min-h-full flex-1 flex-col overflow-y-auto">
               <div className="mx-auto ml-10 w-4xl flex-1 p-8">
                 <div className="space-y-6">
+                  {/* SSE Connection Status */}
+                  <div className="rounded-lg border bg-gray-50 p-2">
+                    <div className="text-xs text-gray-600">
+                      SSE Status: {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
+                    </div>
+                  </div>
                   {currentStep ? (
                     <div className="space-y-4">
                       <h2 className="mb-6 h-10 border-b text-2xl font-bold">
@@ -114,18 +138,27 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
               </div>
 
               <Button
+                disabled={isNavigating}
                 onClick={handleBackToDashboard}
-                className="text-muted-foreground hover:text-foreground absolute top-3 right-3"
+                className="bg-background/80 text-muted-foreground hover:text-foreground fixed top-6 right-6 z-50 flex cursor-pointer items-center justify-center transition-colors"
                 size="sm"
                 variant="link"
               >
-                <ArrowLeft />
-                Back to Dashboard
+                {isNavigating ? (
+                  <div className="text-center">
+                    <Spinner className="text-foreground" />
+                  </div>
+                ) : (
+                  <>
+                    <ArrowLeft className="mr-1 h-4 w-4" />
+                    Back to Dashboard
+                  </>
+                )}
               </Button>
 
               <ChangeStep
                 currentStepIndex={selectedStepIndex}
-                totalSteps={project.Steps!.length}
+                totalSteps={currentProject.Steps!.length}
                 selectedFeatures={selectedFeatures}
                 selectedTechStacks={selectedTechStacks}
                 onNext={() => setSelectedStepIndex(selectedStepIndex + 1)}

@@ -1,13 +1,9 @@
 "use client";
 
+import { Feature } from "@/types/project";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-
-type Feature = {
-  id: string;
-  name: string;
-  description: string;
-};
 
 type Props = {
   features: Feature[];
@@ -15,11 +11,7 @@ type Props = {
   onToggleFeature: (featureId: string) => void;
 };
 
-export default function FeatureSelection({
-  features,
-  selectedFeatures,
-  onToggleFeature,
-}: Props) {
+export default function FeatureSelection({ features, selectedFeatures, onToggleFeature }: Props) {
   return (
     <>
       <p className="text-muted-foreground mb-4 text-base font-medium">
@@ -58,9 +50,9 @@ export default function FeatureSelection({
               <div className="flex-1">
                 <Label
                   htmlFor={feature.id}
-                  className="cursor-pointer text-base leading-tight font-semibold"
+                  className="cursor-pointer text-sm leading-tight font-medium"
                 >
-                  {feature.name}
+                  {feature.title}
                 </Label>
                 <p className="text-muted-foreground mt-1 text-sm leading-snug">
                   {feature.description}

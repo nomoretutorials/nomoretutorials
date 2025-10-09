@@ -23,8 +23,9 @@ export type TechStack = {
 
 export type Feature = {
   id: string;
-  name: string;
+  title: string;
   description: string;
+  selected?: boolean;
 };
 
 export interface Step {
@@ -39,6 +40,7 @@ export interface Step {
 }
 
 export interface StepContent {
-  // Define your step content structure
-  [key: string]: unknown;
+  overview: string;
+  instructions: string[];
+  checkpoints: string[];
 }

@@ -1,7 +1,12 @@
-import { createAgent, openai } from "@inngest/agent-kit";
+import { featuresListSchema } from "@/schemas/agent-validation";
+import { openai } from "@ai-sdk/openai";
+import { streamText } from "ai";
 
-const PROMPT = `
-      You are a Product Planning Assistant.
+export async function projectFeaturesAgent(title: string, description: string) {
+  const result = await streamText({
+    model: openai("gpt-4o-mini"),
+    prompt: `
+        You are a Product Planning Assistant.
 
       Your task:
       1. First, carefully read the project title and description to understand what the tool is about.  
@@ -78,18 +83,29 @@ const PROMPT = `
           {"id": "14", "title": "Email Notifications", "description": "Get updates about new crafts"}
         ]
       }
-`;
 
-export const featureGeneratorAgent = createAgent({
-  name: "Features List Generator",
-  description:
-    "Understands a project idea from title and description, then generates 12–14 core features",
-  system: PROMPT,
-  model: openai({
-    model: "gpt-5-nano",
-    defaultParameters: {
-      // temperature: 0.6,
-      max_completion_tokens: 4000,
-    },
-  }),
-});
+      Now generate features for this project:
+      Title: ${title},
+      Description: ${description}
+        `,
+  });
+
+  return result;
+}
+
+export function parseFeatures(text: string) {
+  try {
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON found in response");
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    const { success, data } = featuresListSchema.safeParse(parsed);
+
+    if (!success) throw new Error("AI sent invalid response");
+
+    return data.features;
+  } catch (error) {
+    console.error("Failed to parse features:", error);
+    throw new Error("Failed to parse AI reponse into features");
+  }
+}

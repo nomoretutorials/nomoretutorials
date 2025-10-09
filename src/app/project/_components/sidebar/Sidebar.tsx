@@ -21,6 +21,7 @@ export type SidebarProps = {
   repoUrl: string;
   currentStepIndex: number;
   onStepSelect: (index: number) => void;
+  projectId: string
 };
 
 export default function Sidebar({
@@ -29,9 +30,8 @@ export default function Sidebar({
   repoUrl,
   currentStepIndex,
   onStepSelect,
+  projectId
 }: SidebarProps) {
-  const projectId = steps[0]?.projectId || "unknown";
-
   const { sidebarWidth, isDragging, resizerRef, onPointerDown } = useResizableSidebar(projectId);
   const [showGithubInput, setShowGithubInput] = useState(false);
   const [githubUrl, setGithubUrl] = useState(repoUrl);

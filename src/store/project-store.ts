@@ -8,6 +8,7 @@ export interface ProjectState {
   isSaving: boolean;
   error: string | null;
   hasUnsavedChanges: boolean;
+  isNavigating: boolean;
 }
 
 export interface ProjectActions {
@@ -17,6 +18,7 @@ export interface ProjectActions {
   setIsSaving: (isSaving: boolean) => void;
   setError: (error: string | null) => void;
   setHasUnsavedChanges: (hasChanges: boolean) => void;
+  setIsNavigating: (isNavigating: boolean) => void;
   resetState: () => void;
   nextStep: () => void;
   prevStep: () => void;
@@ -31,6 +33,7 @@ const initialState: ProjectState = {
   isSaving: false,
   error: null,
   hasUnsavedChanges: false,
+  isNavigating: false,
 };
 
 export const useProjectStore = create<ProjectStore>()(
@@ -74,6 +77,8 @@ export const useProjectStore = create<ProjectStore>()(
           set((state) => ({
             selectedStepIndex: Math.max(0, state.selectedStepIndex - 1),
           })),
+
+        setIsNavigating: (isNavigating: boolean) => set({ isNavigating }),
       }),
       {
         name: "project-storage",

@@ -7,6 +7,7 @@ import { parseStepFeatures } from "@/utils/project-step-utils";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
 import { useProjectSave } from "@/hooks/useProjectSave";
 import { useProjectStream } from "@/hooks/useProjectStream";
@@ -30,6 +31,7 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
     toggleFeature,
     toggleTechStack,
     setSelectedStepIndex,
+    isNavigating,
   } = useProjectStore();
 
   const { data: sseData, isConnected } = useProjectStream(project.id);
@@ -136,13 +138,22 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
               </div>
 
               <Button
+                disabled={isNavigating}
                 onClick={handleBackToDashboard}
-                className="text-muted-foreground hover:text-foreground absolute top-3 right-3"
+                className="bg-background/80 text-muted-foreground hover:text-foreground fixed top-6 right-6 z-50 flex cursor-pointer items-center justify-center transition-colors"
                 size="sm"
                 variant="link"
               >
-                <ArrowLeft />
-                Back to Dashboard
+                {isNavigating ? (
+                  <div className="text-center">
+                    <Spinner className="text-foreground" />
+                  </div>
+                ) : (
+                  <>
+                    <ArrowLeft className="mr-1 h-4 w-4" />
+                    Back to Dashboard
+                  </>
+                )}
               </Button>
 
               <ChangeStep

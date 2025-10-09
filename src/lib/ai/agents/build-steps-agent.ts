@@ -9,14 +9,13 @@ export async function projectBuildStepsAgent(
   selectedFeatures: Feature[],
   techStackNames: string[]
 ) {
-  const featuresList = selectedFeatures.map((f) => `- ${f.title}: ${f.description}`).join("\n");
+  try {
+    // Prepare inputs
+    const featuresList = selectedFeatures.map((f) => `- ${f.title}: ${f.description}`).join("\n");
+    const techStackList = techStackNames.join(", ");
 
-  const techStackList = techStackNames.join(", ");
-
-  const result = await generateObject({
-    model: openai("gpt-5-nano"),
-    schema: buildStepsListSchema, // expects steps[].index:number, title:string, category:enum
-    prompt: `
+    // Build prompt
+    const prompt = `
 You are a senior software architect who plans technical projects into clear build steps.
 
 ---
@@ -88,8 +87,24 @@ Description: ${description}
 Tech Stack: ${techStackList}  
 Features:  
 ${featuresList}
-    `,
-  });
+`;
 
-  return result.object.steps;
+    // Call the model
+    const result = await generateObject({
+      model: openai("gpt-4o-mini"),
+      schema: buildStepsListSchema,
+      prompt,
+    });
+
+    // Validate and return
+    if (!result?.object?.steps?.length) {
+      return [];
+    }
+
+    console.log("BUILD STEP AGENT - Total Token Used", result.usage);
+    return result.object.steps;
+  } catch (err) {
+    console.error("Error in projectBuildStepsAgent:", err);
+    throw err;
+  }
 }

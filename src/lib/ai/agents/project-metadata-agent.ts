@@ -1,11 +1,17 @@
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 
-export async function projectMetadataAgent(projectIdea: string) {
-  const { text } = await generateText({
-    model: openai("gpt-4o-mini"),
-    // schema: metadataAgentSchema,
-    prompt: `You are a branding assistant.
+interface ProjectMetadata {
+  title: string;
+  description: string;
+}
+
+export async function projectMetadataAgent(projectIdea: string): Promise<ProjectMetadata | null> {
+  try {
+    // 1️⃣ Generate text from model
+    const { text } = await generateText({
+      model: openai("gpt-4o-mini"),
+      prompt: `You are a branding assistant.
 Your task: Take a raw project idea and output a JSON object with exactly two fields:
 
 {
@@ -57,20 +63,21 @@ OUTPUT: {
 
 ---
 
-### ❌ Negative example
-Wrong: {
-    "title": "AI Summarization Tool for YouTube",
-    "description": "This is a product that summarizes videos."
+Now, generate the JSON output for this idea: ${projectIdea}`,
+    });
+
+    // 2️⃣ Try parsing JSON safely
+    const metadata = JSON.parse(text.trim()) as ProjectMetadata;
+
+    // 3️⃣ Validate minimal structure
+    if (!metadata.title || !metadata.description) {
+      console.warn("⚠️ [METADATA AGENT] Invalid metadata fields returned:", metadata);
+      return null;
+    }
+
+    return metadata;
+  } catch (err) {
+    console.error("💥 [METADATA AGENT ERROR]", err);
+    return null; // Safe fallback — route can handle null gracefully
+  }
 }
-Reason: Title too long, not brand-like. Description is bland.
-
----
-
-Now, generate the JSON output for this ${projectIdea}.`,
-  });
-
-  const metadata = JSON.parse(text);
-  return metadata
-}
-
-// TODO: Zod Validation

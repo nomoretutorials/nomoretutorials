@@ -180,7 +180,7 @@ export async function saveProjectConfiguration(
         where: {
           projectId_index: {
             projectId,
-            index: 0,
+            index: 1,
           },
         },
         data: {

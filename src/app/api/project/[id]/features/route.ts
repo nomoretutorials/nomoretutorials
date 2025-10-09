@@ -60,7 +60,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         },
         data: {
           status: "PENDING",
-          content: features,
         },
       }),
     ]);

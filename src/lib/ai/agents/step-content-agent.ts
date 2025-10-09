@@ -70,7 +70,7 @@ Output should be concise, structured, and written in a mentoring tone (encouragi
   }
 
   const result = await generateObject({
-    model: openai("gpt-5-nano"),
+    model: openai("gpt-4o-mini"),
     schema: stepContentAgentSchema,
     prompt: `
         You are a coding mentor creating educational content for developers learning to build real projects.

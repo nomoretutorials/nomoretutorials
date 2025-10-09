@@ -8,7 +8,6 @@ export const runtime = "nodejs";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    console.log("STARTED FETCHING 1");
     const { id: projectId } = await params;
 
     const user = await getServerUserSession();
@@ -21,13 +20,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         id: projectId,
       },
     });
-    console.log("PROJECT:", project);
 
     if (!project) {
       return NextResponse.json({ error: "Invalid Project Id" }, { status: 404 });
     }
 
-    console.log(`Generating features for project: ${projectId}`);
     const result = await projectFeaturesAgent(project.title, project.description);
     const text = await result.text;
     const features = parseFeatures(text);

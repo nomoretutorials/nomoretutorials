@@ -44,7 +44,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           });
 
           controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-          console.log(`[SSE] ✅ Update sent (${new Date().toISOString()})`);
         } catch (error) {
           console.error("[SSE] ❌ Error while sending update:", error);
           safeClose();

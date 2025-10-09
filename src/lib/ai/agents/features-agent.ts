@@ -1,9 +1,9 @@
 import { featuresListSchema } from "@/schemas/agent-validation";
 import { openai } from "@ai-sdk/openai";
-import { generateText } from "ai";
+import { streamText } from "ai";
 
 export async function projectFeaturesAgent(title: string, description: string) {
-  const { text } = await generateText({
+  const result = await streamText({
     model: openai("gpt-4o-mini"),
     prompt: `
         You are a Product Planning Assistant.
@@ -90,16 +90,22 @@ export async function projectFeaturesAgent(title: string, description: string) {
         `,
   });
 
-  let json;
+  return result;
+}
+
+export function parseFeatures(text: string) {
   try {
-    json = JSON.parse(text);
-  } catch {
-    json = null;
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("No JSON found in response");
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    const { success, data } = featuresListSchema.safeParse(parsed);
+
+    if (!success) throw new Error("AI sent invalid response");
+
+    return data.features;
+  } catch (error) {
+    console.error("Failed to parse features:", error);
+    throw new Error("Failed to parse AI reponse into features");
   }
-
-  const { success, data: content } = featuresListSchema.safeParse(json);
-
-  if (!success) throw new Error("AI Generated Invalid Response");
-
-  return content.features;
 }

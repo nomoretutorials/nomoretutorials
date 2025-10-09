@@ -1,3 +1,4 @@
+import FeaturesSkeleton from "./FeaturesSkeleton";
 import StepContentView, { StepContent } from "./StepContentView";
 
 type Step = {
@@ -13,6 +14,10 @@ type Props = {
 
 export default function StepContentRenderer({ step, children }: Props) {
   if (step.status === "PENDING") {
+    if (step.index === 0) {
+      return <FeaturesSkeleton />;
+    }
+
     return (
       <div className="py-12 text-center">
         <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />

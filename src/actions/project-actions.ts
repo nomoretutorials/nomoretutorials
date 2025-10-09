@@ -19,19 +19,38 @@ export async function createNewProject({
   if (!user) return { success: false, error: "Unauthorized" };
 
   try {
-    const project = await prisma.project.create({
-      data: {
-        title,
-        description,
-        userId: user.id,
-        status: "DRAFT",
-      },
-      select: {
-        id: true,
-        userId: true,
-        title: true,
-        description: true,
-      },
+    const project = await prisma.$transaction(async (tx) => {
+      const project = await tx.project.create({
+        data: {
+          title,
+          description,
+          userId: user.id,
+          status: "DRAFT",
+        },
+        select: {
+          id: true,
+          userId: true,
+          title: true,
+          description: true,
+        },
+      });
+
+      await tx.step.createMany({
+        data: [
+          {
+            index: 0,
+            title: "Choose Features",
+            projectId: project.id,
+          },
+          {
+            index: 1,
+            title: "Select Tech Stack",
+            projectId: project.id,
+          },
+        ],
+      });
+
+      return project;
     });
 
     if (project.userId !== user.id)
@@ -157,6 +176,18 @@ export async function saveProjectConfiguration(
           status: "ACTIVE",
         },
       }),
+      prisma.step.update({
+        where: {
+          projectId_index: {
+            projectId,
+            index: 0,
+          },
+        },
+        data: {
+          status: "COMPLETED"
+        }
+      }),
+      
       prisma.projectTechStack.createMany({
         data: techStackIds.map((stackId, index) => ({
           projectId,

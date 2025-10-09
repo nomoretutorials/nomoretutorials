@@ -38,41 +38,29 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         },
       }),
 
-      prisma.step.upsert({
+      prisma.step.update({
         where: {
           projectId_index: {
             projectId,
             index: 0,
           },
         },
-        update: {
-          status: "COMPLETED",
-          content: features,
-        },
-        create: {
-          projectId,
-          index: 0,
-          title: "Choose Features",
+        data: {
           status: "COMPLETED",
           content: features,
         },
       }),
 
-      prisma.step.upsert({
+      prisma.step.update({
         where: {
           projectId_index: {
             projectId,
             index: 1,
           },
         },
-        update: {
+        data: {
           status: "PENDING",
-        },
-        create: {
-          projectId,
-          index: 1,
-          title: "Select Tech Stack",
-          status: "PENDING",
+          content: features,
         },
       }),
     ]);

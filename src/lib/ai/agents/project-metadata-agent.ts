@@ -72,3 +72,5 @@ Now, generate the JSON output for this ${projectIdea}.`,
   const metadata = JSON.parse(text);
   return metadata
 }
+
+// TODO: Zod Validation

@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
 import { lastLoginMethod, magicLink } from "better-auth/plugins";
 
 import prisma from "./prisma";
@@ -37,5 +38,6 @@ export const auth = betterAuth({
         magicLinkMail(email, url);
       },
     }),
+    nextCookies(),
   ],
 });

@@ -7,6 +7,7 @@ import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";
 import { ActionResponse } from "@/hooks/useServerAction";
+import { headers } from "next/headers";
 
 export async function createNewProject({
   title,
@@ -37,14 +38,14 @@ export async function createNewProject({
     if (project.userId !== user.id)
       return { success: false, error: "Project does not belongs to the user." };
 
-    await inngest.send({
-      name: "app/features.generate",
-      data: {
-        projectId: project.id,
-        userId: user.id,
-        title: project.title,
-        description: project.description,
+    fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/project/${project.id}/features`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: (await headers()).get("cookie") || ""
       },
+    }).catch((err) => {
+      console.error("Failed to trigger feature generation: ", err);
     });
 
     return { success: true, data: { projectId: project.id } };
@@ -182,8 +183,6 @@ export async function saveProjectConfiguration(
       },
     });
 
-    console.log("Started generating steps for step 2");
-
     revalidatePath(`/project/${projectId}`);
     return { success: true, data: null };
   } catch (error) {
@@ -222,4 +221,15 @@ export async function addGithubRepoURL(
     console.error("Failed to delete project:", error);
     return { success: false, error: "Failed to delele project." };
   }
+}
+
+export async function startGeneratingContent(id: string) {
+  await prisma.step.update({
+    where: {
+      id,
+    },
+    data: {
+      status: "GENERATING",
+    },
+  });
 }

@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 export type ActionResponse<T> = { success: true; data: T } | { success: false; error: string };
 
-type ServerAction<TInput, TOutput> = (input?: TInput) => Promise<ActionResponse<TOutput>>;
+type ServerAction<TInput, TOutput> = (input: TInput) => Promise<ActionResponse<TOutput>>;
 
 interface Options<TOutput> {
   successMessage?: string;
@@ -25,7 +25,7 @@ export function useServerAction<TInput, TOutput>(
     return new Promise((resolve) => {
       startTransition(async () => {
         try {
-          const result = await action(input);
+          const result = await action(input!);
 
           if (!result.success) {
             toast.error(result.error);

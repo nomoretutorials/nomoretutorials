@@ -34,23 +34,44 @@ const NewProjectDialog = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { execute: runGenerateMetadata, isPending } = useServerAction(generateMetadata, {
-    successMessage: "Generated project details",
+  const { execute: runGenerateMetadata, isPending: isGeneraing } = useServerAction(
+    generateMetadata,
+    {
+      successMessage: "Generated project details",
+      onSuccess: (data) => {
+        setTitle((prev) => prev || data.title);
+        setDescription((prev) => prev || data.description);
+
+        Sentry.addBreadcrumb({
+          category: "ai",
+          message: "AI generation successful",
+          level: "info",
+        });
+      },
+      onError: (error) => {
+        Sentry.captureException(error, {
+          tags: { function: "NewProjectCard" },
+        });
+      },
+    }
+  );
+
+  const { execute: createProject, isPending: isSubmitting } = useServerAction(createNewProject, {
+    successMessage: "Project created successfully!",
     onSuccess: (data) => {
-      setTitle((prev) => prev || data.title);
-      setDescription((prev) => prev || data.description);
-
       Sentry.addBreadcrumb({
-        category: "ai",
-        message: "AI generation successful",
+        category: "project",
+        message: "Project created successfully",
         level: "info",
+        data,
       });
+      router.push(`/project/${data.projectId}`);
     },
     onError: (error) => {
-      Sentry.captureException(error, {
-        tags: { function: "NewProjectCard" },
+      Sentry.captureException(new Error("Project creation failed"), {
+        tags: { component: "NewProjectDialog", operation: "create_project" },
+        extra: { error },
       });
     },
   });
@@ -69,56 +90,8 @@ const NewProjectDialog = () => {
       },
     });
 
-    setIsSubmitting(true);
-    try {
-      const response = await createNewProject({
-        title,
-        description,
-      });
-
-      if (!response.success) {
-        Sentry.captureException(new Error("Failed to create project in database"), {
-          tags: {
-            component: "NewProjectDialog",
-            operation: "create_project",
-          },
-          extra: {
-            response,
-            title,
-            descriptionLength: description.length,
-          },
-        });
-        return toast.error("Error creating project in database");
-      }
-
-      const { projectId } = response.data;
-
-      Sentry.addBreadcrumb({
-        category: "project",
-        message: "Project created successfully",
-        level: "info",
-        data: {
-          projectId,
-        },
-      });
-
-      router.push(`/project/${projectId}`);
-    } catch (error) {
-      Sentry.captureException(error, {
-        tags: {
-          component: "NewProjectDialog",
-          operation: "create_project",
-        },
-        extra: {
-          title,
-          descriptionLength: description.length,
-        },
-      });
-      toast.error("Error creating project.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [title, description, router]);
+    await createProject({ title, description });
+  }, [title, description, createProject]);
 
   const handleCancel = () => {
     setOpen(false);
@@ -205,10 +178,10 @@ const NewProjectDialog = () => {
             size="sm"
             className="flex items-center gap-1"
             onClick={() => runGenerateMetadata(idea)}
-            disabled={isPending}
+            disabled={isGeneraing}
           >
             <Sparkles className="h-4 w-4" />
-            {isPending ? (
+            {isGeneraing ? (
               <div>
                 <Spinner />
               </div>

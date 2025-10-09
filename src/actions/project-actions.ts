@@ -1,13 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { inngest } from "@/inngest/client";
+import { headers } from "next/headers";
 import { Feature, Project, TechStack } from "@/types/project";
 import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";
 import { ActionResponse } from "@/hooks/useServerAction";
-import { headers } from "next/headers";
 
 export async function createNewProject({
   title,
@@ -42,7 +41,7 @@ export async function createNewProject({
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Cookie: (await headers()).get("cookie") || ""
+        Cookie: (await headers()).get("cookie") || "",
       },
     }).catch((err) => {
       console.error("Failed to trigger feature generation: ", err);
@@ -168,19 +167,14 @@ export async function saveProjectConfiguration(
       }),
     ]);
 
-    const features = project.features as Feature[];
-    const selectedFeatures = features.filter((f) => f.selected);
-    const techStackNames = project.ProjectTechStack.map((pts) => pts.techStack.name);
-
-    await inngest.send({
-      name: "app/build-steps.generate",
-      data: {
-        projectId,
-        title: project.title,
-        description: project.description,
-        selectedFeatures,
-        techStackNames,
+    fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/project/${project.id}/steps`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: (await headers()).get("cookie") || "",
       },
+    }).catch((err) => {
+      console.error("Failed to trigger build step generation: ", err);
     });
 
     revalidatePath(`/project/${projectId}`);

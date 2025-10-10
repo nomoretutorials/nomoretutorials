@@ -1,15 +1,11 @@
-import { useProjectStore } from "@/store/project-store";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-
-
-
-
+import { useProjectStore } from "@/store/project-store";
 
 export function useProjectNavigation() {
   const router = useRouter();
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-  const { hasUnsavedChanges, resetState, setHasUnsavedChanges, isNavigating, setIsNavigating } =
+  const { hasUnsavedChanges, resetState, setHasUnsavedChanges, setIsNavigating } =
     useProjectStore();
 
   // Handle browser back button
@@ -51,7 +47,7 @@ export function useProjectNavigation() {
         Promise.resolve(router.push("/")).finally(() => {
           setIsNavigating(false);
         });
-      }, 1000)
+      }, 2500);
     }
   }, [hasUnsavedChanges, router, resetState, setIsNavigating]);
 

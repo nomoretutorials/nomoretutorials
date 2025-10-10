@@ -321,9 +321,8 @@ const NewProjectCard = () => {
 
       <div className="mt-auto flex flex-col gap-6">
         <CardContent>
-          <p className="text-muted-foreground text-base leading-snug">
-            Turn your idea into a real project — instantly. Describe your concept, and let AI
-            generate a catchy name and description for you.
+          <p className="text-muted-foreground text-sm leading-snug">
+            Turn your idea into a real project — instantly. Describe your idea and let AI generate title and description for you.
           </p>
         </CardContent>
 

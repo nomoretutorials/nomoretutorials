@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { deleteProject } from "@/actions/project-actions";
 import { Project } from "@/types/project";
@@ -29,6 +29,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ProjectCardProps {
   project: Project;
@@ -38,6 +39,15 @@ interface ProjectCardProps {
 
 const ProjectCard = ({ project, isLatest, onDelete }: ProjectCardProps) => {
   const [open, setOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const router = useRouter();
+
+  const handleClick = () => {
+    setIsNavigating(true);
+    setTimeout(() => {
+      Promise.resolve(router.push(`/project/${project.id}`)).finally(() => setIsNavigating(false));
+    }, 2500);
+  };
 
   return (
     <Card className="group border-border/70 bg-card relative flex h-68 w-full max-w-sm flex-col rounded-2xl border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl">
@@ -101,9 +111,15 @@ const ProjectCard = ({ project, isLatest, onDelete }: ProjectCardProps) => {
         </CardContent>
 
         <CardFooter className="border-border flex items-center justify-between border-t pt-3">
-          <Link href={`/project/${project.id}`}>
-            <Button size="sm">Continue</Button>
-          </Link>
+          <Button size="sm" onClick={handleClick} disabled={isNavigating}>
+            {isNavigating ? (
+              <div>
+                <Spinner />
+              </div>
+            ) : (
+              <p>Continue</p>
+            )}
+          </Button>
         </CardFooter>
       </div>
 
@@ -195,7 +211,7 @@ const DeleteAlertDialog = ({ project, onDelete }: DeleteAlertDialogProps) => {
 
       const res = await deleteProject(project.id);
       if (!res.success) {
-        Sentry.captureException(new Error(res.message || "Failed to delete project"), {
+        Sentry.captureException(new Error(res.error || "Failed to delete project"), {
           tags: {
             component: "ProjectCard",
             operation: "delete_project",
@@ -207,7 +223,7 @@ const DeleteAlertDialog = ({ project, onDelete }: DeleteAlertDialogProps) => {
           },
         });
 
-        throw new Error(res.message);
+        throw new Error(res.error);
       }
 
       Sentry.addBreadcrumb({

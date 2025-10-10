@@ -66,7 +66,11 @@ export const useProjectStore = create<ProjectStore>()(
 
         setHasUnsavedChanges: (hasChanges: boolean) => set({ hasUnsavedChanges: hasChanges }),
 
-        resetState: () => set(initialState),
+        resetState: () =>
+          set((state) => ({
+            ...initialState,
+            isNavigating: state.isNavigating, // Preserve navigation state
+          })),
 
         nextStep: () =>
           set((state) => ({

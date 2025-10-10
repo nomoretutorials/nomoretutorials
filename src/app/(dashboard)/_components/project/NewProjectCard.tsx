@@ -5,6 +5,7 @@ import React, { useCallback, useState } from "react";
 import { generateMetadata } from "@/actions/ai/generate-metadata";
 import { createNewProject } from "@/actions/project-actions";
 import * as Sentry from "@sentry/nextjs";
+import { AnimatePresence, motion } from "framer-motion";
 import { CornerDownLeft, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,6 +25,7 @@ import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { useServerAction } from "@/hooks/useServerAction";
 
 const NewProjectDialog = () => {
@@ -207,18 +209,80 @@ const NewProjectDialog = () => {
             type="button"
             variant="secondary"
             size="sm"
-            className="flex items-center gap-2"
-            onClick={handleGenerate}
             disabled={isGeneraing || !idea}
-          >
-            <Sparkles className="h-4 w-4" />
-            {isGeneraing ? (
-              <div>
-                <Spinner />
-              </div>
-            ) : (
-              "Generate"
+            onClick={handleGenerate}
+            className={cn(
+              "relative flex items-center gap-2 overflow-hidden rounded-md transition-all",
+              "focus-visible:ring-primary/40 focus:outline-none focus-visible:ring-2",
+              isGeneraing && "cursor-wait shadow-inner",
+              !isGeneraing && "hover:shadow-md active:scale-[0.98]",
+              // disabled && "bg-muted/50 cursor-not-allowed opacity-70"
             )}
+          >
+            {/* Shimmer overlay when generating */}
+            <AnimatePresence>
+              {isGeneraing && (
+                <motion.div
+                  key="shimmer"
+                  className="via-primary/10 absolute inset-0 bg-gradient-to-r from-transparent to-transparent"
+                  initial={{ x: "-100%" }}
+                  animate={{ x: "100%" }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: 1.5,
+                    ease: "easeInOut",
+                    repeat: Infinity,
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* Icon */}
+            <motion.div
+              className={cn(
+                "relative flex items-center justify-center rounded-full",
+                isGeneraing
+                  ? "bg-primary/10 text-primary"
+                  : "text-foreground/80 group-hover:text-primary transition-colors"
+              )}
+              animate={{
+                scale: isGeneraing ? [1, 1.05, 1] : 1,
+                opacity: isGeneraing ? [1, 0.85, 1] : 1,
+              }}
+              transition={
+                isGeneraing
+                  ? { duration: 1.6, ease: "easeInOut", repeat: Infinity }
+                  : { duration: 0.2 }
+              }
+            >
+              <Sparkles className="h-4 w-4" />
+            </motion.div>
+
+            {/* Text / Spinner transition */}
+            <AnimatePresence mode="wait" initial={false}>
+              {isGeneraing ? (
+                <motion.div
+                  key="spinner"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Spinner className="scale-90" />
+                </motion.div>
+              ) : (
+                <motion.span
+                  key="label"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-sm font-medium"
+                >
+                  Generate
+                </motion.span>
+              )}
+            </AnimatePresence>
           </Button>
           <Button size="sm" onClick={handleSubmit} disabled={isSubmitting || !idea || !title}>
             {isSubmitting ? (

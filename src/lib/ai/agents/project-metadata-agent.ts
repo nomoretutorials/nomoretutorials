@@ -1,12 +1,12 @@
+import { metadataAgentType } from "@/schemas/agent-validation";
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 
-interface ProjectMetadata {
-  title: string;
-  description: string;
-}
 
-export async function projectMetadataAgent(projectIdea: string): Promise<ProjectMetadata | null> {
+
+
+
+export async function projectMetadataAgent(projectIdea: string): Promise<metadataAgentType | null> {
   try {
     // 1️⃣ Generate text from model
     const { text } = await generateText({
@@ -67,7 +67,7 @@ Now, generate the JSON output for this idea: ${projectIdea}`,
     });
 
     // 2️⃣ Try parsing JSON safely
-    const metadata = JSON.parse(text.trim()) as ProjectMetadata;
+    const metadata = JSON.parse(text.trim()) as metadataAgentType;
 
     // 3️⃣ Validate minimal structure
     if (!metadata.title || !metadata.description) {

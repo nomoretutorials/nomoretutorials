@@ -81,30 +81,22 @@ const NewProjectDialog = () => {
       return toast.error("Please enter an idea before generating.");
     }
 
-    // If idea and title exist → generate description only
-    // If only idea → generate both
-    toast.message("Generating project details...");
-
     const data = await runGenerateMetadata(idea);
 
     if (!data?.description) {
       return toast.error("AI couldn’t generate project details. Please try again.");
     }
 
-    // Update local state according to inputs
     if (!title) setTitle(data.title);
     setDescription(data.description);
   }, [idea, title, runGenerateMetadata]);
 
   const handleSubmit = useCallback(async () => {
-    // Case 1: No idea at all → block
     if (!idea) {
       return toast.error("Please enter an idea before creating a project.");
     }
 
-    // Case 2: Idea exists but no title or description
     if (!title || !description) {
-      // Idea + title (no description) → generate description & continue
       if (title && !description) {
         toast.message("Generating description...");
         const data = await runGenerateMetadata(idea);
@@ -117,11 +109,9 @@ const NewProjectDialog = () => {
         return;
       }
 
-      // Idea only → error, must generate first
       return toast.error("Please generate details before creating.");
     }
 
-    // Case 3: Everything exists → directly create project
     await createProject({ title, description });
   }, [idea, title, description, runGenerateMetadata, createProject]);
 
@@ -215,7 +205,7 @@ const NewProjectDialog = () => {
               "relative flex items-center gap-2 overflow-hidden rounded-md transition-all",
               "focus-visible:ring-primary/40 focus:outline-none focus-visible:ring-2",
               isGeneraing && "cursor-wait shadow-inner",
-              !isGeneraing && "hover:shadow-md active:scale-[0.98]",
+              !isGeneraing && "hover:shadow-md active:scale-[0.98]"
               // disabled && "bg-muted/50 cursor-not-allowed opacity-70"
             )}
           >
@@ -322,7 +312,8 @@ const NewProjectCard = () => {
       <div className="mt-auto flex flex-col gap-6">
         <CardContent>
           <p className="text-muted-foreground text-sm leading-snug">
-            Turn your idea into a real project — instantly. Describe your idea and let AI generate title and description for you.
+            Turn your idea into a real project — instantly. Describe your idea and let AI generate
+            title and description for you.
           </p>
         </CardContent>
 

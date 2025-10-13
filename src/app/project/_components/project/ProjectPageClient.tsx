@@ -32,6 +32,7 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
     toggleTechStack,
     setSelectedStepIndex,
     isNavigating,
+    resetState,
   } = useProjectStore();
 
   const { data: sseData, isConnected } = useProjectStream(project.id);
@@ -66,6 +67,14 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
       setSelectedStepIndex(0);
     }
   }, [selectedStepIndex, currentProject.Steps, setSelectedStepIndex]);
+
+  useEffect(() => {
+    return () => {
+      if (!isNavigating) {
+        resetState();
+      }
+    };
+  }, [resetState, isNavigating]);
 
   const currentStep = currentProject.Steps![selectedStepIndex] ?? currentProject.Steps![0];
 

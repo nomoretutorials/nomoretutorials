@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Feature, Step } from "@/types/project";
 
 type ProjectData = {
-  features: Feature;
+  features: Feature[];
   steps: Step[];
   status: string;
 };

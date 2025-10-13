@@ -41,11 +41,19 @@ export async function createNewProject({
             index: 0,
             title: "Choose Features",
             projectId: project.id,
+            category: "SETUP",
+            estimatedComplexity: "EASY",
+            learningFocus: "Understanding project requirements and feature selection",
+            relatedFeatures: [],
           },
           {
             index: 1,
             title: "Select Tech Stack",
             projectId: project.id,
+            category: "SETUP",
+            estimatedComplexity: "EASY",
+            learningFocus: "Technology stack selection and project setup",
+            relatedFeatures: [],
           },
         ],
       });
@@ -124,7 +132,7 @@ export async function saveSelectedFeatures(
       }),
       prisma.step.updateMany({
         where: { projectId, index: 0 },
-        data: { content: updatedFeatures },
+        data: { content: JSON.stringify(updatedFeatures) },
       }),
     ]);
 

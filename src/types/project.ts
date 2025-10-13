@@ -1,4 +1,4 @@
-import { Prisma, StepStatus, StepCategory, StepComplexity } from "@prisma/client";
+import { Prisma, StepCategory, StepComplexity, StepStatus } from "@prisma/client";
 
 export interface Project {
   id: string;
@@ -48,4 +48,3 @@ export interface Step {
   createdAt: Date;
   updatedAt: Date;
 }
-

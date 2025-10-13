@@ -1,18 +1,12 @@
 "use client";
 
+import { TechStack } from "@/types/project";
+
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 // TODO: Fix Active State
-
-type TechStack = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  category: string;
-};
 
 type Props = {
   techStacks: TechStack[];

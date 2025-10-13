@@ -1,24 +1,12 @@
 "use client";
 
-import { Prisma } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { Divide } from "lucide-react";
-
-
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-
-
-type Step = {
-  id: string;
-  index: number;
-  title: string;
-  status: string;
-  content: Prisma.JsonValue;
-  isCompleted: boolean;
-};
+import { Step } from "@/types/project";
 
 type SidebarStepsProps = {
   steps: Step[];

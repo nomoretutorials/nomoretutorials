@@ -1,6 +1,6 @@
 import { Feature } from "@/types/project";
 
-export function parseStepFeatures(content: unknown): Feature[] {
+export function parseStepFeatures(content: string | null): Feature[] {
   try {
     if (!content) {
       return [];

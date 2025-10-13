@@ -1,4 +1,4 @@
-import { Prisma, StepStatus } from "@prisma/client";
+import { Prisma, StepStatus, StepCategory, StepComplexity } from "@prisma/client";
 
 export interface Project {
   id: string;
@@ -10,6 +10,7 @@ export interface Project {
   status: string;
   repositoryUrl?: string | null;
   features?: Prisma.JsonValue;
+  currentStepIndex: number;
   Steps?: Step[];
 }
 
@@ -25,6 +26,8 @@ export type Feature = {
   id: string;
   title: string;
   description: string;
+  priority: string;
+  learningValue: string;
   selected?: boolean;
 };
 
@@ -33,14 +36,16 @@ export interface Step {
   index: number;
   title: string;
   status: StepStatus;
-  content: Prisma.JsonValue;
+  category: StepCategory;
+  estimatedComplexity: StepComplexity;
+  learningFocus: string;
+  relatedFeatures: string[];
+  content: string | null;
+  summary: string | null;
   isCompleted: boolean;
+  completedAt: Date | null;
   projectId: string;
-  repositoryURL?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface StepContent {
-  overview: string;
-  instructions: string[];
-  checkpoints: string[];
-}

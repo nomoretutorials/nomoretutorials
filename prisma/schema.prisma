@@ -64,9 +64,16 @@ model Step {
   id    String @id @default(uuid())
   index Int
 
-  title   String
-  status  StepStatus @default(PENDING)
-  content Json?
+  title  String
+  status StepStatus @default(PENDING)
+
+  category            StepCategory
+  estimatedComplexity StepComplexity
+  learningFocus       String
+  relatedFeatures     String[]       @default([])
+
+  content String? @db.Text
+  summary String? @db.Text
 
   isCompleted Boolean   @default(false)
   completedAt DateTime?
@@ -80,6 +87,7 @@ model Step {
   @@unique([projectId, index])
   @@index([projectId, status])
   @@index([projectId, isCompleted])
+  @@index([projectId, category])
   @@map("steps")
 }
 
@@ -195,6 +203,21 @@ enum ProjectStatus {
   ACTIVE
   COMPLETED
   ON_HOLD
+}
+
+enum StepCategory {
+  SETUP
+  FOUNDATION
+  FEATURE
+  INTEGRATION
+  POLISH
+  DEPLOYMENT
+}
+
+enum StepComplexity {
+  EASY
+  MEDIUM
+  HARD
 }
 
 enum ExperienceLevel {

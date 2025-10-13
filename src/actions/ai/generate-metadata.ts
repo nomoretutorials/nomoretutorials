@@ -2,6 +2,8 @@
 
 import { metadataAgentType } from "@/schemas/agent-validation";
 import { getServerUserSession } from "@/utils/get-server-user-session";
+import { projectLimit } from "@/utils/project-limit";
+import { perMinute, rateLimitCheck } from "@/utils/rate-limit";
 import * as Sentry from "@sentry/nextjs";
 
 import { projectMetadataAgent } from "@/lib/ai/agents/project-metadata-agent";
@@ -14,6 +16,20 @@ export async function generateMetadata(
   if (!user) return { success: false, error: "Unauthorized" };
 
   try {
+    const existingCount = await projectLimit(user.id);
+    if (existingCount === null || existingCount === undefined) {
+      return { success: false, error: "Error generating details. Please try again later." };
+    }
+
+    if (existingCount >= 2) {
+      return { success: false, error: "Project limit reached (max 2 projects per user)." };
+    }
+
+    const okUser = rateLimitCheck(`user:${user.id}:metadata`, perMinute(6));
+    if (!okUser) {
+      return { success: false, error: "Too many requests. Please slow down." };
+    }
+
     if (!projectIdea) {
       const errorMessage = "Please input a valid project idea.";
 

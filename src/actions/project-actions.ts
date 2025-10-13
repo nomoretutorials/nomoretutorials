@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { Feature, Project, TechStack } from "@/types/project";
 import { getServerUserSession } from "@/utils/get-server-user-session";
+import { projectLimit } from "@/utils/project-limit";
 
 import prisma from "@/lib/prisma";
 import { ActionResponse } from "@/hooks/useServerAction";
@@ -19,6 +20,15 @@ export async function createNewProject({
   if (!user) return { success: false, error: "Unauthorized" };
 
   try {
+    const existingCount = await projectLimit(user.id);
+
+    if (existingCount === null || existingCount === undefined) {
+      return { success: false, error: "Error creating project. Please try again later." };
+    }
+    
+    if (existingCount >= 2) {
+      return { success: false, error: "Project limit reached (max 2 projects per user)." };
+    }
     const project = await prisma.$transaction(async (tx) => {
       const project = await tx.project.create({
         data: {
@@ -192,10 +202,10 @@ export async function saveProjectConfiguration(
           },
         },
         data: {
-          status: "COMPLETED"
-        }
+          status: "COMPLETED",
+        },
       }),
-      
+
       prisma.projectTechStack.createMany({
         data: techStackIds.map((stackId, index) => ({
           projectId,

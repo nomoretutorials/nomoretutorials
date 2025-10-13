@@ -46,6 +46,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       index: step.index + 1,
       title: step.title,
       status: "PENDING" as const,
+      category: step.category,
+      estimatedComplexity: step.estimatedComplexity,
+      learningFocus: step.learningFocus,
+      relatedFeatures: step.relatedFeatures || [],
     }));
 
     await prisma.$transaction([

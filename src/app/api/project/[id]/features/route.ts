@@ -26,8 +26,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 
     const result = await projectFeaturesAgent(project.title, project.description);
-    const text = await result.text;
-    const features = parseFeatures(text);
+    const features = parseFeatures(result.text);
 
     await prisma.$transaction([
       prisma.project.update({
@@ -47,7 +46,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         },
         data: {
           status: "COMPLETED",
-          content: features,
+          content: JSON.stringify(features),
         },
       }),
 

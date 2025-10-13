@@ -30,7 +30,6 @@ const OnboardingPage = () => {
   const router = useRouter();
 
   const { execute: finishOnboarding, isPending: isLoading } = useServerAction(completeOnboarding, {
-    successMessage: "Onboarding completed!",
     onSuccess: () => {
       Sentry.addBreadcrumb({
         category: "onboarding",

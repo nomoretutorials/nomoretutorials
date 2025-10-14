@@ -4,7 +4,7 @@ import { generateText } from "ai";
 
 export async function projectMetadataAgent(projectIdea: string): Promise<metadataAgentType | null> {
   try {
-    const { text, usage } = await generateText({
+    const { text } = await generateText({
       model: openai("gpt-4o-mini"),
       prompt: `You are a creative brand strategist who names tech products.
 
@@ -166,7 +166,7 @@ For this project idea: "${projectIdea}"
 
 Think creatively. Use metaphor. Avoid obvious patterns. Make it memorable.
 
-Return ONLY the JSON.`,
+      Return ONLY the JSON.`,
     });
 
     // Parse and validate
@@ -174,7 +174,6 @@ Return ONLY the JSON.`,
     const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
 
     if (!jsonMatch) {
-      console.warn("⚠️ No JSON found in response:", cleanText);
       return null;
     }
 
@@ -182,7 +181,6 @@ Return ONLY the JSON.`,
 
     // Validate structure
     if (!metadata.title || !metadata.description) {
-      console.warn("⚠️ Invalid metadata structure:", metadata);
       return null;
     }
 
@@ -202,16 +200,11 @@ Return ONLY the JSON.`,
     ];
 
     if (badPatterns.some(Boolean)) {
-      console.warn("⚠️ Name matches bad pattern, regenerating...");
       // Could retry here or just return null
       return null;
     }
-
-    console.log(usage);
-    console.log("✅ Generated metadata:", metadata);
     return metadata;
-  } catch (err) {
-    console.error("💥 [METADATA AGENT ERROR]", err);
+  } catch {
     return null;
   }
 }

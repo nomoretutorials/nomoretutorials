@@ -39,17 +39,13 @@ export function useProjectNavigation() {
   const handleBackToDashboard = useCallback(() => {
     if (hasUnsavedChanges) {
       setShowUnsavedDialog(true);
-    } else {
-      setIsNavigating(true);
-      resetState();
-
-      setTimeout(() => {
-        Promise.resolve(router.push("/")).finally(() => {
-          setIsNavigating(false);
-        });
-      }, 2500);
+      return;
     }
-  }, [hasUnsavedChanges, router, resetState, setIsNavigating]);
+
+    setIsNavigating(true);
+
+    router.push("/");
+  }, [hasUnsavedChanges, router, setIsNavigating]);
 
   const handleConfirmNavigation = useCallback(() => {
     setShowUnsavedDialog(false);

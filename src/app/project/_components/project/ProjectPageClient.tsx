@@ -76,7 +76,7 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
 
   useEffect(() => {
     return () => {
-      if (!isNavigating) {
+      if (isNavigating) {
         resetState();
       }
     };

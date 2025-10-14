@@ -11,6 +11,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
 import { useProjectSave } from "@/hooks/useProjectSave";
 import { useProjectStream } from "@/hooks/useProjectStream";
+import ProjectStepLoader from "../ProjectCreationLoading";
 import Sidebar from "../sidebar/Sidebar";
 import UnsavedChangesDialog from "../UnsavedChangesDialog";
 import ChangeStep from "./ChangeStep";
@@ -33,6 +34,7 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
     setSelectedStepIndex,
     isNavigating,
     resetState,
+    isSaving,
   } = useProjectStore();
 
   const { data: sseData, isConnected } = useProjectStream(project.id);
@@ -55,6 +57,10 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
     handleConfirmNavigation,
     handleDialogOpenChange,
   } = useProjectNavigation();
+
+  useEffect(() => {
+    console.log("Selected step changed:", selectedStepIndex);
+  }, [selectedStepIndex]);
 
   const { handleSaveAndContinue } = useProjectSave(project.id);
 
@@ -95,7 +101,12 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
 
       <div className="h-lvh overflow-hidden p-2">
         <div className="bg-background h-full overflow-hidden rounded-2xl border px-0 py-0 shadow-sm">
-          <div className="flex h-full">
+          <div className="relative flex h-full">
+            {isSaving && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-xl">
+                <ProjectStepLoader />
+              </div>
+            )}
             <Sidebar
               projectId={currentProject.id}
               steps={currentProject.Steps!}
@@ -147,7 +158,7 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
               </div>
 
               <Button
-                disabled={isNavigating}
+                disabled={isNavigating || isSaving}
                 onClick={handleBackToDashboard}
                 className="bg-background/80 text-muted-foreground hover:text-foreground fixed top-6 right-6 z-50 flex cursor-pointer items-center justify-center transition-colors"
                 size="sm"

@@ -13,6 +13,19 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  advanced: {
+    cookies: {
+      session_token: {
+        name: "__Host-nmt.session", // host-only cookie in prod
+        options: {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          useSecureCookies: true,
+          path: "/",
+        },
+      },
+    },
+  },
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_CLIENT_ID as string,

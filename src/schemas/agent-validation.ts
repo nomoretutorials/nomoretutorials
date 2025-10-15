@@ -12,30 +12,30 @@ export const metadataAgentSchema = z.object({
 
 export type metadataAgentType = z.infer<typeof metadataAgentSchema>;
 
-export const featureAgentSchema = z.object({
-  id: z.string().regex(/^\d+$/, "ID must be a numeric string"),
-  title: z.string().min(1, "Feature title cannot be empty"),
-  description: z.string().min(5, "Feature description must be at least 5 characters"),
+const FeatureSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  priority: z.enum(["core", "essential", "enhancement"]),
+  learningValue: z.string(), // What will they learn building this?
 });
 
 export const featuresListSchema = z.object({
-  features: z.array(featureAgentSchema).min(3).max(15),
+  features: z.array(FeatureSchema),
 });
 
-const CATEGORY = ["Setup", "Core", "Polish", "Deployment"] as const;
-
-export const buildStepSchema = z.object({
-  index: z.number().min(1).max(25).describe("Sequential step number starting from 1."),
-  title: z
-    .string()
-    .min(1, "Build step title cannot be empty")
-    .max(60)
-    .describe("A clear, concise step title (max 6 words)"),
-  category: z.enum(CATEGORY).describe("Step category defining its phase in the build process."),
+const BuildStepSchema = z.object({
+  index: z.number().int().positive(),
+  title: z.string().min(3).max(60),
+  category: z.enum(["SETUP", "FOUNDATION", "FEATURE", "INTEGRATION", "POLISH", "DEPLOYMENT"]),
+  relatedFeatures: z.array(z.string()).optional(), // Feature IDs this step builds
+  prerequisiteSteps: z.array(z.number()).optional(), // Which steps must come before
+  estimatedComplexity: z.enum(["EASY", "MEDIUM", "HARD"]),
+  learningFocus: z.string(), // What they'll learn in this step
 });
 
 export const buildStepsListSchema = z.object({
-  steps: z.array(buildStepSchema).min(5).max(25),
+  steps: z.array(BuildStepSchema).min(8).max(25),
 });
 
 export type buildStepListType = z.infer<typeof buildStepsListSchema>;

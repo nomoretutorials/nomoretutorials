@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { saveProjectConfiguration, saveSelectedFeatures } from "@/actions/project-actions";
+import { saveProjectConfiguration } from "@/actions/project-actions";
 import { featureSelectionSchema, techStackSelectionSchema } from "@/schemas/project-schema";
 import { useProjectStore } from "@/store/project-store";
 
@@ -15,7 +15,6 @@ export function useProjectSave(projectId: string) {
   } = useProjectStore();
 
   const handleSaveAndContinue = useCallback(async () => {
-    setIsSaving(true);
     setError(null);
 
     try {
@@ -31,7 +30,6 @@ export function useProjectSave(projectId: string) {
           return;
         }
 
-        await saveSelectedFeatures(projectId, selectedFeatures);
         setHasUnsavedChanges(false);
         setSelectedStepIndex(1);
       } else if (selectedStepIndex === 1) {
@@ -46,9 +44,9 @@ export function useProjectSave(projectId: string) {
           return;
         }
 
+        setIsSaving(true);
         await saveProjectConfiguration(projectId, selectedFeatures, selectedTechStacks);
         setHasUnsavedChanges(false);
-        setSelectedStepIndex(2);
       }
     } catch (error) {
       const errorMessage =

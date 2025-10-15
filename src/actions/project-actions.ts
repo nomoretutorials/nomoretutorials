@@ -25,7 +25,7 @@ export async function createNewProject({
     if (existingCount === null || existingCount === undefined) {
       return { success: false, error: "Error creating project. Please try again later." };
     }
-    
+
     if (existingCount >= 2) {
       return { success: false, error: "Project limit reached (max 2 projects per user)." };
     }
@@ -116,44 +116,6 @@ export async function getProject(projectId: string): Promise<ActionResponse<{ pr
   }
 }
 
-export async function saveSelectedFeatures(
-  projectId: string,
-  featureIds: string[]
-): Promise<ActionResponse<null>> {
-  const user = await getServerUserSession();
-  if (!user) return { success: false, error: "Unauthorized" };
-
-  try {
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
-    if (!project?.features) {
-      return { success: false, error: "No features found" };
-    }
-
-    const allFeatures = project.features as Feature[];
-    const updatedFeatures = allFeatures.map((f) => ({
-      ...f,
-      selected: featureIds.includes(f.id),
-    }));
-
-    await prisma.$transaction([
-      prisma.project.update({
-        where: { id: projectId },
-        data: { features: updatedFeatures },
-      }),
-      prisma.step.updateMany({
-        where: { projectId, index: 0 },
-        data: { content: JSON.stringify(updatedFeatures) },
-      }),
-    ]);
-
-    revalidatePath(`/projects/${projectId}`);
-    return { success: true, data: null };
-  } catch (error) {
-    console.error("Failed to save features:", error);
-    return { success: false, error: "Something went wrong" };
-  }
-}
-
 export async function getAllTechStacks(): Promise<ActionResponse<TechStack[]>> {
   const user = await getServerUserSession();
   if (!user) return { success: false, error: "Unauthorized" };
@@ -186,13 +148,20 @@ export async function saveProjectConfiguration(
     if (project.userId !== user.id)
       return { success: false, error: "Project does not belongs to the user." };
 
+    const allFeatures = project.features as Feature[];
+    const updatedFeatures = allFeatures.map((f) => ({
+      ...f,
+      selected: featureIds.includes(f.id),
+    }));
+
     await prisma.$transaction([
-      prisma.project.update({
+      prisma.project.updateMany({
         where: { id: projectId },
-        data: {
-          techStacks: techStackIds,
-          status: "ACTIVE",
-        },
+        data: { features: updatedFeatures, techStacks: techStackIds, status: "ACTIVE" },
+      }),
+      prisma.step.updateMany({
+        where: { projectId, index: 0 },
+        data: { content: JSON.stringify(updatedFeatures) },
       }),
       prisma.step.update({
         where: {
@@ -216,7 +185,7 @@ export async function saveProjectConfiguration(
       }),
     ]);
 
-    fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/project/${project.id}/steps`, {
+    await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/project/${project.id}/steps`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -264,15 +233,4 @@ export async function addGithubRepoURL(
     console.error("Failed to delete project:", error);
     return { success: false, error: "Failed to delele project." };
   }
-}
-
-export async function startGeneratingContent(id: string) {
-  await prisma.step.update({
-    where: {
-      id,
-    },
-    data: {
-      status: "GENERATING",
-    },
-  });
 }

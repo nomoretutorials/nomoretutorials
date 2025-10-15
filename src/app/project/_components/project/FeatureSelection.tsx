@@ -43,8 +43,9 @@ export default function FeatureSelection({ features, selectedFeatures, onToggleF
               <Checkbox
                 id={feature.id}
                 checked={isSelected}
-                onClick={(e) => e.stopPropagation()}
-                onCheckedChange={() => onToggleFeature(feature.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
                 className="mt-1"
               />
               <div className="flex-1">

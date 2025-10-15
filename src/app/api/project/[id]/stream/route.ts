@@ -17,7 +17,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           try {
             controller.close();
             console.log(`[SSE] 🧹 Stream closed for project: ${id}`);
-          } catch (err) {
+          } catch {
             console.warn(`[SSE] ⚠️ Tried closing already closed stream: ${id}`);
           }
         }

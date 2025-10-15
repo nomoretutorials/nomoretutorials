@@ -69,7 +69,7 @@ export default function Sidebar({
     try {
       await addGithubRepoURL(projectId, githubUrl);
       setGithubRepoAdded(true);
-    } catch (error) {}
+    } catch {}
 
     setShowGithubInput(false);
   };

@@ -1,113 +1,168 @@
-import { stepContentAgentSchema } from "@/schemas/agent-validation";
-import { Feature, StepContent } from "@/types/project";
+// lib/ai/agents/stepContentAgent.ts
 import { openai } from "@ai-sdk/openai";
-import { generateObject } from "ai";
-
-type Props = {
-  stepTitle: string;
-  projectTitle: string;
-  projectDescription: string;
-  techStackNames: string[];
-  selectedFeatures: Feature[];
-  previousSteps?: Array<{ index: number; title: string; content: StepContent }>;
-};
+import { generateText } from "ai";
 
 export async function projectStepContentAgent({
   stepTitle,
+  learningFocus,
+  relatedFeatures,
   projectTitle,
   projectDescription,
   techStackNames,
   selectedFeatures,
   previousSteps,
-}: Props) {
-  const featuresList = selectedFeatures.map((f) => f.title).join(", ");
-  const techStackList = techStackNames.join(", ");
+  estimatedComplexity,
+}: {
+  stepTitle: string;
+  learningFocus: string;
+  relatedFeatures?: string[];
+  projectTitle: string;
+  projectDescription: string;
+  techStackNames: string[];
+  selectedFeatures: Array<{ id: string; title: string; description: string }>;
+  previousSteps?: Array<{ index: number; title: string; summary: string }>;
+  estimatedComplexity: "EASY" | "MEDIUM" | "HARD";
+  apiKey?: string;
+}) {
+  const techStack = techStackNames.join(", ");
 
-  let contextSection = "";
-  if (previousSteps && previousSteps.length > 0) {
-    const previousContext = previousSteps
-      .map((step) => {
-        const overview = step.content.overview || "No overview available";
-        return `Step ${step.index}: ${step.title}\n Summary: ${overview}`;
-      })
-      .join("\n\n");
+  const previousContext =
+    previousSteps && previousSteps.length > 0
+      ? previousSteps.map((s) => `- **Step ${s.index}**: ${s.title} (${s.summary})`).join("\n")
+      : "None - this is your first step.";
 
-    contextSection = `
-        ### CONTEXT: Prior Learning Path
-The learner has already completed the following steps in this project:
+  const stepFeatures = selectedFeatures.filter((f) => relatedFeatures?.includes(f.id));
+  const featuresContext =
+    stepFeatures.length > 0 ? stepFeatures.map((f) => `- ${f.title}`).join("\n") : "General setup";
 
+  const prompt = `You are a coding mentor creating a **learning guide** (NOT a tutorial) for: "${stepTitle}"
+
+## Context
+Project: ${projectTitle} (${projectDescription})
+Tech Stack: ${techStack}
+Features to build: ${featuresContext}
+Complexity: ${estimatedComplexity}
+Learning goal: ${learningFocus}
+
+Previous steps completed:
 ${previousContext}
 
-### CONTINUITY OBJECTIVE
-You are continuing from this foundation. Treat the previous steps as context you **must build upon**, not restart.  
-When generating content for the next step:
+## Your Output Must Be:
+1. **Concise** - No fluff, no repetition. Every sentence must add value.
+2. **Action-focused** - Tell them WHAT to build, WHERE to look, WHAT success looks like.
+3. **Smart about detail** - More detail for complex parts, less for obvious parts.
+4. **No hand-holding** - Guide to resources, don't give solutions.
 
-1. **Reference prior progress explicitly**
-   - Mention previous configurations, components, or files where relevant.  
-   - Show how this step *extends* or *connects* with them.  
-   - Use phrases like “Continuing from the last step…” or “Building upon the earlier setup…”.
+## Format (in markdown):
 
-2. **Preserve narrative and conceptual flow**
-   - Maintain naming conventions, terminology, and architectural decisions from prior steps.  
-   - Avoid introducing new abstractions or libraries unless necessary.
+### What You're Building
+(1-2 sentences max. Be specific. Reference previous work if relevant.)
 
-3. **Depth over repetition**
-   - Do not restate what’s already been explained.  
-   - Instead, deepen understanding by explaining *why* this next step follows naturally.  
-   - If reusing old code, summarize it in one line, not by re-explaining.
+### Your Tasks
+(3-5 bullet points. Each is a clear, actionable task. No explanations unless necessary.)
 
-4. **Smooth transitions**
-   - Open the step with a short contextual bridge (1–2 sentences) linking this step to the last one.  
-   - End the step with a clear indicator of what the learner has now achieved and what the next logical step might be.
+Example:
+- Create a \`User\` model in \`prisma/schema.prisma\` with id, email, name, and password fields
+- Set up password hashing using bcrypt before storing
+- Create a POST /api/signup endpoint that validates input and creates users
 
-5. **Recency Bias**
-   - Prioritize the last 2–3 steps as the most relevant context.  
-   - Use older steps only for major dependencies (e.g., project setup, core architecture).
+### Key Resources
+(2-4 most important links ONLY. Format: **[Title](url)** - one-line context)
 
-Output should be concise, structured, and written in a mentoring tone (encouraging, confident, guiding).
+### Hints
+(2-3 practical tips ONLY when they'd actually get stuck. Skip if obvious.)
 
-      `;
-  }
+Format as:
+> 💡 **Tip name**: Brief tip in one sentence
 
-  const result = await generateObject({
+### Verify Your Work
+(2-3 specific, testable checkpoints. Be concrete.)
+
+Example:
+- [ ] Running \`npx prisma studio\` shows your User table with correct fields
+- [ ] POST request to /api/signup returns 201 and creates a user in database
+- [ ] Passwords are hashed (never stored as plain text)
+
+---
+
+## Critical Rules:
+
+**BE CONCISE**:
+- Overview: 1-2 sentences max
+- Tasks: 3-5 bullet points (one line each unless complex)
+- No redundant explanations
+- Skip obvious things (e.g., don't explain what a file is)
+
+**BE SMART ABOUT DETAIL**:
+${
+  estimatedComplexity === "EASY"
+    ? "This is EASY - be brief, they can figure it out. Only add detail for tricky parts."
+    : estimatedComplexity === "MEDIUM"
+      ? "This is MEDIUM - give direction but no solutions. Point to docs, describe patterns."
+      : "This is HARD - they need to research. Give conceptual direction and point to multiple resources."
+}
+
+**BE CONTEXT-AWARE**:
+${
+  previousSteps && previousSteps.length > 0
+    ? `They've completed: ${previousSteps.map((s) => s.title).join(", ")}. Don't re-explain those concepts. Build on them.`
+    : "This is their first step. Be slightly more explicit but still concise."
+}
+
+**NO FLUFF**:
+❌ "In this exciting step, we'll embark on a journey to..."
+✅ "Set up Prisma to connect to PostgreSQL."
+
+❌ "Let's think about how we might approach this problem..."
+✅ "Create an API route that handles user signup."
+
+❌ Long explanations of WHY before HOW
+✅ Quick WHAT, then WHERE to learn more
+
+**SHOW PATTERNS, NOT SOLUTIONS**:
+When showing code, use:
+- Placeholders: \`yourFieldName\`, \`YourModel\`
+- Incomplete snippets with comments: \`// Your validation logic here\`
+- Structure only: Show the shape, not the implementation
+
+Example of GOOD pattern:
+\`\`\`typescript
+// Pattern for API route
+export async function POST(request: Request) {
+  const body = await request.json();
+  // 1. Validate input
+  // 2. Process data
+  // 3. Return response
+}
+\`\`\`
+
+Example of BAD (too complete):
+\`\`\`typescript
+export async function POST(request: Request) {
+  const { email, password } = await request.json();
+  if (!email || !password) return Response.json({ error: "Invalid" });
+  const user = await prisma.user.create({ data: { email, password } });
+  return Response.json(user);
+}
+\`\`\`
+
+---
+
+Now generate concise, action-focused content for "${stepTitle}".
+
+Remember:
+- Be brief and direct
+- Skip obvious explanations
+- More detail only where complexity demands it
+- Guide to resources, don't give solutions
+- Every word must earn its place`;
+
+  const result = await generateText({
     model: openai("gpt-4o-mini"),
-    schema: stepContentAgentSchema,
-    prompt: `
-        You are a coding mentor creating educational content for developers learning to build real projects.
-
-Project: ${projectTitle}
-Description: ${projectDescription}
-Tech Stack: ${techStackList}
-Features: ${featuresList}
-
-Current Step: ${stepTitle}
-${contextSection}
-
-Generate learning content for this step that:
-
-1. **Overview**: Explain what the learner will accomplish (2-3 sentences)
-
-2. **Instructions**: Provide 5-8 guidance points that:
-   - Are actionable but not spoon-feeding
-   - Point to documentation/resources
-   - Encourage exploration and problem-solving
-   - Guide toward the solution without giving complete code
-   - Example: "Install Express.js and set up a basic server. Check the Express docs for the minimal setup needed."
-
-3. **Hints**: Share 2-3 tips like:
-   - Common mistakes beginners make
-   - Best practices to follow
-   - Links to relevant documentation
-   - Debugging suggestions
-
-4. **Checkpoints**: Give 2-3 ways to verify they're on track:
-   - "Your server should respond on port 3000"
-   - "Running the test suite should show 5 passing tests"
-   - "Check the Network tab - you should see API calls"
-
-Tone: Encouraging, mentor-like, assumes the learner wants to learn (not just copy-paste).
-    `,
+    prompt,
+    temperature: 0.6,
   });
 
-  return result.object;
+  console.log(result.usage);
+  return result;
 }

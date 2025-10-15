@@ -66,7 +66,6 @@ export async function GET(
     console.log("STARTED GENERATING CONTENT !!");
     const content = await projectStepContentAgent({
       stepTitle: targetStep?.title,
-      stepIndex: targetStep.index,
       learningFocus: targetStep.learningFocus,
       relatedFeatures: targetStep.relatedFeatures,
       estimatedComplexity: targetStep.estimatedComplexity,

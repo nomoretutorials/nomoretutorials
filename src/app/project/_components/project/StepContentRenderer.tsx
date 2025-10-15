@@ -1,5 +1,9 @@
-import FeaturesSkeleton from "./FeaturesSkeleton";
-import StepContentView, { StepContent } from "./StepContentView";
+import FeaturesSkeleton from "./skeleton/FeaturesSkeleton";
+import CompletedStepContent from "./skeleton/CompletedStepContent";
+import FailedStepContent from "./skeleton/FailedStepContent";
+import GeneratingContentSkeleton from "./skeleton/GeneratingContentSkeleton";
+import WaitingForNextStep from "./skeleton/WaitingForNextStep";
+import StepContentView from "./StepContentView";
 
 type Step = {
   index: number;
@@ -10,38 +14,26 @@ type Step = {
 type Props = {
   step: Step;
   children?: React.ReactNode;
+  onRetry?: () => void;
 };
 
-export default function StepContentRenderer({ step, children }: Props) {
-  if (step.status === "PENDING") {
-    if (step.index === 0) {
-      return <FeaturesSkeleton />;
-    }
-
-    return (
-      <div className="py-12 text-center">
-        <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-        <p className="text-muted-foreground">Loading step content...</p>
-      </div>
-    );
+export default function StepContentRenderer({ step, children, onRetry }: Props) {
+  switch (step.status) {
+    case "PENDING":
+      return step.index === 0 ? <FeaturesSkeleton /> : <WaitingForNextStep />;
+    case "GENERATING":
+      return (
+        <div className="">
+          <GeneratingContentSkeleton />
+        </div>
+      );
+    case "COMPLETED":
+      if (children) return <>{children}</>;
+      if (step.content) return <StepContentView content={step.content as string} />;
+      return <CompletedStepContent />;
+    case "FAILED":
+      return <FailedStepContent onRetry={onRetry} />;
+    default:
+      return null;
   }
-
-  if (step.status === "GENERATING") {
-    return (
-      <div className="py-12 text-center">
-        <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
-        <p className="text-muted-foreground">AI is generating content for this step...</p>
-      </div>
-    );
-  }
-
-  if (step.status === "COMPLETED" && children) {
-    return <>{children}</>;
-  }
-
-  if (step.status === "COMPLETED" && step.content) {
-    return <StepContentView content={step.content as StepContent} />;
-  }
-
-  return null;
 }

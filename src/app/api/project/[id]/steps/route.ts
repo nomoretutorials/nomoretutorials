@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { Feature } from "@/types/project";
 import { getServerUserSession } from "@/utils/get-server-user-session";
@@ -62,6 +63,49 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         data: { status: "ACTIVE" },
       }),
     ]);
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const cookie = (await headers()).get("cookie") || "";
+
+    // Fetch Step-2 content
+    const step2Res = await fetch(`${baseUrl}/api/project/${projectId}/steps/2`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: cookie,
+        "X-Internal-Generation": "true",
+      },
+    });
+
+    if (!step2Res.ok) {
+      const err = await step2Res.json().catch(() => ({}));
+      console.error("Step 2 failed:", err);
+    }
+
+    (async () => {
+      for (const stepIndex of [3, 4]) {
+        try {
+          console.log(`Generating content for step ${stepIndex} (background)...`);
+          const res = await fetch(`${baseUrl}/api/project/${projectId}/steps/${stepIndex}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Cookie: cookie,
+              "X-Internal-Generation": "true",
+            },
+          });
+
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            console.error(`Step ${stepIndex} failed in background:`, err);
+          } else {
+            console.log(`Step ${stepIndex} completed in background`);
+          }
+        } catch (err) {
+          console.error(`Background generation failed for step ${stepIndex}:`, err);
+        }
+      }
+    })();
 
     return NextResponse.json({ success: true });
   } catch (error) {

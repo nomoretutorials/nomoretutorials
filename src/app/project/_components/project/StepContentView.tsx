@@ -1,150 +1,200 @@
-import ReactMarkdown from "react-markdown";
-import rehypeHighlight from "rehype-highlight";
+"use client";
+
+import { useState } from "react";
+import { Check, Copy, ExternalLink, Lightbulb } from "lucide-react";
+import ReactMarkdown, { type Components } from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import remarkGfm from "remark-gfm";
 
-import "highlight.js/styles/github.css";
+type Props = { content: string };
 
-type Props = {
-  content: string; // Fix type
+/**
+/**
+ * Prism theme typed correctly (no `any`)
+ */
+const prismTheme = {
+  ...oneDark,
+  plain: {
+    ...(oneDark.plain as object),
+    backgroundColor: "var(--muted)",
+    color: "var(--foreground)",
+  },
 };
 
 /**
- * Renders AI-generated step content with clean, readable visual hierarchy.
- * Sections: Overview, Instructions, Verification, Encouragement.
+ * Code block with copy button & language badge
  */
-export default function StepContentView({ content }: Props) {
-  const sections = splitSections(content);
+function CodeBlock({ code, language }: { code: string; language: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // ignore silently
+    }
+  };
 
   return (
-    <div className="prose prose-headings:font-semibold prose-pre:rounded-lg prose-pre:p-0 prose-code:text-sm prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-em:text-foreground max-w-none leading-relaxed">
-      {sections.overview && (
-        <Section
-          title="📋 Overview"
-          bg="bg-accent/25"
-          border="border-accent/40"
-          text={sections.overview}
-        />
-      )}
-
-      {sections.instructions && (
-        <Section
-          title="🧩 Step-by-Step Instructions"
-          bg="bg-secondary/40"
-          border="border-secondary/40"
-          text={sections.instructions}
-        />
-      )}
-
-      {sections.verification && (
-        <Section
-          title="✅ Verification"
-          bg="bg-primary/10"
-          border="border-primary/30"
-          text={sections.verification}
-        />
-      )}
-
-      {sections.encouragement && (
-        <Section
-          title="💬 Encouragement"
-          bg="bg-yellow-50"
-          border="border-yellow-300"
-          text={sections.encouragement}
-        />
-      )}
-    </div>
-  );
-}
-
-/** Individual content section */
-function Section({
-  title,
-  text,
-  bg,
-  border,
-}: {
-  title: string;
-  text: string;
-  bg: string;
-  border: string;
-}) {
-  return (
-    <div
-      className={`${bg} ${border} mb-10 space-y-5 rounded-2xl border p-6 shadow-sm transition-colors duration-200 sm:p-8`}
-    >
-      <h3 className="text-foreground mb-2 text-xl font-semibold tracking-tight sm:text-2xl">
-        {title}
-      </h3>
-
-      <div className="prose prose-sm sm:prose-base text-foreground max-w-none">
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeHighlight]}
-          components={{
-            code({ className, children }) {
-              const lang = className?.replace("language-", "");
-              return (
-                <pre className="bg-muted/70 border-border/40 overflow-x-auto rounded-lg border p-4 text-sm sm:text-base">
-                  <code className={`language-${lang}`}>{children}</code>
-                </pre>
-              );
-            },
-            a({ href, children }) {
-              return (
-                <a
-                  href={href ?? "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:text-primary/80 font-medium underline transition-colors"
-                >
-                  {children}
-                </a>
-              );
-            },
-            li({ children }) {
-              return <li className="text-foreground ml-6 list-disc leading-relaxed">{children}</li>;
-            },
-            p({ children }) {
-              return <p className="text-foreground my-3">{children}</p>;
-            },
-            strong({ children }) {
-              return <strong className="text-foreground font-semibold">{children}</strong>;
-            },
-          }}
-        >
-          {text}
-        </ReactMarkdown>
+    <div className="group relative my-4">
+      {/* Language badge */}
+      <div className="absolute top-2 left-3 font-mono text-xs text-gray-400 uppercase">
+        {language}
       </div>
+
+      {/* Copy button */}
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="absolute top-2 right-2 flex items-center gap-1 rounded bg-gray-700 p-2 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-600"
+        aria-label={`Copy ${language} code`}
+      >
+        {copied ? (
+          <>
+            <Check className="h-3 w-3" /> Copied
+          </>
+        ) : (
+          <>
+            <Copy className="h-3 w-3" /> Copy
+          </>
+        )}
+      </button>
+
+      <SyntaxHighlighter
+        language={language}
+        style={prismTheme}
+        customStyle={{
+          margin: 0,
+          padding: "2rem 1rem 1rem",
+          borderRadius: "0.5rem",
+          fontSize: "0.875rem",
+        }}
+      >
+        {code}
+      </SyntaxHighlighter>
     </div>
   );
 }
 
 /**
- * Splits AI markdown into structured sections based on headings:
- * "### 1) Overview", "### 2) Step-by-step Instructions", "### 3) Verification"
+/**
+ * `code` renderer (typed properly for inline & block)
  */
-function splitSections(text: string) {
-  const parts = {
-    overview: "",
-    instructions: "",
-    verification: "",
-    encouragement: "",
-  };
+const codeRenderer: Components["code"] = (props) => {
+  // Fix for type issue: Explicitly destructure using correct prop types
+  const { className, children } = props as { className?: string; children?: React.ReactNode; inline?: boolean };
+  // In some MDX/ReactMarkdown setups, `inline` might not actually exist
+  // Instead, fallback: If there's a language class, it's a block; otherwise, treat as inline
+  const match = /language-(\w+)/.exec(className || "");
+  const codeString = String(children ?? "").replace(/\n$/, "");
 
-  const overviewMatch = text.match(/### 1\) Overview([\s\S]*?)(?=### 2\)|$)/);
-  const instructionsMatch = text.match(/### 2\)[\s\S]*?Instructions([\s\S]*?)(?=### 3\)|$)/);
-  const verificationMatch = text.match(/### 3\) Verification([\s\S]*?)(?=$)/);
-
-  parts.overview = overviewMatch?.[1]?.trim() || "";
-  parts.instructions = instructionsMatch?.[1]?.trim() || "";
-  parts.verification = verificationMatch?.[1]?.trim() || "";
-
-  const encouragementMatch = text.match(
-    /(Feel free to|You're doing great|If you run into any issues)[\s\S]*$/i
-  );
-  if (encouragementMatch) {
-    parts.encouragement = encouragementMatch[0].trim();
+  // If it's a code block (has language), use CodeBlock; otherwise, render inline code
+  if (match) {
+    return <CodeBlock code={codeString} language={match[1]} />;
   }
 
-  return parts;
+  return (
+    <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-pink-600 dark:bg-gray-800 dark:text-pink-400">
+      {children}
+    </code>
+  );
+};
+
+/**
+ * Full markdown renderer map
+ */
+const components: Components = {
+  h1: ({ children }) => <h1 className="mt-8 mb-4 text-3xl font-bold">{children}</h1>,
+  h2: ({ children }) => <h2 className="mt-8 mb-3 text-2xl font-semibold">{children}</h2>,
+  h3: ({ children }) => (
+    <h3 className="mt-6 mb-2 flex items-center gap-2 text-xl font-semibold">{children}</h3>
+  ),
+  h4: ({ children }) => <h4 className="mt-4 mb-2 text-lg font-medium">{children}</h4>,
+
+  p: ({ children }) => (
+    <p className="my-3 leading-relaxed text-gray-700 dark:text-gray-300">{children}</p>
+  ),
+
+  ul: ({ children }) => (
+    <ul className="my-3 ml-6 list-disc space-y-1.5 marker:text-blue-500">{children}</ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="my-3 ml-6 list-decimal space-y-1.5 marker:font-semibold marker:text-blue-500">
+      {children}
+    </ol>
+  ),
+
+  /**
+   * ✅ Fixed type issue for `checked`
+   */
+  li: ({ checked, children }: { checked?: boolean; children?: React.ReactNode }) => {
+    if (typeof checked === "boolean") {
+      return (
+        <li className="flex list-none items-start gap-2">
+          <input
+            type="checkbox"
+            checked={checked}
+            readOnly
+            className="mt-1 h-4 w-4 rounded border-gray-300"
+          />
+          <span className="text-gray-700 dark:text-gray-300">{children}</span>
+        </li>
+      );
+    }
+    return <li className="text-gray-700 dark:text-gray-300">{children}</li>;
+  },
+
+  blockquote: ({ children }) => {
+    const text = String(children).toLowerCase();
+    if (text.includes("💡") || text.includes("tip")) {
+      return (
+        <div className="my-3 flex items-start gap-3 rounded-r border-l-4 border-blue-500 bg-blue-50 p-3 dark:bg-blue-950">
+          <Lightbulb className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+          <div className="text-sm text-blue-900 dark:text-blue-100">{children}</div>
+        </div>
+      );
+    }
+    return (
+      <blockquote className="my-3 border-l-4 border-gray-300 pl-4 text-gray-600 italic dark:text-gray-400">
+        {children}
+      </blockquote>
+    );
+  },
+
+  code: codeRenderer,
+
+  a: ({ href, children }) => {
+    const isExternal = typeof href === "string" && href.startsWith("http");
+    return (
+      <a
+        href={href}
+        className="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400"
+        target={isExternal ? "_blank" : undefined}
+        rel={isExternal ? "noopener noreferrer" : undefined}
+      >
+        {children}
+        {isExternal && <ExternalLink className="h-3 w-3" />}
+      </a>
+    );
+  },
+
+  hr: () => <hr className="my-6 border-t border-gray-200 dark:border-gray-700" />,
+
+  strong: ({ children }) => (
+    <strong className="font-semibold text-gray-900 dark:text-gray-100">{children}</strong>
+  ),
+  em: ({ children }) => <em className="text-gray-700 italic dark:text-gray-300">{children}</em>,
+};
+
+export default function StepContentView({ content }: Props) {
+  return (
+    <article className="max-w-none">
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+        {content}
+      </ReactMarkdown>
+    </article>
+  );
 }

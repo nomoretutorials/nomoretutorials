@@ -39,7 +39,7 @@ const initialState: ProjectState = {
 export const useProjectStore = create<ProjectStore>()(
   devtools(
     persist(
-      (set, get) => ({
+      (set) => ({
         ...initialState,
 
         setSelectedStepIndex: (index: number) => set({ selectedStepIndex: Math.max(0, index) }),
@@ -67,7 +67,7 @@ export const useProjectStore = create<ProjectStore>()(
         setHasUnsavedChanges: (hasChanges: boolean) => set({ hasUnsavedChanges: hasChanges }),
 
         resetState: () =>
-          set((state) => ({
+          set(() => ({
             ...initialState,
           })),
 

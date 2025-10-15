@@ -1,12 +1,11 @@
 "use client";
 
+import { Step } from "@/types/project";
 import { AnimatePresence, motion } from "framer-motion";
-import { Divide } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { Step } from "@/types/project";
 
 type SidebarStepsProps = {
   steps: Step[];

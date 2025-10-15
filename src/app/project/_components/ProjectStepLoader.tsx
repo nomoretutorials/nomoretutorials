@@ -32,11 +32,10 @@ const loadingStates = [
 ];
 
 export default function ProjectStepLoader() {
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(true);
   return (
-    <div className="relative w-full h-full">
-      {/* Core Loader Modal */}
-      <Loader loadingStates={loadingStates} loading={loading} duration={2000} loop={false} />
+    <div className="relative h-full w-full">
+      <Loader loadingStates={loadingStates} loading={loading} duration={4000} loop={false} />
     </div>
   );
 }

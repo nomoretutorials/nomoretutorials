@@ -11,7 +11,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
 import { useProjectSave } from "@/hooks/useProjectSave";
 import { useProjectStream } from "@/hooks/useProjectStream";
-import ProjectStepLoader from "../ProjectCreationLoading";
+import ProjectStepLoader from "../ProjectStepLoader";
 import Sidebar from "../sidebar/Sidebar";
 import UnsavedChangesDialog from "../UnsavedChangesDialog";
 import ChangeStep from "./ChangeStep";

@@ -69,7 +69,6 @@ export const useProjectStore = create<ProjectStore>()(
         resetState: () =>
           set((state) => ({
             ...initialState,
-            isNavigating: state.isNavigating, // Preserve navigation state
           })),
 
         nextStep: () =>

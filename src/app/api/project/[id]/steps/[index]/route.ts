@@ -11,10 +11,16 @@ export const runtime = "nodejs";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string; index: number }> }
+  { params }: { params: Promise<{ id: string; index: string }> }
 ) {
+  const internalHeader = request.headers.get("X-Internal-Generation");
+  if (!internalHeader) {
+    console.warn("🚫 Step generation triggered externally — skipping.");
+    return NextResponse.json({ error: "Not allowed" }, { status: 403 });
+  }
   try {
-    const { id: projectId, index: stepIndex } = await params;
+    const { id: projectId, index } = await params;
+    const stepIndex = Number(index);
     console.log(projectId, stepIndex);
 
     const [user, project] = await Promise.all([
@@ -60,6 +66,10 @@ export async function GET(
     console.log("STARTED GENERATING CONTENT !!");
     const content = await projectStepContentAgent({
       stepTitle: targetStep?.title,
+      stepIndex: targetStep.index,
+      learningFocus: targetStep.learningFocus,
+      relatedFeatures: targetStep.relatedFeatures,
+      estimatedComplexity: targetStep.estimatedComplexity,
       projectTitle: project.title,
       projectDescription: project.description,
       techStackNames,
@@ -70,7 +80,7 @@ export async function GET(
       where: { id: targetStep.id },
       data: {
         status: "COMPLETED",
-        content,
+        content: content.text,
       },
     });
 

@@ -145,7 +145,7 @@ const NewProjectDialog = () => {
         <Button size="sm">Create</Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[31.25rem]">
+      <DialogContent className="sm:max-w-[28rem]">
         <DialogHeader>
           <DialogTitle>Start a new project</DialogTitle>
           <DialogDescription>

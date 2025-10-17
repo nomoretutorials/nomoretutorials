@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export function useResizableSidebar(id: string, min = 270, max = 560) {
-  const [sidebarWidth, setSidebarWidth] = useState<number>(280);
+export function useResizableSidebar(id: string, min = 250, max = 560) {
+  const [sidebarWidth, setSidebarWidth] = useState<number>(260);
   const [isDragging, setIsDragging] = useState(false);
   const resizerRef = useRef<HTMLDivElement | null>(null);
 

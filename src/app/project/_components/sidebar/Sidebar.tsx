@@ -95,7 +95,7 @@ export default function Sidebar({
               />
               <div>
                 <div className="font-semibold">{title}</div>
-                <div className="text-muted-foreground max-w-[160px] truncate text-sm">
+                <div className="text-muted-foreground max-w-[10rem] truncate text-sm">
                   {projectId}
                 </div>
               </div>

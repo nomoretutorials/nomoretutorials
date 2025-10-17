@@ -17,7 +17,7 @@ export default function CompletedStepContent({ message }: { message?: string }) 
         animate={{ rotate: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 150, damping: 12 }}
       >
-        <CheckCircle2 className="h-14 w-14 text-green-500 drop-shadow-[0_0_10px_rgba(34,197,94,0.4)]" />
+        <CheckCircle2 className="h-14 w-14 text-green-500 drop-shadow-[0_0_0.625rem_rgba(34,197,94,0.4)]" />
         <motion.div
           className="absolute inset-0 rounded-full bg-green-500/20 blur-md"
           animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.2, 1] }}

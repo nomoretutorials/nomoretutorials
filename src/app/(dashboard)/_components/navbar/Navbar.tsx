@@ -64,7 +64,7 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-6">
-        <div className="relative w-[320px]">
+        <div className="relative w-[20rem]">
           <Command className="bg-background rounded-xl border shadow-sm">
             <CommandInput
               placeholder="Search projects, settings, anything ..."
@@ -73,7 +73,7 @@ const Navbar = () => {
             />
           </Command>
 
-          <div className=" absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1 ">
+          <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1">
             <KbdGroup className="bg-none">
               <Kbd>Ctrl</Kbd>
               <Kbd>K</Kbd>

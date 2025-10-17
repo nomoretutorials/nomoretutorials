@@ -130,7 +130,7 @@ const AuthForm = () => {
         </div>
         <div className="">
           <h1 className="text-2xl font-normal">Get Started</h1>
-          <p className="text-muted-foreground text-[16px] font-light">
+          <p className="text-muted-foreground text-[1rem] font-light">
             Continue with anyone below to login to your account.
           </p>
         </div>
@@ -217,7 +217,7 @@ const AuthForm = () => {
 
 const LastUsedBadge = () => {
   return (
-    <div className="bg-primary/10 text-primary absolute top-2.5 right-2 rounded-full px-2 py-0.5 text-[10px] font-medium shadow-sm">
+    <div className="bg-primary/10 text-primary absolute top-2.5 right-2 rounded-full px-2 py-0.5 text-[0.625rem] font-medium shadow-sm">
       Last used
     </div>
   );

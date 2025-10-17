@@ -135,7 +135,7 @@ const ProjectsSection = () => {
           )}
         </section>
 
-        <div className="h-[600px]" />
+        <div className="h-[37.5rem]" />
       </div>
     </div>
   );

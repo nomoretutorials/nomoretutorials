@@ -64,12 +64,12 @@ const OnboardingPage = () => {
         <motion.div
           animate={{ opacity: [0.08, 0.15, 0.08], y: [0, -10, 0] }}
           transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-          className="bg-accent/30 absolute top-24 left-1/2 h-[240px] w-[90%] max-w-6xl -translate-x-1/2 rounded-xl blur-2xl"
+          className="bg-accent/30 absolute top-24 left-1/2 h-[15rem] w-[90%] max-w-6xl -translate-x-1/2 rounded-xl blur-2xl"
         />
         <motion.div
           animate={{ opacity: [0.05, 0.1, 0.05], y: [0, 10, 0] }}
           transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="bg-secondary/40 absolute top-72 left-1/2 h-[180px] w-[80%] max-w-5xl -translate-x-1/2 rounded-xl blur-xl"
+          className="bg-secondary/40 absolute top-72 left-1/2 h-[11.25rem] w-[80%] max-w-5xl -translate-x-1/2 rounded-xl blur-xl"
         />
         <div className="bg-accent/20 dark:bg-accent/1 to-background absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent" />
       </div>

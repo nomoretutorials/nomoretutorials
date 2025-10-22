@@ -33,6 +33,7 @@ model User {
   @@unique([email])
   @@index([email])
   @@index([name])
+  @@index([lastLoginAt])
   @@map("user")
 }
 
@@ -57,6 +58,7 @@ model Project {
   @@index([userId])
   @@index([userId, status])
   @@index([userId, currentStepIndex])
+  @@index([userId, createdAt])
   @@map("projects")
 }
 
@@ -88,6 +90,7 @@ model Step {
   @@index([projectId, status])
   @@index([projectId, isCompleted])
   @@index([projectId, category])
+  @@index([completedAt])
   @@map("steps")
 }
 
@@ -103,6 +106,7 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([token])
+  @@index([token])
   @@map("session")
 }
 

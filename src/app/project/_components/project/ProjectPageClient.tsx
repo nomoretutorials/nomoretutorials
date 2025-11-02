@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo } from "react";
 import { useProjectStore } from "@/store/project-store";
 import { Project, TechStack } from "@/types/project";
 import { parseStepFeatures } from "@/utils/project-step-utils";
@@ -24,7 +24,7 @@ type Props = {
   techStacks: TechStack[];
 };
 
-export default function ProjectPageClient({ project, techStacks }: Props) {
+const ProjectPageClient = memo(function ProjectPageClient({ project, techStacks }: Props) {
   const {
     selectedStepIndex,
     selectedFeatures,
@@ -64,6 +64,26 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
 
   const { handleSaveAndContinue } = useProjectSave(project.id);
 
+  // Memoize expensive calculations
+  const currentStep = useMemo(() => {
+    return currentProject.Steps![selectedStepIndex] ?? currentProject.Steps![0];
+  }, [currentProject.Steps, selectedStepIndex]);
+
+  const features = useMemo(() => {
+    if (currentStep?.index === 0) {
+      return parseStepFeatures(currentStep.content);
+    }
+    return [];
+  }, [currentStep]);
+
+  // Memoize callback functions
+  const handleStepSelect = useCallback(
+    (index: number) => {
+      setSelectedStepIndex(index);
+    },
+    [setSelectedStepIndex]
+  );
+
   const areStepsLocked = useMemo(() => {
     return currentProject.Steps!.length > 2;
   }, [currentProject.Steps]);
@@ -81,15 +101,6 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
       }
     };
   }, [resetState, isNavigating]);
-
-  const currentStep = currentProject.Steps![selectedStepIndex] ?? currentProject.Steps![0];
-
-  const features = useMemo(() => {
-    if (currentStep?.index === 0) {
-      return parseStepFeatures(currentStep.content);
-    }
-    return [];
-  }, [currentStep]);
 
   return (
     <>
@@ -113,7 +124,7 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
               title={currentProject.title}
               repoUrl={currentProject.repositoryUrl!}
               currentStepIndex={selectedStepIndex}
-              onStepSelect={setSelectedStepIndex}
+              onStepSelect={handleStepSelect}
             />
 
             <main className="relative flex h-full min-h-full flex-1 flex-col overflow-y-auto">
@@ -181,8 +192,8 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
                 totalSteps={currentProject.Steps!.length}
                 selectedFeatures={selectedFeatures}
                 selectedTechStacks={selectedTechStacks}
-                onNext={() => setSelectedStepIndex(selectedStepIndex + 1)}
-                onPrev={() => setSelectedStepIndex(selectedStepIndex - 1)}
+                onNext={() => handleStepSelect(selectedStepIndex + 1)}
+                onPrev={() => handleStepSelect(selectedStepIndex - 1)}
                 onSaveAndContinue={handleSaveAndContinue}
                 areStepsLocked={areStepsLocked}
               />
@@ -192,4 +203,6 @@ export default function ProjectPageClient({ project, techStacks }: Props) {
       </div>
     </>
   );
-}
+});
+
+export default ProjectPageClient;

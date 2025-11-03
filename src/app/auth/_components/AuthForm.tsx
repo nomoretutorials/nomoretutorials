@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 import * as Sentry from "@sentry/nextjs";
-import { Loader2Icon, MailCheckIcon } from "lucide-react";
+import { AlertCircleIcon, Loader2Icon, MailCheckIcon } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
 // TODO: add debouncing and rate limitting. add client side error handling.
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
@@ -19,7 +18,7 @@ const AuthForm = () => {
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingType, setLoadingType] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted, setSubmitted] = useState(true);
 
   useEffect(() => {
     setIsClient(true);
@@ -28,20 +27,17 @@ const AuthForm = () => {
 
   const handleSubmit = async (e: React.FormEvent, type: "google" | "github" | "magic-link") => {
     e.preventDefault();
-
     if (isLoading) return;
 
     if (type === "magic-link") {
       if (!email || !email.includes("@")) {
         toast.error("Enter a valid email address");
-
         Sentry.addBreadcrumb({
           category: "validation",
           message: "Invalid email format",
           level: "warning",
           data: { email: email.replace(/[^@]/g, "*") }, // Mask email for privacy
         });
-
         return;
       }
     }
@@ -61,15 +57,12 @@ const AuthForm = () => {
         case "google":
           await authClient.signIn.social({ provider: "google" });
           break;
-
         case "github":
           await authClient.signIn.social({ provider: "github" });
           break;
-
         case "magic-link":
           await authClient.signIn.magicLink({ email });
           setSubmitted(true);
-
           Sentry.addBreadcrumb({
             category: "auth",
             message: "Magic link sent successfully",
@@ -98,25 +91,52 @@ const AuthForm = () => {
 
   if (submitted) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center">
-        <div className="flex flex-col items-center justify-center gap-5 text-center">
-          <div className="bg-sidebar rounded-full border p-4">
-            <MailCheckIcon size={"25"} />
+      <div className="flex flex-1 flex-col items-center justify-center px-4">
+        <div className="w-full max-w-md space-y-6">
+          <div className="flex justify-center">
+            <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-full">
+              <MailCheckIcon className="text-primary h-8 w-8" />
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-semibold">Check your email</h2>
-            <p className="text-muted-foreground truncate text-sm">
-              We sent a verification link to <br />
-              <span className="font-medium">{email}</span>
-            </p>
+
+          <div className="space-y-2 text-center">
+            <h2 className="text-3xl font-semibold tracking-tight">Check your email</h2>
+            <div>
+              <p className="text-muted-foreground text-base">We sent a verification link to</p>
+              <p className="text-foreground text-base font-medium">{email}</p>
+            </div>
           </div>
-          <Button
-            size="sm"
-            className="bg-foreground hidden md:inline-flex"
-            onClick={() => window.open("https://mail.google.com", "_blank")}
-          >
-            Open Gmail
-          </Button>
+
+          <div className="space-y-3">
+            <Button
+              size="lg"
+              className="w-full"
+              onClick={() => window.open("https://mail.google.com", "_blank")}
+            >
+              Open Gmail
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full"
+              onClick={() => setSubmitted(false)}
+            >
+              Use a different email
+            </Button>
+          </div>
+
+          <div className="bg-muted/50 space-y-3 rounded-lg border p-3">
+            <div className="flex items-start gap-3">
+              <AlertCircleIcon className="text-muted-foreground mt-0.5 h-5 w-5 shrink-0" />
+              <div className="space-y-1">
+                <p className="text-xs font-medium">Can&apos;t find the email?</p>
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Check your spam or junk folder. Mark our email as &quot;Not Spam&quot; to ensure
+                  future messages reach your inbox.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -165,13 +185,11 @@ const AuthForm = () => {
           )}
         </Button>
       </form>
-
       <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
         <span className="bg-background text-muted-foreground relative z-10 px-2">
           Or continue with
         </span>
       </div>
-
       <div className="flex flex-col space-y-2">
         <Button
           variant="outline"
@@ -191,7 +209,6 @@ const AuthForm = () => {
           )}
           {isClient && lastMethod === "google" ? <LastUsedBadge /> : null}
         </Button>
-
         <Button
           variant="outline"
           className="relative"

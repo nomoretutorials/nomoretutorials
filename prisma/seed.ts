@@ -1,10 +1,6 @@
-import { ExperienceLevel, PrismaClient, ProjectStatus, TechStackCategory } from "@prisma/client";
+import { ExperienceLevel, ProjectStatus, TechStackCategory } from "@prisma/client";
 
-
-
-
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
 
 async function main() {
   console.log("🌱 Starting database seeding...");

@@ -71,7 +71,7 @@ const ProjectsSection = () => {
 
   return (
     <div className="h-[calc(100vh-4rem)] overflow-hidden px-2">
-      <div className="bg-background h-full space-y-8 overflow-y-auto rounded-2xl border bg-gradient-to-b from-white/1 to-transparent px-9 py-8 shadow-sm">
+      <div className="bg-background h-full space-y-8 overflow-y-auto rounded-2xl border bg-linear-to-b from-white/1 to-transparent px-9 py-8 shadow-sm">
         <section
           aria-labelledby="quick-actions-title"
           id="dashboard"
@@ -135,7 +135,7 @@ const ProjectsSection = () => {
           )}
         </section>
 
-        <div className="h-[37.5rem]" />
+        <div className="h-150" />
       </div>
     </div>
   );

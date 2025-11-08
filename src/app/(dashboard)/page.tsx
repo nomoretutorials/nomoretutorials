@@ -18,6 +18,7 @@ export default async function Home() {
     email: user.email,
   });
 
+  // Check if user is onboarded (this is the only DB call needed)
   let userExist;
 
   try {
@@ -29,7 +30,7 @@ export default async function Home() {
     Sentry.captureException(error, {
       tags: {
         component: "Dashboard",
-        operation: "fetch_user_session",
+        operation: "fetch_user_onboarding_status",
       },
       extra: {
         userId: user.id,
@@ -37,7 +38,7 @@ export default async function Home() {
     });
   }
 
-  if (!userExist!.isOnboarded) redirect("/onboarding");
+  if (!userExist?.isOnboarded) redirect("/onboarding");
 
   return (
     <div className="bg-sidebar min-h-lvh">

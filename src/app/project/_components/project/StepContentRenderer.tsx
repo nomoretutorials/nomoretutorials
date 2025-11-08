@@ -1,9 +1,13 @@
-import FeaturesSkeleton from "./skeleton/FeaturesSkeleton";
+import { lazy, Suspense } from "react";
+
 import CompletedStepContent from "./skeleton/CompletedStepContent";
 import FailedStepContent from "./skeleton/FailedStepContent";
+import FeaturesSkeleton from "./skeleton/FeaturesSkeleton";
 import GeneratingContentSkeleton from "./skeleton/GeneratingContentSkeleton";
 import WaitingForNextStep from "./skeleton/WaitingForNextStep";
-import StepContentView from "./StepContentView";
+
+// Lazy load the heavy StepContentView component
+const StepContentView = lazy(() => import("./StepContentView"));
 
 type Step = {
   index: number;
@@ -29,7 +33,12 @@ export default function StepContentRenderer({ step, children, onRetry }: Props) 
       );
     case "COMPLETED":
       if (children) return <>{children}</>;
-      if (step.content) return <StepContentView content={step.content as string} />;
+      if (step.content)
+        return (
+          <Suspense fallback={<GeneratingContentSkeleton />}>
+            <StepContentView content={step.content as string} />
+          </Suspense>
+        );
       return <CompletedStepContent />;
     case "FAILED":
       return <FailedStepContent onRetry={onRetry} />;

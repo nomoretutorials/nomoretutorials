@@ -1,82 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { Check, Copy, ExternalLink, Lightbulb } from "lucide-react";
+import { ExternalLink, Lightbulb } from "lucide-react";
 import ReactMarkdown, { type Components } from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import remarkGfm from "remark-gfm";
 
-type Props = { content: string };
+import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
 
-/**
-/**
- * Prism theme typed correctly (no `any`)
- */
-const prismTheme = {
-  ...oneDark,
-  plain: {
-    ...(oneDark.plain as object),
-    backgroundColor: "var(--muted)",
-    color: "var(--foreground)",
-  },
-};
+type Props = { content: string };
 
 /**
  * Code block with copy button & language badge
  */
 function CodeBlock({ code, language }: { code: string; language: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      // ignore silently
-    }
-  };
-
-  return (
-    <div className="group relative my-4">
-      {/* Language badge */}
-      <div className="absolute top-2 left-3 font-mono text-xs text-gray-400 uppercase">
-        {language}
-      </div>
-
-      {/* Copy button */}
-      <button
-        type="button"
-        onClick={handleCopy}
-        className="absolute top-2 right-2 flex items-center gap-1 rounded bg-gray-700 p-2 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-600"
-        aria-label={`Copy ${language} code`}
-      >
-        {copied ? (
-          <>
-            <Check className="h-3 w-3" /> Copied
-          </>
-        ) : (
-          <>
-            <Copy className="h-3 w-3" /> Copy
-          </>
-        )}
-      </button>
-
-      <SyntaxHighlighter
-        language={language}
-        style={prismTheme}
-        customStyle={{
-          margin: 0,
-          padding: "2rem 1rem 1rem",
-          borderRadius: "0.5rem",
-          fontSize: "0.875rem",
-        }}
-      >
-        {code}
-      </SyntaxHighlighter>
-    </div>
-  );
+  return <SyntaxHighlighter code={code} language={language} />;
 }
 
 /**
@@ -85,7 +21,11 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
  */
 const codeRenderer: Components["code"] = (props) => {
   // Fix for type issue: Explicitly destructure using correct prop types
-  const { className, children } = props as { className?: string; children?: React.ReactNode; inline?: boolean };
+  const { className, children } = props as {
+    className?: string;
+    children?: React.ReactNode;
+    inline?: boolean;
+  };
   // In some MDX/ReactMarkdown setups, `inline` might not actually exist
   // Instead, fallback: If there's a language class, it's a block; otherwise, treat as inline
   const match = /language-(\w+)/.exec(className || "");
@@ -152,7 +92,7 @@ const components: Components = {
     if (text.includes("💡") || text.includes("tip")) {
       return (
         <div className="my-3 flex items-start gap-3 rounded-r border-l-4 border-blue-500 bg-blue-50 p-3 dark:bg-blue-950">
-          <Lightbulb className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+          <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
           <div className="text-sm text-blue-900 dark:text-blue-100">{children}</div>
         </div>
       );

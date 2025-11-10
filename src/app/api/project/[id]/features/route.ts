@@ -3,6 +3,7 @@ import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import { parseFeatures, projectFeaturesAgent } from "@/lib/ai/agents/features-agent";
 import prisma from "@/lib/prisma";
+import { redis } from "@/lib/redis";
 
 export const runtime = "nodejs";
 
@@ -62,6 +63,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         },
       }),
     ]);
+
+    console.log("REDIS PUBLISH");
+    await redis.publish("features-updates", projectId);
 
     return NextResponse.json({ features });
   } catch (error) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Feature, Step } from "@/types/project";
+import type { Feature, Step } from "@/types/project";
 
 type ProjectData = {
   features: Feature[];
@@ -12,9 +12,12 @@ export function useProjectStream(projectId: string) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    if (!projectId) return;
+
     const eventSource = new EventSource(`/api/project/${projectId}/stream`);
 
     eventSource.onopen = () => {
+      console.log("[SSE] ✅ Connected to stream");
       setIsConnected(true);
     };
 
@@ -27,12 +30,13 @@ export function useProjectStream(projectId: string) {
       }
     };
 
-    eventSource.onerror = () => {
+    eventSource.onerror = (err) => {
+      console.error("[SSE] ❌ Connection error:", err);
       setIsConnected(false);
-      eventSource.close();
     };
 
     return () => {
+      console.log("[SSE] 🔌 Closing EventSource");
       eventSource.close();
     };
   }, [projectId]);

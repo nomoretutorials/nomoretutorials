@@ -94,23 +94,6 @@ model Step {
   @@map("steps")
 }
 
-model Session {
-  id          String   @id @default(uuid())
-  expiresAt   DateTime
-  token       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  ipAddress   String?
-  userAgent   String?
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  isOnboarded Boolean  @default(false)
-
-  @@unique([token])
-  @@index([token])
-  @@map("session")
-}
-
 model TechStack {
   id          String            @id @default(cuid())
   name        String            @unique
@@ -133,8 +116,7 @@ model UserTechStack {
   id               String          @id @default(cuid())
   userId           String
   techStackId      String
-  proficiencyLevel ExperienceLevel @default(BEGINNER)
-  isPreferred      Boolean         @default(false)
+  isPrimary        Boolean         @default(false)
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -182,6 +164,23 @@ model Account {
   updatedAt             DateTime  @updatedAt
 
   @@map("account")
+}
+
+model Session {
+  id          String   @id @default(uuid())
+  expiresAt   DateTime
+  token       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ipAddress   String?
+  userAgent   String?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isOnboarded Boolean  @default(false)
+
+  @@unique([token])
+  @@index([token])
+  @@map("session")
 }
 
 model Verification {
@@ -233,13 +232,8 @@ enum ExperienceLevel {
 enum TechStackCategory {
   FRONTEND
   BACKEND
+  FULLSTACK
   DATABASE
   ORM
   AUTHENTICATION
-  QUEUE
-  AI
-  PAYMENT
-  CMS
-  EMAIL
-  OTHER
 }

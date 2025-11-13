@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { Feature, Project, TechStack } from "@/types/project";
+import { Feature, Project } from "@/types/project";
 import { getServerUserSession } from "@/utils/get-server-user-session";
 import { projectLimit } from "@/utils/project-limit";
 
@@ -75,7 +75,7 @@ export async function createNewProject({
       return { success: false, error: "Project does not belongs to the user." };
 
     fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/project/${project.id}/features`, {
-      method: "GET",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Cookie: (await headers()).get("cookie") || "",
@@ -116,13 +116,33 @@ export async function getProject(projectId: string): Promise<ActionResponse<{ pr
   }
 }
 
-export async function getAllTechStacks(): Promise<ActionResponse<TechStack[]>> {
+export async function getAllTechStacks(): Promise<any> {
   const user = await getServerUserSession();
   if (!user) return { success: false, error: "Unauthorized" };
 
   try {
     const techStacks = await prisma.techStack.findMany({
       orderBy: [{ category: "asc" }, { name: "asc" }],
+    });
+    return { success: true, data: techStacks };
+  } catch (error) {
+    console.error("Failed to fetch tech stacks:", error);
+    return { success: false, error: "Something went wrong" };
+  }
+}
+
+export async function getUserTechStack(userId: string): Promise<any> {
+  const user = await getServerUserSession();
+  if (!user) return { success: false, error: "Unauthorized" };
+
+  try {
+    const techStacks = await prisma.userTechStack.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        techStackId: true,
+      },
     });
     return { success: true, data: techStacks };
   } catch (error) {
@@ -148,7 +168,8 @@ export async function saveProjectConfiguration(
     if (project.userId !== user.id)
       return { success: false, error: "Project does not belongs to the user." };
 
-    const allFeatures = project.features as Feature[];
+    
+    const allFeatures = project.features as unknown as Feature[];
     const updatedFeatures = allFeatures.map((f) => ({
       ...f,
       selected: featureIds.includes(f.id),
@@ -185,8 +206,9 @@ export async function saveProjectConfiguration(
       }),
     ]);
 
+    console.log("1. FETCHED BUILD STEP")
     await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/project/${project.id}/steps`, {
-      method: "GET",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Cookie: (await headers()).get("cookie") || "",

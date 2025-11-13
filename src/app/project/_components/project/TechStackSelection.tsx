@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo } from "react";
 import { TechStack } from "@/types/project";
 
 import { Badge } from "@/components/ui/badge";
@@ -7,15 +8,24 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 type Props = {
   techStacks: TechStack[];
+  userTechStack: any;
   selectedTechStacks: string[];
   onToggleTechStack: (stackId: string) => void;
 };
 
 export default function TechStackSelection({
   techStacks,
+  userTechStack,
   selectedTechStacks,
   onToggleTechStack,
 }: Props) {
+  // 🧠 Extract user tech stack IDs
+  const userTechStackIds = useMemo(
+    () => userTechStack?.map((u: any) => u.techStackId) ?? [],
+    [userTechStack]
+  );
+
+  // 🧩 Group stacks by category
   const groupedStacks = techStacks.reduce(
     (acc, stack) => {
       if (!acc[stack.category]) acc[stack.category] = [];
@@ -25,12 +35,24 @@ export default function TechStackSelection({
     {} as Record<string, TechStack[]>
   );
 
-  const categories = Object.keys(groupedStacks);
+  // 💡 Define category priority
+  const categoryOrder = ["FULLSTACK", "FRONTEND", "BACKEND", "DATABASE", "ORM", "AUTHENTICATION"];
+
+  // 🔢 Sort categories according to priority
+  const categories = Object.keys(groupedStacks).sort(
+    (a, b) => categoryOrder.indexOf(a) - categoryOrder.indexOf(b)
+  );
 
   const formatCategory = (c: string) => {
     const s = c.replace(/_/g, " ").toLowerCase();
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
+
+  useEffect(() => {
+    if (!userTechStack?.length) return;
+    const userIds = userTechStack.map((u: any) => u.techStackId);
+    console.log("User Tech Stack IDs:", userIds);
+  }, [userTechStack]);
 
   return (
     <div className="space-y-8 rounded-xl">
@@ -47,13 +69,24 @@ export default function TechStackSelection({
             <div className="flex flex-wrap gap-2">
               {selectedTechStacks.map((stackId) => {
                 const stack = techStacks.find((s) => s.id === stackId);
+                const isUserStack = userTechStackIds.includes(stackId);
+
                 return stack ? (
                   <Badge
                     key={stackId}
                     variant="secondary"
-                    className="bg-secondary text-secondary-foreground shadow-sm"
+                    className={`shadow-sm ${
+                      isUserStack
+                        ? "border border-amber-400 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                        : "bg-secondary text-secondary-foreground"
+                    }`}
                   >
                     {stack.name}
+                    {isUserStack && (
+                      <span className="ml-1 text-xs text-amber-600 dark:text-amber-400">
+                        (profile)
+                      </span>
+                    )}
                   </Badge>
                 ) : null;
               })}
@@ -62,6 +95,7 @@ export default function TechStackSelection({
         )}
       </div>
 
+      {/* Render sorted categories */}
       {categories.map((category) => (
         <div key={category} className="space-y-4">
           <div>
@@ -77,6 +111,7 @@ export default function TechStackSelection({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {groupedStacks[category].map((stack) => {
               const active = selectedTechStacks.includes(stack.id);
+              const isUserStack = userTechStackIds.includes(stack.id);
 
               return (
                 <label
@@ -84,7 +119,9 @@ export default function TechStackSelection({
                   htmlFor={stack.id}
                   className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-all duration-200 ${
                     active
-                      ? "border-primary bg-primary/10 ring-primary/40 hover:bg-primary/15 shadow-[0_0_6px_1px_var(--primary)/25] ring-1"
+                      ? isUserStack
+                        ? "border-amber-500 bg-amber-50 ring-amber-400/40 dark:border-amber-700 dark:bg-amber-950/30"
+                        : "border-primary bg-primary/10 ring-primary/40 hover:bg-primary/15 shadow-[0_0_6px_1px_var(--primary)/25] ring-1"
                       : "border-border bg-card hover:border-primary/40 hover:bg-accent/10 hover:shadow-sm"
                   }`}
                   style={{ transform: active ? "translateY(-1px)" : "none" }}
@@ -107,6 +144,11 @@ export default function TechStackSelection({
                     </div>
                     {stack.description && (
                       <p className="text-muted-foreground mt-1 text-xs">{stack.description}</p>
+                    )}
+                    {isUserStack && (
+                      <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+                        (From your profile)
+                      </span>
                     )}
                   </div>
                 </label>

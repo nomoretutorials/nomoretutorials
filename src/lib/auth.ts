@@ -13,19 +13,6 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  advanced: {
-    cookies: {
-      session_token: {
-        name: "__Host-nmt.session", // host-only cookie in prod
-        options: {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          useSecureCookies: true,
-          path: "/",
-        },
-      },
-    },
-  },
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_CLIENT_ID as string,
@@ -37,6 +24,7 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    nextCookies(),
     lastLoginMethod({
       customResolveMethod: (ctx) => {
         if (ctx.path === "/magic-link/verify") {
@@ -51,12 +39,11 @@ export const auth = betterAuth({
         magicLinkMail(email, url);
       },
     }),
-    nextCookies(),
   ],
   session: {
     cookieCache: {
       enabled: true,
       maxAge: 15 * 60,
-    },
+    }
   },
 });

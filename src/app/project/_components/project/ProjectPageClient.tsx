@@ -2,13 +2,15 @@
 
 import { memo, useCallback, useEffect, useMemo } from "react";
 import { useProjectStore } from "@/store/project-store";
-import { Project, TechStack } from "@/types/project";
+import { TechStack, UserTechStack } from "@/types/project";
 import { parseStepFeatures } from "@/utils/project-step-utils";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
+import { fetchProject } from "@/hooks/useProjectQueries";
 import { useProjectSave } from "@/hooks/useProjectSave";
 import { useProjectStream } from "@/hooks/useProjectStream";
 import ProjectStepLoader from "../ProjectStepLoader";
@@ -20,11 +22,16 @@ import StepContentRenderer from "./StepContentRenderer";
 import TechStackSelection from "./TechStackSelection";
 
 type Props = {
-  project: Project;
+  projectId: string;
   techStacks: TechStack[];
+  userTechStack: UserTechStack[];
 };
 
-const ProjectPageClient = memo(function ProjectPageClient({ project, techStacks }: Props) {
+const ProjectPageClient = memo(function ProjectPageClient({
+  projectId,
+  techStacks,
+  userTechStack,
+}: Props) {
   const {
     selectedStepIndex,
     selectedFeatures,
@@ -37,19 +44,18 @@ const ProjectPageClient = memo(function ProjectPageClient({ project, techStacks 
     isSaving,
   } = useProjectStore();
 
-  const { data: sseData, isConnected } = useProjectStream(project.id);
+  const { isConnected } = useProjectStream(projectId);
+  const { data: currentProject } = useSuspenseQuery({
+    queryKey: ["project", projectId],
+    queryFn: () => fetchProject(projectId),
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+  });
 
-  const currentProject = useMemo(() => {
-    if (sseData) {
-      return {
-        ...project,
-        features: sseData.features,
-        Steps: sseData.steps,
-        status: sseData.status,
-      };
-    }
-    return project;
-  }, [project, sseData]);
+  console.log(userTechStack);
 
   const {
     showUnsavedDialog,
@@ -62,7 +68,7 @@ const ProjectPageClient = memo(function ProjectPageClient({ project, techStacks 
     console.log("Selected step changed:", selectedStepIndex);
   }, [selectedStepIndex]);
 
-  const { handleSaveAndContinue } = useProjectSave(project.id);
+  const { handleSaveAndContinue } = useProjectSave(projectId);
 
   // Memoize expensive calculations
   const currentStep = useMemo(() => {
@@ -155,6 +161,7 @@ const ProjectPageClient = memo(function ProjectPageClient({ project, techStacks 
                       {currentStep.index === 1 && (
                         <TechStackSelection
                           techStacks={techStacks}
+                          userTechStack={userTechStack}
                           selectedTechStacks={selectedTechStacks}
                           onToggleTechStack={toggleTechStack}
                         />

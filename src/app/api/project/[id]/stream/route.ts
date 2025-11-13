@@ -1,98 +1,130 @@
-import prisma from "@/lib/prisma";
+// src/app/api/project/[id]/stream/route.ts
+
+import { NextRequest } from "next/server";
+
 import { redis } from "@/lib/redis";
 
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+// Define types for the stream context
+interface StreamContext {
+  keepAlive?: NodeJS.Timeout;
+  messageHandler?: (channel: string, message: string) => void;
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> } // Changed to Promise
+) {
+  // Await params to get the actual values
   const { id } = await params;
+  const projectId = id;
+
+  console.log("[SSE] 🏁 New connection for project:", projectId);
+
+  // Create a new Redis subscriber instance
+  const subscriber = redis.duplicate();
+
+  // For ioredis duplicate(), DON'T call connect() - it inherits the connection
+  // Just wait a bit for it to be ready if needed
+  if (subscriber.status === "wait" || subscriber.status === "connecting") {
+    await new Promise((resolve) => {
+      subscriber.once("ready", resolve);
+    });
+  }
+
+  // Subscribe to the channel
+  await subscriber.subscribe("features-updates");
+
   const encoder = new TextEncoder();
 
-  console.log(`[SSE] 🏁 New connection for project: ${id}`);
+  // Create context object to store cleanup references
+  const context: StreamContext = {};
 
-  const subscriber = redis.duplicate();
-  subscriber.subscribe("features-updates");
-
-  const stream = new ReadableStream({
+  const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      let closed = false;
+      console.log("[SSE] Stream started for project:", projectId);
 
-      const safeClose = async () => {
-        if (!closed) {
-          closed = true;
+      // Message handler
+      const messageHandler = (channel: string, message: string) => {
+        try {
+          console.log("[SSE] Received message:", { channel, message });
+
+          // Parse the message if it's JSON
+          let parsedMessage: any;
           try {
-            await subscriber.unsubscribe("features-updates");
-            await subscriber.quit();
-            controller.close();
-            console.log(`[SSE] 🧹 Stream closed for project: ${id}`);
+            parsedMessage = JSON.parse(message);
           } catch {
-            console.warn(`[SSE] ⚠️ Tried closing already closed stream: ${id}`);
-          }
-        }
-      };
-
-      const sendUpdate = async () => {
-        if (closed) return;
-        try {
-          const project = await prisma.project.findUnique({
-            where: { id },
-            include: { Steps: { orderBy: { index: "asc" } } },
-          });
-
-          if (!project) {
-            console.warn(`[SSE] ⚠️ Project not found: ${id}`);
-            await safeClose();
-            return;
+            parsedMessage = message;
           }
 
-          const data = JSON.stringify({
-            features: project.features,
-            steps: project.Steps,
-            status: project.status,
-          });
+          // Filter messages for this specific project if needed
+          if (parsedMessage.projectId && parsedMessage.projectId !== projectId) {
+            return; // Skip messages for other projects
+          }
 
-          controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+          // Send the message to the client
+          controller.enqueue(encoder.encode(`data: ${message}\n\n`));
         } catch (error) {
-          console.error("[SSE] ❌ Error while sending update:", error);
-          await safeClose();
+          console.error("[SSE] Error sending message:", error);
         }
       };
 
-      await subscriber.on("message", async (channel, message: unknown) => {
-        console.log(`[SSE] 🔔 Redis message: ${message}, Channel: ${channel}`);
-        if ((message as string) === id) await sendUpdate();
-      });
+      // Attach the message handler
+      subscriber.on("message", messageHandler);
 
-      subscriber.on("end", async () => {
-        console.warn("[Redis] 🔌 Disconnected, reconnecting...");
+      // Send initial connection success message
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ type: "connected", projectId })}\n\n`)
+      );
+
+      // Keep-alive ping every 30 seconds to prevent timeout
+      const keepAlive = setInterval(() => {
         try {
-          await subscriber.connect();
-          await subscriber.subscribe("features-updates");
-        } catch (err) {
-          console.error("[Redis] ⚠️ Reconnect failed:", err);
+          controller.enqueue(encoder.encode(`: keep-alive\n\n`));
+        } catch (error) {
+          console.error("[SSE] Keep-alive error:", error);
+          clearInterval(keepAlive);
         }
-      });
+      }, 30000);
 
-      // Initial push
-      await sendUpdate();
+      // Store in context for cleanup
+      context.keepAlive = keepAlive;
+      context.messageHandler = messageHandler;
+    },
 
-      const interval = setInterval(() => {
-        if (closed) return;
-        controller.enqueue(encoder.encode(": keep-alive\n\n"));
-      }, 10000);
+    async cancel() {
+      console.log("[SSE] Client disconnected for project:", projectId);
 
-      request.signal.addEventListener("abort", async () => {
-        clearInterval(interval);
-        await safeClose();
-      });
+      // Clear keep-alive interval
+      if (context.keepAlive) {
+        clearInterval(context.keepAlive);
+      }
+
+      // Remove message handler
+      if (context.messageHandler) {
+        subscriber.off("message", context.messageHandler);
+      }
+
+      // Unsubscribe and disconnect
+      try {
+        await subscriber.unsubscribe("features-updates");
+
+        // For ioredis, disconnect the subscriber
+        subscriber.disconnect();
+      } catch (error) {
+        console.error("[SSE] Cleanup error:", error);
+      }
     },
   });
 
+  // Return the stream with appropriate headers
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
+      "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
+      "X-Accel-Buffering": "no", // Disable buffering in nginx
     },
   });
 }

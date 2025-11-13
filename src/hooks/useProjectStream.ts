@@ -1,45 +1,85 @@
-import { useEffect, useState } from "react";
-import type { Feature, Step } from "@/types/project";
-
-type ProjectData = {
-  features: Feature[];
-  steps: Step[];
-  status: string;
-};
+import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function useProjectStream(projectId: string) {
-  const [data, setData] = useState<ProjectData | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const queryClient = useQueryClient();
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef(0);
 
   useEffect(() => {
     if (!projectId) return;
 
-    const eventSource = new EventSource(`/api/project/${projectId}/stream`);
-
-    eventSource.onopen = () => {
-      console.log("[SSE] ✅ Connected to stream");
-      setIsConnected(true);
-    };
-
-    eventSource.onmessage = (event) => {
-      try {
-        const parsed = JSON.parse(event.data);
-        setData(parsed);
-      } catch (error) {
-        console.error("[SSE] ❌ Failed to parse SSE data:", error);
+    const connect = () => {
+      // Clean up existing connection
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
       }
+
+      console.log(`[SSE] 🔌 Connecting to stream (attempt ${reconnectAttemptsRef.current + 1})...`);
+
+      const eventSource = new EventSource(`/api/project/${projectId}/stream`);
+      eventSourceRef.current = eventSource;
+
+      eventSource.onopen = () => {
+        console.log("[SSE] ✅ Connected to stream");
+        setIsConnected(true);
+        reconnectAttemptsRef.current = 0; // Reset on successful connection
+      };
+
+      eventSource.onmessage = (event) => {
+        try {
+          const parsed = JSON.parse(event.data);
+
+          if (parsed.type === "connected") {
+            console.log("[SSE] 🎉 Connection confirmed");
+          } else if (parsed.type === "update") {
+            console.log("[SSE] 🔁 Project update received, invalidating query...");
+            queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+          }
+        } catch (error) {
+          console.error("[SSE] ❌ Failed to parse SSE data:", error);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        console.error("[SSE] ❌ Connection error:", err);
+        setIsConnected(false);
+        eventSource.close();
+
+        // Exponential backoff for reconnection
+        const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
+        reconnectAttemptsRef.current++;
+
+        console.log(`[SSE] 🔄 Reconnecting in ${backoffTime}ms...`);
+
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connect();
+        }, backoffTime);
+      };
     };
 
-    eventSource.onerror = (err) => {
-      console.error("[SSE] ❌ Connection error:", err);
+    connect();
+
+    // Cleanup on unmount
+    return () => {
+      console.log("[SSE] 🔌 Cleaning up connection");
+
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+
       setIsConnected(false);
     };
+  }, [projectId, queryClient]);
 
-    return () => {
-      console.log("[SSE] 🔌 Closing EventSource");
-      eventSource.close();
-    };
-  }, [projectId]);
-
-  return { data, isConnected };
+  return { isConnected };
 }

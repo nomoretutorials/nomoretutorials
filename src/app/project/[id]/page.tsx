@@ -1,6 +1,9 @@
-import { notFound, redirect } from "next/navigation";
-import { getAllTechStacks, getProject } from "@/actions/project-actions";
+// app/project/[id]/page.tsx
+import { notFound } from "next/navigation";
+import { getAllTechStacks, getUserTechStack } from "@/actions/project-actions";
+import { getServerUserSession } from "@/utils/get-server-user-session";
 import * as Sentry from "@sentry/nextjs";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 
 import ProjectPageClient from "../_components/project/ProjectPageClient";
 
@@ -13,88 +16,60 @@ type Props = {
 export default async function ProjectPage({ params }: Props) {
   const { id } = await params;
 
-  if (!id || typeof id !== "string") {
-    Sentry.captureMessage("Invalid project ID parameter", {
-      level: "warning",
-      extra: { id },
-    });
-    notFound();
-  }
+  const user = await getServerUserSession();
+  if (!user) return { success: false, error: "Unauthorized" };
 
-  Sentry.addBreadcrumb({
-    category: "project",
-    message: "Fetching project and tech stacks",
-    level: "info",
-    data: {
-      projectId: id,
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5,
+      },
     },
   });
 
-  const [projectResult, techStacksResult] = await Promise.all([getProject(id), getAllTechStacks()]);
+  const fetchProjectInline = async (projectId: string) => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/project/${projectId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // Cookies sent automatically
+      cache: "no-store",
+    });
 
-  if (!projectResult.success) {
-    if (projectResult.error === "Unauthorized") {
-      Sentry.captureException(new Error("Unauthorized project access"), {
-        tags: {
-          component: "ProjectPage",
-          operation: "fetch_project",
-          auth_status: "unauthorized",
-        },
-        extra: {
-          projectId: id,
-        },
-      });
-      redirect("/auth");
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`HTTP ${response.status}: ${text}`);
     }
 
-    Sentry.captureException(new Error(projectResult.error || "Failed to fetch project"), {
-      tags: {
-        component: "ProjectPage",
-        operation: "fetch_project",
-      },
-      extra: {
-        projectId: id,
-        result: projectResult,
-      },
+    const result = await response.json();
+    return result.data.project; // Your API returns { features: [...] 
+  };
+
+  try {
+    await queryClient.prefetchQuery({
+      queryKey: ["project", id],
+      queryFn: () => fetchProjectInline(id),
+    });
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: { component: "ProjectPage", operation: "prefetch_project" },
+      extra: { projectId: id },
     });
     notFound();
   }
 
-  if (!techStacksResult?.success) {
-    Sentry.captureException(new Error(techStacksResult.error || "Failed to fetch tech stacks"), {
-      tags: {
-        component: "ProjectPage",
-        operation: "fetch_tech_stacks",
-      },
-      level: "warning",
-      extra: {
-        projectId: id,
-        result: techStacksResult,
-      },
-    });
-
-    Sentry.addBreadcrumb({
-      category: "project",
-      message: "Rendering project page without tech stacks",
-      level: "warning",
-      data: {
-        projectId: id,
-      },
-    });
-    return <ProjectPageClient project={projectResult.data.project} techStacks={[]} />;
+  if (!id || typeof id !== "string") {
+    Sentry.captureMessage("Invalid project ID", { level: "warning", extra: { id } });
+    notFound();
   }
 
-  Sentry.addBreadcrumb({
-    category: "project",
-    message: "Project page loaded successfully",
-    level: "info",
-    data: {
-      projectId: id,
-      techStacksCount: techStacksResult.data?.length || 0,
-    },
-  });
+  const { data: techStacks } = await getAllTechStacks();
+  const { data: userTechStack } = await getUserTechStack(user.id);
 
   return (
-    <ProjectPageClient project={projectResult.data.project} techStacks={techStacksResult.data} />
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <ProjectPageClient projectId={id} techStacks={techStacks} userTechStack={userTechStack} />
+    </HydrationBoundary>
   );
 }

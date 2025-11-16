@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useProjectStore } from "@/store/project-store";
 import { glass } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
 import * as Sentry from "@sentry/nextjs";
@@ -96,6 +97,9 @@ const LogOutButton = () => {
             });
 
             router.push("/auth");
+
+            useProjectStore.getState().resetState();
+            useProjectStore.persist.clearStorage();
           },
           onError: (ctx) => {
             Sentry.captureException(ctx.error, {

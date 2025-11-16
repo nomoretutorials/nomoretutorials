@@ -30,17 +30,26 @@ export function useProjectStream(projectId: string) {
       };
 
       eventSource.onmessage = (event) => {
-        try {
-          const parsed = JSON.parse(event.data);
+        const raw = event.data;
 
-          if (parsed.type === "connected") {
-            console.log("[SSE] 🎉 Connection confirmed");
-          } else if (parsed.type === "update") {
-            console.log("[SSE] 🔁 Project update received, invalidating query...");
-            queryClient.invalidateQueries({ queryKey: ["project", projectId] });
-          }
-        } catch (error) {
-          console.error("[SSE] ❌ Failed to parse SSE data:", error);
+        if (!raw || raw.trim() === "") return;
+        if (raw.startsWith(":")) return;
+
+        let parsed;
+        try {
+          parsed = JSON.parse(raw);
+        } catch {
+          console.warn("[SSE] Non-JSON received:", raw);
+          return;
+        }
+
+        if (parsed.type === "connected") {
+          console.log("[SSE] 🎉 Connection confirmed");
+        }
+
+        if (parsed.type === "update") {
+          console.log("[SSE] 🔁 Update received");
+          queryClient.invalidateQueries({ queryKey: ["project", projectId] });
         }
       };
 

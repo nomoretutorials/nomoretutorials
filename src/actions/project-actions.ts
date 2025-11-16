@@ -7,6 +7,7 @@ import { getServerUserSession } from "@/utils/get-server-user-session";
 import { projectLimit } from "@/utils/project-limit";
 
 import prisma from "@/lib/prisma";
+import { getCache, setCache } from "@/lib/redis";
 import { ActionResponse } from "@/hooks/useServerAction";
 
 export async function createNewProject({
@@ -116,14 +117,31 @@ export async function getProject(projectId: string): Promise<ActionResponse<{ pr
   }
 }
 
-export async function getAllTechStacks(): Promise<any> {
+export async function getAllTechStacks() {
   const user = await getServerUserSession();
   if (!user) return { success: false, error: "Unauthorized" };
 
+  const cacheKey = "all-tech-stacks";
+
+  const cached = await getCache(cacheKey);
+  if (cached) {
+    return { success: true, data: cached };
+  }
+
   try {
     const techStacks = await prisma.techStack.findMany({
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        category: true,
+        slug: true,
+      },
       orderBy: [{ category: "asc" }, { name: "asc" }],
     });
+
+    await setCache(cacheKey, techStacks, 60 * 60 * 24);
+
     return { success: true, data: techStacks };
   } catch (error) {
     console.error("Failed to fetch tech stacks:", error);
@@ -168,7 +186,6 @@ export async function saveProjectConfiguration(
     if (project.userId !== user.id)
       return { success: false, error: "Project does not belongs to the user." };
 
-    
     const allFeatures = project.features as unknown as Feature[];
     const updatedFeatures = allFeatures.map((f) => ({
       ...f,
@@ -206,7 +223,7 @@ export async function saveProjectConfiguration(
       }),
     ]);
 
-    console.log("1. FETCHED BUILD STEP")
+    console.log("1. FETCHED BUILD STEP");
     await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/project/${project.id}/steps`, {
       method: "POST",
       headers: {

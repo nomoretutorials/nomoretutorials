@@ -1,3 +1,4 @@
+import { TechStack } from "@/types/project";
 import Redis from "ioredis";
 
 export const redis = new Redis(process.env.UPSTASH_REDIS_URL!, {
@@ -43,3 +44,18 @@ redis.on("reconnecting", () => {
 redis.on("end", () => {
   console.log("❌ Redis connection ended");
 });
+
+export async function setCache(key: string, value: TechStack[], ttlSeconds: number) {
+  await redis.set(key, JSON.stringify(value), "EX", ttlSeconds);
+}
+
+export async function getCache(key: string) {
+  const cached = await redis.get(key);
+
+  if (!cached) return null;
+  try {
+    return JSON.parse(cached);
+  } catch {
+    return null;
+  }
+}

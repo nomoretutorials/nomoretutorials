@@ -286,14 +286,14 @@ const OnboardingPage = () => {
               >
                 <div className="border-border/50 bg-card/30 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm backdrop-blur-sm">
                   <span>👋</span>
-                  <span className="text-muted-foreground">Welcome</span>
+                  <span className="text-muted-foreground">Introduction</span>
                 </div>
 
                 <h1 className="text-4xl font-bold tracking-tighter md:text-5xl">
-                  Break free from
+                  Welcome to
                   <br />
-                  <span className="from-primary to-accent bg-linea-to-r bg-clip-text text-transparent">
-                    tutorial hell
+                  <span className="from-primary to-accent bg-linear-to-r bg-clip-text text-transparent">
+                    NoMoreTutorials
                   </span>
                 </h1>
 
@@ -386,7 +386,7 @@ const OnboardingPage = () => {
                     className="group bg-primary text-primary-foreground shadow-primary/20 hover:shadow-primary/30 relative overflow-hidden rounded-lg px-6 py-3 text-base font-medium shadow-lg transition-all hover:shadow-xl"
                   >
                     <span className="relative z-10">Continue</span>
-                    <div className="from-primary to-accent bg-linea-to-r absolute inset-0 z-0 opacity-0 transition-opacity group-hover:opacity-100" />
+                    <div className="from-primary to-accent absolute inset-0 z-0 bg-linear-to-r opacity-0 transition-opacity group-hover:opacity-100" />
                   </motion.button>
                 </div>
               </motion.footer>

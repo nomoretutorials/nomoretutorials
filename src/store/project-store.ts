@@ -84,7 +84,7 @@ export const useProjectStore = create<ProjectStore>()(
         setIsNavigating: (isNavigating: boolean) => set({ isNavigating }),
       }),
       {
-        name: "project-storage",
+        name: "project-storage-v2",
         partialize: (state) => ({
           selectedStepIndex: state.selectedStepIndex,
           selectedFeatures: state.selectedFeatures,

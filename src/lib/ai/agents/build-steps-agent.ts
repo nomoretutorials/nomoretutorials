@@ -10,376 +10,353 @@ export async function projectBuildStepsAgent(
   techStackNames: string[]
 ) {
   try {
-    const coreFeatures = selectedFeatures.filter((f) => f.priority === "core");
-    const essentialFeatures = selectedFeatures.filter((f) => f.priority === "essential");
-    const enhancementFeatures = selectedFeatures.filter((f) => f.priority === "enhancement");
+    // Group features by category
+    const basicFeatures = selectedFeatures.filter((f) => f.category === "BASIC");
+    const enhancementFeatures = selectedFeatures.filter((f) => f.category === "ENHANCEMENT");
+    const advancedFeatures = selectedFeatures.filter((f) => f.category === "ADVANCED");
 
+    // Calculate project size and target step count
+    const totalFeatures = selectedFeatures.length;
+    const projectSize = totalFeatures <= 5 ? "small" : totalFeatures <= 8 ? "medium" : "large";
+
+    // Calculate expected steps based on feature estimations
+    const featureSteps = selectedFeatures.reduce((sum, f) => sum + f.estimatedSteps, 0);
+    const infrastructureSteps = 4; // Setup (2) + Polish (1) + Deployment (1)
+    const targetStepCount = featureSteps + infrastructureSteps;
+
+    // Ensure within bounds (10-18 steps total)
+    const minSteps = Math.max(10, targetStepCount - 2);
+    const maxSteps = Math.min(18, targetStepCount + 2);
+
+    console.log(`Project Size: ${projectSize}`);
+    console.log(`Target Steps: ${targetStepCount} (range: ${minSteps}-${maxSteps})`);
+
+    // Build feature context (WITHOUT requiresTools since it doesn't exist)
     const featureContext = `
-CORE Features (must be built first):
-${coreFeatures.map((f) => `- [${f.id}] ${f.title}: ${f.description}`).join("\n")}
+BASIC Features (${basicFeatures.length} - must be built first):
+${basicFeatures
+  .map(
+    (f) =>
+      `- [${f.id}] ${f.title} (${f.estimatedSteps} step${f.estimatedSteps > 1 ? "s" : ""}, ${f.difficulty})
+  Description: ${f.description}
+  Learning focus: ${f.learningValue}
+  Prerequisites: ${f.prerequisites.length ? f.prerequisites.join(", ") : "None"}`
+  )
+  .join("\n\n")}
 
-ESSENTIAL Features (build after core):
-${essentialFeatures.map((f) => `- [${f.id}] ${f.title}: ${f.description}`).join("\n")}
+ENHANCEMENT Features (${enhancementFeatures.length} - build after BASIC):
+${enhancementFeatures
+  .map(
+    (f) =>
+      `- [${f.id}] ${f.title} (${f.estimatedSteps} step${f.estimatedSteps > 1 ? "s" : ""}, ${f.difficulty})
+  Description: ${f.description}
+  Learning focus: ${f.learningValue}
+  Prerequisites: ${f.prerequisites.length ? f.prerequisites.join(", ") : "None"}`
+  )
+  .join("\n\n")}
 
-ENHANCEMENT Features (build last):
-${enhancementFeatures.map((f) => `- [${f.id}] ${f.title}: ${f.description}`).join("\n")}
+ADVANCED Features (${advancedFeatures.length} - build last):
+${advancedFeatures
+  .map(
+    (f) =>
+      `- [${f.id}] ${f.title} (${f.estimatedSteps} step${f.estimatedSteps > 1 ? "s" : ""}, ${f.difficulty})
+  Description: ${f.description}
+  Learning focus: ${f.learningValue}
+  Prerequisites: ${f.prerequisites.length ? f.prerequisites.join(", ") : "None"}`
+  )
+  .join("\n\n")}
 `;
 
     const techStackList = techStackNames.join(", ");
 
-    const prompt = `You are a Senior Software Architect creating a learning roadmap for beginner developers.
+    // Parse tech stack components
+    const frontend =
+      techStackNames.find((t) =>
+        ["next", "react", "vue", "svelte"].some((fw) => t.toLowerCase().includes(fw))
+      ) || "";
 
-## Mission
-Create a complete, step-by-step build plan that:
-1. ✅ Builds ALL selected features (nothing left out)
-2. ✅ Orders steps logically with clear dependencies
-3. ✅ Teaches progressively (simple → complex)
-4. ✅ Results in a WORKING, COMPLETE project
-5. ✅ Fits realistically in 10-20 steps
+    const backend =
+      techStackNames.find((t) =>
+        ["express", "fastapi", "django", "nest"].some((be) => t.toLowerCase().includes(be))
+      ) || "";
+
+    const database =
+      techStackNames.find((t) =>
+        ["postgres", "mysql", "mongodb", "sqlite"].some((db) => t.toLowerCase().includes(db))
+      ) || "";
+
+    const orm =
+      techStackNames.find((t) =>
+        ["prisma", "drizzle", "mongoose", "typeorm"].some((o) => t.toLowerCase().includes(o))
+      ) || "";
+
+    const auth =
+      techStackNames.find((t) =>
+        ["nextauth", "clerk", "auth0", "better-auth", "supabase"].some((a) =>
+          t.toLowerCase().includes(a)
+        )
+      ) || "";
+
+    const isFullStack = frontend.toLowerCase().includes("next"); // Next.js is full-stack
+
+    const prompt = `You are a Senior Software Architect creating a step-by-step build plan.
 
 ## Project Context
 **Title**: ${title}
 **Description**: ${description}
 **Tech Stack**: ${techStackList}
+**Project Size**: ${projectSize}
 
 ${featureContext}
 
 ---
 
-## Critical Planning Process
+## Your Mission
 
-### Step 1: Calculate Required Steps
-- Count features: ${selectedFeatures.length} total
-  - ${coreFeatures.length} CORE (need 1-2 steps each)
-  - ${essentialFeatures.length} ESSENTIAL (need 1-3 steps each)
-  - ${enhancementFeatures.length} ENHANCEMENT (need 1-2 steps each)
-- Add foundational steps: ~3-4 (project setup, database, auth base)
-- Add integration steps: ~1-2 (connecting features)
-- Add polish/deployment: ~2-3
-- **Total estimate**: [Calculate based on above]
-
-### Step 2: Dependency Analysis
-Map what must come first:
-1. Project initialization (always first)
-2. Database setup (before any data features)
-3. Authentication base (before user-specific features)
-4. Core features (before enhancements that depend on them)
-5. Integration/polish (after features work individually)
-6. Deployment (always last)
-
-### Step 3: Learning Progression
-Order by complexity:
-- EASY: Setup, configuration, basic CRUD
-- MEDIUM: Relations, validation, business logic
-- HARD: Real-time features, complex integrations, optimization
+Create EXACTLY ${targetStepCount} steps (acceptable range: ${minSteps}-${maxSteps}) that translate the abstract features above into concrete implementation steps using the selected tech stack.
 
 ---
 
-## Step Categories & Their Purpose
+## Tech Stack Translation Guide
 
-⚠️ IMPORTANT: Use ONLY these exact category names (case-sensitive):
-"SETUP", "FOUNDATION", "FEATURE", "INTEGRATION", "POLISH", "DEPLOYMENT".
+Your selected tech stack is:
+- **Frontend**: ${frontend || "Not specified"}
+- **Backend**: ${backend || isFullStack ? frontend : "Not specified"}
+- **Database**: ${database || "Not specified"}
+- **ORM**: ${orm || "Not specified"}
+- **Auth**: ${auth || "Not specified"}
 
-### SETUP (2-3 steps)
-Project initialization and tooling.
-Examples:
-- "Initialize Next.js Project with TypeScript"
-- "Setup Prisma with PostgreSQL Database"
-- "Configure Environment Variables"
+Use EXACTLY these technologies in your steps. Do not suggest alternatives.
 
-### FOUNDATION (2-4 steps)
-Core infrastructure needed by all features.
-Examples:
-- "Build Authentication System"
-- "Create Base Database Schema"
-- "Setup API Route Structure"
-- "Build Layout and Navigation"
+**Implementation Patterns:**
 
-### FEATURE (4-12 steps)
-Build each selected feature, grouped logically.
-MUST INCLUDE ALL FEATURES FROM USER SELECTION.
+${
+  frontend.toLowerCase().includes("next")
+    ? `
+**Next.js:**
+- API Routes → Use App Router: /app/api/[route]/route.ts
+- Server Actions → Use 'use server' for mutations
+- Data Fetching → Server Components with async/await
+- Forms → useFormState with Server Actions
+`
+    : ""
+}
 
-**For each feature, consider:**
-- Does it need database model? (separate step)
-- Does it need API endpoints? (separate step)
-- Does it need UI components? (separate step)
-- Or can it be done in one step? (simple features)
+${
+  frontend.toLowerCase().includes("react") && !isFullStack
+    ? `
+**React (SPA):**
+- Routing → React Router
+- State Management → useState, useContext, or Zustand
+- API Calls → fetch/axios in useEffect or React Query
+- Forms → Controlled components with useState
+`
+    : ""
+}
 
-Examples:
-- "Build Task Creation API and Database Model"
-- "Implement Priority System UI Components"
-- "Add Due Date Tracking Logic"
+${
+  backend.toLowerCase().includes("express")
+    ? `
+**Express:**
+- Routes → app.get/post/put/delete()
+- Middleware → Use express.json(), authentication middleware
+- Error Handling → Error handling middleware
+`
+    : ""
+}
 
-### INTEGRATION (1-2 steps)
-Connect features that work together.
-Examples:
-- "Integrate Search with Filters"
-- "Connect Notifications to Task Updates"
+${
+  backend.toLowerCase().includes("fastapi")
+    ? `
+**FastAPI:**
+- Routes → @app.get/@app.post decorators
+- Validation → Pydantic models
+- Async → Use async def for routes
+`
+    : ""
+}
 
-### POLISH (1-2 steps)
-User experience improvements.
-Examples:
-- "Add Loading States and Error Handling"
-- "Implement Responsive Design"
+${
+  orm.toLowerCase().includes("prisma")
+    ? `
+**Prisma:**
+- Schema → Define models in schema.prisma
+- Migrations → npx prisma migrate dev
+- Queries → prisma.model.findMany/create/update
+- Relations → @relation, include/select
+`
+    : ""
+}
 
-### DEPLOYMENT (1 step)
-Go live.
-Example:
-- "Deploy to Vercel with Database"
+${
+  orm.toLowerCase().includes("drizzle")
+    ? `
+**Drizzle:**
+- Schema → Define using drizzle-orm schema builders
+- Queries → Type-safe query builder
+- Migrations → drizzle-kit generate/push
+`
+    : ""
+}
+
+${
+  auth.toLowerCase().includes("nextauth")
+    ? `
+**NextAuth.js:**
+- Setup → Configure in /app/api/auth/[...nextauth]/route.ts
+- Providers → Email, OAuth (Google, GitHub)
+- Session → getServerSession() in Server Components
+- Database Adapter → Use ${orm || database} adapter
+`
+    : ""
+}
+
+${
+  auth.toLowerCase().includes("clerk")
+    ? `
+**Clerk:**
+- Setup → Wrap app with ClerkProvider
+- Components → <SignIn />, <SignUp />, <UserButton />
+- Protection → Use middleware.ts for route protection
+- User Data → useUser() hook
+`
+    : ""
+}
+
+${
+  auth.toLowerCase().includes("better-auth")
+    ? `
+**Better Auth:**
+- Setup → Configure in lib/auth.ts
+- Routes → Built-in API routes
+- Session → getSession() helper
+`
+    : ""
+}
+
+---
+
+## Tool Introduction Logic
+
+When features need capabilities beyond the core stack, introduce tools in the step that needs them:
+
+**Email/Notifications:**
+- "Email reminders/notifications" → Add Resend setup step
+- "Scheduled emails" → Add BullMQ or Inngest for background jobs
+
+**AI Features:**
+- "AI suggestions/generation" → Add OpenAI or Anthropic API setup
+- "Semantic search" → Add vector database (Pinecone)
+
+**Payments:**
+- "Payment processing" → Add Stripe setup with webhooks
+- "Subscriptions" → Add Stripe Billing
+
+**File Storage:**
+- "Image/file uploads" → Add Cloudinary or AWS S3 setup
+
+**Real-time Features:**
+${
+  frontend.toLowerCase().includes("next")
+    ? "- Use Server-Sent Events (built into Next.js) or Vercel AI SDK streaming"
+    : "- Add Pusher or Ably for WebSocket functionality"
+}
+
+**Analytics/Charts:**
+- "Dashboard/analytics" → Add Recharts or Chart.js
+
+Choose the SIMPLEST tool suitable for beginners. Avoid over-engineering.
+
+---
+
+## Step Generation Rules
+
+### Critical Requirements:
+1. ✅ Every feature ID must appear in at least one step's relatedFeatures
+2. ✅ Generate ${minSteps}-${maxSteps} steps total
+3. ✅ Use ONLY these categories: "SETUP", "FOUNDATION", "FEATURE", "INTEGRATION", "POLISH", "DEPLOYMENT"
+4. ✅ Respect feature prerequisites - build dependencies first
+5. ✅ Features with estimatedSteps=2 should span 2 steps (e.g., backend + frontend)
+6. ✅ Features with estimatedSteps=1 can be combined if they're related
+
+### Step Structure:
+- **index**: 1, 2, 3... (sequential)
+- **title**: Action verb + specific implementation
+  - Good: "Build Task CRUD API with Prisma"
+  - Bad: "Setup Backend" (too vague)
+- **category**: SETUP, FOUNDATION, FEATURE, INTEGRATION, POLISH, or DEPLOYMENT
+- **relatedFeatures**: Feature IDs implemented in this step
+- **prerequisiteSteps**: Step indices that must come before this
+- **estimatedComplexity**: EASY, MEDIUM, or HARD
+- **learningFocus**: 10-30 words on specific skills learned
+
+### Step Breakdown Target:
+- **SETUP** (2 steps): Project init + Database setup
+- **FOUNDATION** (2-3 steps): Auth system, base schemas, core infrastructure
+- **FEATURE** (${featureSteps} steps): One step per feature, or split complex ones
+- **INTEGRATION** (0-2 steps): Connect features that work together
+- **POLISH** (1 step): Error handling, loading states, responsive design
+- **DEPLOYMENT** (1 step): Deploy to production
+
+### Ordering Rules:
+1. SETUP → FOUNDATION → FEATURE → INTEGRATION → POLISH → DEPLOYMENT
+2. BASIC features → ENHANCEMENT features → ADVANCED features
+3. Features with prerequisites → after their dependencies
+4. Database/API implementation → before UI that uses it
+5. Auth setup → before features requiring authentication
+
+### Feature Coverage Strategy:
+- If feature.estimatedSteps = 1: Implement in one step
+- If feature.estimatedSteps = 2: Split into backend + frontend (or setup + implementation)
+- If feature.estimatedSteps = 3: Split into 3 logical parts (e.g., setup + backend + frontend)
 
 ---
 
 ## Output Format
 
-Return ONLY valid JSON:
+Return valid JSON:
 
 {
   "steps": [
     {
       "index": 1,
-      "title": "Initialize Next.js with TypeScript",
+      "title": "Initialize ${frontend || "Project"} with TypeScript",
       "category": "SETUP",
       "relatedFeatures": [],
       "prerequisiteSteps": [],
       "estimatedComplexity": "EASY",
-      "learningFocus": "Project setup, Next.js basics, TypeScript configuration"
+      "learningFocus": "Project scaffolding, TypeScript configuration, folder structure"
     },
     {
       "index": 2,
-      "title": "Setup Prisma with PostgreSQL",
+      "title": "Setup ${orm || "Database Connection"} with ${database || "Database"}",
       "category": "SETUP",
       "relatedFeatures": [],
       "prerequisiteSteps": [1],
       "estimatedComplexity": "EASY",
-      "learningFocus": "ORM concepts, database connections, schema design basics"
-    },
-    {
-      "index": 3,
-      "title": "Build Authentication System",
-      "category": "FOUNDATION",
-      "relatedFeatures": ["2"],
-      "prerequisiteSteps": [2],
-      "estimatedComplexity": "MEDIUM",
-      "learningFocus": "Password hashing, JWT tokens, session management, protected routes"
-    },
-    {
-      "index": 4,
-      "title": "Create Task Database Schema",
-      "category": "FEATURE",
-      "relatedFeatures": ["1"],
-      "prerequisiteSteps": [2, 3],
-      "estimatedComplexity": "EASY",
-      "learningFocus": "Database modeling, relations, migrations"
-    },
-    {
-      "index": 5,
-      "title": "Build Task CRUD API Endpoints",
-      "category": "FEATURE",
-      "relatedFeatures": ["1"],
-      "prerequisiteSteps": [4],
-      "estimatedComplexity": "MEDIUM",
-      "learningFocus": "REST API design, CRUD operations, validation"
+      "learningFocus": "${orm ? `${orm} schema design, migrations, database connection` : "Database setup and configuration"}"
     }
-    // ... more steps
+    // ... continue to step ${targetStepCount}
   ]
 }
 
 ---
 
-## Strict Rules
+## Pre-Submission Checklist
 
-✅ **Completeness**
-- Every feature ID from the feature list MUST appear in at least one step's "relatedFeatures"
-- CORE features must be built before ESSENTIAL
-- ESSENTIAL must be built before ENHANCEMENT
+Verify these before returning:
+✅ Total steps = ${targetStepCount} (±2 acceptable)
+✅ All ${selectedFeatures.length} feature IDs appear in relatedFeatures arrays
+✅ Every step uses correct category spelling
+✅ prerequisiteSteps only reference earlier step indices
+✅ Features with prerequisites are built after their dependencies
+✅ Step titles mention specific technologies from tech stack
+✅ Tools are introduced in steps that need them (not in SETUP unless necessary)
 
-✅ **Ordering**
-- Each step's prerequisiteSteps must reference earlier indices
-- Can't build UI before API/database
-- Can't deploy before features work
-
-✅ **Step Titles**
-- Be specific with tech stack: "Setup Prisma" not "Setup Database"
-- Action-oriented: "Build X", "Implement Y", "Create Z"
-- 3-8 words maximum
-- No generic titles like "Backend Setup"
-
-✅ **Learning Focus**
-- Specific skills: "JWT tokens, bcrypt hashing" not "security"
-- 5-15 words describing concrete learning outcomes
-
-✅ **Complexity**
-- EASY: Configuration, basic CRUD, simple UI
-- MEDIUM: Relations, validation, API integration
-- HARD: Real-time, complex algorithms, optimization
-
-✅ **Total Steps**
-- Minimum: 8 (only for very simple projects)
-- Sweet spot: 12-16 (most projects)
-- Maximum: 25 (complex projects only)
-
-❌ **Never**
-- Skip features user selected
-- Create steps that can't be done independently
-- Use vague categories like "Backend Work"
-- Order steps illogically (UI before database)
-- Make steps too large (combine 3 features in one)
-
----
-
-EXAMPLE -
-
-Title: "TaskFlow"
-Description: "Personal task manager with priorities, deadlines, and reminders."
-Tech Stack: Next.js, Prisma, PostgreSQL, Tailwind CSS
-Features:
-- [1] Task CRUD Operations (CORE)
-- [2] User Authentication (ESSENTIAL)
-- [3] Priority Levels (ESSENTIAL)
-- [4] Due Date System (ESSENTIAL)
-- [5] Search and Filter (ESSENTIAL)
-- [6] Email Reminders (ENHANCEMENT)
-- [7] Task Categories (ENHANCEMENT)
-
-
-{
-  "steps": [
-    {
-      "index": 1,
-      "title": "Initialize Next.js Project with TypeScript",
-      "category": "SETUP",
-      "relatedFeatures": [],
-      "prerequisiteSteps": [],
-      "estimatedComplexity": "EASY",
-      "learningFocus": "Next.js structure, TypeScript setup, and initial configuration"
-    },
-    {
-      "index": 2,
-      "title": "Configure Prisma and PostgreSQL Database",
-      "category": "SETUP",
-      "relatedFeatures": [],
-      "prerequisiteSteps": [1],
-      "estimatedComplexity": "EASY",
-      "learningFocus": "ORM setup, database connections, schema configuration"
-    },
-    {
-      "index": 3,
-      "title": "Design User and Task Schemas",
-      "category": "FOUNDATION",
-      "relatedFeatures": ["1", "2", "3", "4", "7"],
-      "prerequisiteSteps": [2],
-      "estimatedComplexity": "EASY",
-      "learningFocus": "Relational modeling, migrations, and foreign keys"
-    },
-    {
-      "index": 4,
-      "title": "Implement Authentication System",
-      "category": "FOUNDATION",
-      "relatedFeatures": ["2"],
-      "prerequisiteSteps": [3],
-      "estimatedComplexity": "MEDIUM",
-      "learningFocus": "JWT tokens, password hashing, session management"
-    },
-    {
-      "index": 5,
-      "title": "Build Task CRUD API Endpoints",
-      "category": "FEATURE",
-      "relatedFeatures": ["1"],
-      "prerequisiteSteps": [3, 4],
-      "estimatedComplexity": "MEDIUM",
-      "learningFocus": "REST API design, CRUD operations, input validation"
-    },
-    {
-      "index": 6,
-      "title": "Create Task Management UI",
-      "category": "FEATURE",
-      "relatedFeatures": ["1"],
-      "prerequisiteSteps": [5],
-      "estimatedComplexity": "EASY",
-      "learningFocus": "React components, state management, and data fetching"
-    },
-    {
-      "index": 7,
-      "title": "Add Priority Level Feature",
-      "category": "FEATURE",
-      "relatedFeatures": ["3"],
-      "prerequisiteSteps": [6],
-      "estimatedComplexity": "EASY",
-      "learningFocus": "Enum fields, conditional styling, and UI dropdowns"
-    },
-    {
-      "index": 8,
-      "title": "Implement Due Date Functionality",
-      "category": "FEATURE",
-      "relatedFeatures": ["4"],
-      "prerequisiteSteps": [7],
-      "estimatedComplexity": "MEDIUM",
-      "learningFocus": "Date pickers, sorting by deadlines, and time-based queries"
-    },
-    {
-      "index": 9,
-      "title": "Add Search and Filter Logic",
-      "category": "FEATURE",
-      "relatedFeatures": ["5"],
-      "prerequisiteSteps": [7, 8],
-      "estimatedComplexity": "MEDIUM",
-      "learningFocus": "Database queries, search filtering, and UI state updates"
-    },
-    {
-      "index": 10,
-      "title": "Implement Task Categorization",
-      "category": "FEATURE",
-      "relatedFeatures": ["7"],
-      "prerequisiteSteps": [8],
-      "estimatedComplexity": "MEDIUM",
-      "learningFocus": "Many-to-many relations, tag management, category filters"
-    },
-    {
-      "index": 11,
-      "title": "Integrate Email Reminder System",
-      "category": "INTEGRATION",
-      "relatedFeatures": ["6"],
-      "prerequisiteSteps": [9],
-      "estimatedComplexity": "HARD",
-      "learningFocus": "Email APIs, scheduling, background jobs, and cron setup"
-    },
-    {
-      "index": 12,
-      "title": "Link Due Dates to Email Reminders",
-      "category": "INTEGRATION",
-      "relatedFeatures": ["4", "6"],
-      "prerequisiteSteps": [8, 11],
-      "estimatedComplexity": "HARD",
-      "learningFocus": "Dependency management between features, event-based triggers"
-    },
-    {
-      "index": 13,
-      "title": "Add UI Enhancements and Loading States",
-      "category": "POLISH",
-      "relatedFeatures": [],
-      "prerequisiteSteps": [12],
-      "estimatedComplexity": "EASY",
-      "learningFocus": "User experience improvements, skeleton loaders, error handling"
-    },
-    {
-      "index": 14,
-      "title": "Deploy Application to Vercel",
-      "category": "DEPLOYMENT",
-      "relatedFeatures": [],
-      "prerequisiteSteps": [13],
-      "estimatedComplexity": "MEDIUM",
-      "learningFocus": "Environment variables, production configuration, and hosting"
-    }
-  ]
-}
-
-
----
-
-Now generate the build steps for this project. Think carefully about dependencies, feature coverage, and learning progression.`;
+Now generate the complete build plan.`;
 
     const result = await generateObject({
-      model: openai("gpt-4o-mini"), // Using GPT-4 for better reasoning
+      model: openai("gpt-4.1-nano"), 
       schema: buildStepsListSchema,
       prompt,
     });
@@ -388,7 +365,16 @@ Now generate the build steps for this project. Think carefully about dependencie
       throw new Error("No steps generated");
     }
 
-    // Validation: Check that all features are covered
+    const generatedStepCount = result.object.steps.length;
+
+    // Validation 1: Check step count
+    if (generatedStepCount < minSteps || generatedStepCount > maxSteps) {
+      console.warn(
+        `⚠️ Step count out of range: ${generatedStepCount} (target: ${minSteps}-${maxSteps})`
+      );
+    }
+
+    // Validation 2: Check feature coverage
     const allRelatedFeatures = new Set(
       result.object.steps.flatMap((step) => step.relatedFeatures || [])
     );
@@ -398,18 +384,33 @@ Now generate the build steps for this project. Think carefully about dependencie
     );
 
     if (uncoveredFeatures.length > 0) {
-      console.warn("⚠️ Some features not covered in steps:", uncoveredFeatures);
-      // You could retry or add steps here
+      console.error("❌ CRITICAL: Some features not covered in steps!");
+      console.error(
+        "Missing features:",
+        uncoveredFeatures.map((f) => `${f.id}: ${f.title}`)
+      );
+      throw new Error(`${uncoveredFeatures.length} features not covered in build steps`);
     }
 
-    console.log("BUILD STEP AGENT - Total Tokens:", result.usage);
-    console.log(`Generated ${result.object.steps.length} steps`);
-    console.log(`Covered ${allRelatedFeatures.size}/${selectedFeatures.length} features`);
+    // Validation 3: Check prerequisite integrity
+    const invalidPrereqs = result.object.steps.filter((step) =>
+      step.prerequisiteSteps.some((prereqIndex) => prereqIndex >= step.index || prereqIndex < 1)
+    );
 
-    console.log(result.usage);
+    if (invalidPrereqs.length > 0) {
+      console.error("❌ Invalid prerequisite steps detected!");
+      console.error(invalidPrereqs);
+      throw new Error("Some steps have invalid prerequisite references");
+    }
+
+    console.log("✅ BUILD STEP AGENT SUCCESS");
+    console.log(`Generated: ${generatedStepCount} steps (target: ${targetStepCount})`);
+    console.log(`Covered: ${allRelatedFeatures.size}/${selectedFeatures.length} features`);
+    console.log("Token usage:", result.usage);
+
     return result.object.steps;
   } catch (err) {
-    console.error("Error in projectBuildStepsAgent:", err);
+    console.error("❌ Error in projectBuildStepsAgent:", err);
     throw err;
   }
 }

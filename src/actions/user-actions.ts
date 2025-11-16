@@ -5,8 +5,11 @@ import { getServerUserSession } from "@/utils/get-server-user-session";
 import { ExperienceLevel } from "@prisma/client";
 import * as Sentry from "@sentry/nextjs";
 
+
+
 import prisma from "@/lib/prisma";
 import { ActionResponse } from "@/hooks/useServerAction";
+
 
 // Complete onboarding with tech stack selection
 export async function completeTechStackSelection(data: {
@@ -170,40 +173,22 @@ export async function usePopularStack(data: {
   }
 }
 
-// Legacy: Keep for backward compatibility
-export async function completeOnboarding(): Promise<ActionResponse<{ userId: string }>> {
+export async function getUserTechStack(userId: string): Promise<any> {
+  const user = await getServerUserSession();
+  if (!user) return { success: false, error: "Unauthorized" };
+
   try {
-    const user = await getServerUserSession();
-    if (!user?.id) return { success: false, error: "Unauthorized" };
-
-    await prisma.user.update({
+    const techStacks = await prisma.userTechStack.findMany({
       where: {
-        id: user.id,
+        userId,
       },
-      data: {
-        isOnboarded: true,
-      },
-    });
-
-    revalidatePath("/dashboard");
-
-    Sentry.addBreadcrumb({
-      category: "server_action",
-      message: "User completed onboarding (legacy)",
-      level: "info",
-      data: {
-        userId: user.id,
+      select: {
+        techStackId: true,
       },
     });
-
-    return { success: true, data: { userId: user.id } };
+    return { success: true, data: techStacks };
   } catch (error) {
-    Sentry.captureException(error, {
-      tags: {
-        action: "completeOnboarding",
-        type: "server_action",
-      },
-    });
-    return { success: false, error: "Failed to complete onboarding." };
+    console.error("Failed to fetch tech stacks:", error);
+    return { success: false, error: "Something went wrong" };
   }
 }

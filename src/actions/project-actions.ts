@@ -149,25 +149,6 @@ export async function getAllTechStacks() {
   }
 }
 
-export async function getUserTechStack(userId: string): Promise<any> {
-  const user = await getServerUserSession();
-  if (!user) return { success: false, error: "Unauthorized" };
-
-  try {
-    const techStacks = await prisma.userTechStack.findMany({
-      where: {
-        userId,
-      },
-      select: {
-        techStackId: true,
-      },
-    });
-    return { success: true, data: techStacks };
-  } catch (error) {
-    console.error("Failed to fetch tech stacks:", error);
-    return { success: false, error: "Something went wrong" };
-  }
-}
 
 export async function saveProjectConfiguration(
   projectId: string,

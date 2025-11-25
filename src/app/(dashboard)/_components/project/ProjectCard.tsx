@@ -2,12 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { deleteProject } from "@/actions/project-actions";
 import { Project } from "@/types/project";
 import * as Sentry from "@sentry/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { Calendar1Icon, EllipsisVerticalIcon, Github, Trash2, XIcon } from "lucide-react";
-import { toast } from "sonner";
 
 import {
   AlertDialog,
@@ -30,6 +28,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
+import { useDeleteProject } from "@/hooks/useProjectQueries";
 
 interface ProjectCardProps {
   project: Project;
@@ -37,7 +36,7 @@ interface ProjectCardProps {
   onDelete: (id: string, opts?: { rollback?: boolean; project?: Project }) => void;
 }
 
-const ProjectCard = ({ project, isLatest, onDelete }: ProjectCardProps) => {
+const ProjectCard = ({ project, isLatest }: ProjectCardProps) => {
   const [open, setOpen] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const router = useRouter();
@@ -168,7 +167,7 @@ const ProjectCard = ({ project, isLatest, onDelete }: ProjectCardProps) => {
 
               {/* Actions */}
               <div className="border-border mt-4 flex items-center justify-between border-t pt-3">
-                <DeleteAlertDialog project={project} onDelete={onDelete} />
+                <DeleteAlertDialog project={project}/>
                 <Button
                   size="sm"
                   variant="outline"
@@ -188,12 +187,12 @@ const ProjectCard = ({ project, isLatest, onDelete }: ProjectCardProps) => {
 
 interface DeleteAlertDialogProps {
   project: Project;
-  onDelete: (id: string, opts?: { rollback?: boolean; project?: Project }) => void;
 }
 
-const DeleteAlertDialog = ({ project, onDelete }: DeleteAlertDialogProps) => {
+const DeleteAlertDialog = ({ project }: DeleteAlertDialogProps) => {
   const [open, setOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+
+  const { mutate, isPending } = useDeleteProject();
 
   const handleDelete = async () => {
     Sentry.addBreadcrumb({
@@ -205,53 +204,8 @@ const DeleteAlertDialog = ({ project, onDelete }: DeleteAlertDialogProps) => {
         projectTitle: project.title,
       },
     });
-    try {
-      setDeleting(true);
-      onDelete(project.id);
 
-      const res = await deleteProject(project.id);
-      if (!res.success) {
-        Sentry.captureException(new Error(res.error || "Failed to delete project"), {
-          tags: {
-            component: "ProjectCard",
-            operation: "delete_project",
-          },
-          extra: {
-            projectId: project.id,
-            projectTitle: project.title,
-            response: res,
-          },
-        });
-
-        throw new Error(res.error);
-      }
-
-      Sentry.addBreadcrumb({
-        category: "project",
-        message: "Project deleted successfully",
-        level: "info",
-        data: {
-          projectId: project.id,
-        },
-      });
-      toast.success("Project deleted successfully.");
-    } catch (error) {
-      Sentry.captureException(error, {
-        tags: {
-          component: "ProjectCard",
-          operation: "delete_project",
-        },
-        extra: {
-          projectId: project.id,
-          projectTitle: project.title,
-        },
-      });
-      onDelete(project.id, { rollback: true, project });
-      toast.error("Failed to delete project.");
-    } finally {
-      setDeleting(false);
-      setOpen(false);
-    }
+    mutate(project.id);
   };
 
   return (
@@ -279,13 +233,13 @@ const DeleteAlertDialog = ({ project, onDelete }: DeleteAlertDialogProps) => {
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            disabled={deleting}
+            disabled={isPending}
             onClick={handleDelete}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {deleting ? "Deleting..." : "Confirm Delete"}
+            {isPending ? "Deleting..." : "Confirm Delete"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

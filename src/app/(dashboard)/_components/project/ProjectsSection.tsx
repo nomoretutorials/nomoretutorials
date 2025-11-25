@@ -1,73 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Project } from "@/types/project";
-import * as Sentry from "@sentry/nextjs";
 import { BookmarkIcon } from "lucide-react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { useProjects } from "@/hooks/useProjectQueries";
 import EmptyProject from "./EmptyProject";
 import NewProjectCard from "./NewProjectCard";
 import ProjectCard from "./ProjectCard";
 import ProjectCardSkeleton from "./ProjectCardSkeleton";
 
 const ProjectsSection = () => {
-  const [loading, setLoading] = useState(true);
-  const [projects, setProjects] = useState<Project[]>([]);
-
-  useEffect(() => {
-    const fetchProjects = async () => {
-      Sentry.addBreadcrumb({
-        category: "http",
-        message: "Fetching projects from API",
-        level: "info",
-      });
-      try {
-        const response = await fetch("/api/project");
-
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-        const data = await response.json();
-        setProjects(data.data);
-
-        Sentry.addBreadcrumb({
-          category: "http",
-          message: `Successfully fetched: ${data.data?.length || 0} projects`,
-          level: "info",
-        });
-
-        setLoading(false);
-      } catch (error) {
-        Sentry.captureException(error, {
-          tags: {
-            component: "ProjectsSection",
-            operation: "fetch_projects",
-          },
-          extra: {
-            endpoint: "/api/project",
-          },
-        });
-
-        toast.error("Error Fetching Projects. Try Again!");
-      }
-    };
-
-    fetchProjects();
-  }, []);
+  const { data: projects = [], isPending } = useProjects();
 
   const latestProject = projects.length > 1 ? projects[0] : null;
   const restProjects = projects.length > 1 ? projects.slice(1) : projects;
 
-  const handleDelete = (id: string, opts?: { rollback?: boolean; project?: Project }) => {
-    setProjects((prev) => {
-      if (opts?.rollback && opts.project) {
-        return [...prev, opts.project];
-      }
-
-      return prev.filter((proj) => proj.id !== id);
-    });
-  };
+  const handleDelete = () => {};
 
   return (
     <div className="h-[calc(100vh-4rem)] overflow-hidden px-2">
@@ -89,7 +37,7 @@ const ProjectsSection = () => {
 
         <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <NewProjectCard />
-          {loading ? (
+          {isPending ? (
             <ProjectCardSkeleton />
           ) : (
             latestProject && (
@@ -118,7 +66,7 @@ const ProjectsSection = () => {
             </div>
           </div>
 
-          {loading ? (
+          {isPending ? (
             <div className="grid grid-cols-1 gap-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <ProjectCardSkeleton key={i} />

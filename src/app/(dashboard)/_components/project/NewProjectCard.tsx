@@ -2,9 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
-import { generateMetadata } from "@/actions/ai/generate-metadata";
-import { createNewProject } from "@/actions/project-actions";
-import * as Sentry from "@sentry/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { CornerDownLeft, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -26,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useServerAction } from "@/hooks/useServerAction";
+import { useCreateProject, useGenerateMetadata } from "@/hooks/useProjectQueries";
 
 const NewProjectDialog = () => {
   const [open, setOpen] = useState(false);
@@ -35,85 +32,55 @@ const NewProjectDialog = () => {
   const [description, setDescription] = useState("");
   const router = useRouter();
 
-  const { execute: runGenerateMetadata, isPending: isGeneraing } = useServerAction(
-    generateMetadata,
-    {
-      successMessage: "Generated project details",
-      onSuccess: (data) => {
-        if (!title) setTitle(data.title);
-        setDescription(data.description);
-
-        Sentry.addBreadcrumb({
-          category: "ai",
-          message: "AI generation successful",
-          level: "info",
-        });
-      },
-      onError: (error) => {
-        Sentry.captureException(error, {
-          tags: { function: "NewProjectCard" },
-        });
-      },
-    }
-  );
-
-  const { execute: createProject, isPending: isSubmitting } = useServerAction(createNewProject, {
-    successMessage: "Project created successfully!",
-    onSuccess: (data) => {
-      Sentry.addBreadcrumb({
-        category: "project",
-        message: "Project created successfully",
-        level: "info",
-        data,
-      });
-      router.push(`/project/${data.projectId}`);
-    },
-    onError: (error) => {
-      Sentry.captureException(new Error("Project creation failed"), {
-        tags: { component: "NewProjectDialog", operation: "create_project" },
-        extra: { error },
-      });
-    },
-  });
+  const createProject = useCreateProject();
+  const generateMetadata = useGenerateMetadata();
 
   const handleGenerate = useCallback(async () => {
     if (!idea) {
       return toast.error("Please enter an idea before generating.");
     }
 
-    const data = await runGenerateMetadata(idea);
-
-    if (!data?.description) {
+    const { title, description } = await generateMetadata.mutateAsync(idea);
+    setTitle(title);
+    setDescription(description);
+    if (!description) {
       return toast.error("AI couldn’t generate project details. Please try again.");
     }
-
-    if (!title) setTitle(data.title);
-    setDescription(data.description);
-  }, [idea, title, runGenerateMetadata]);
+  }, [idea, generateMetadata]);
 
   const handleSubmit = useCallback(async () => {
     if (!idea) {
       return toast.error("Please enter an idea before creating a project.");
     }
 
+    const executeMutation = (data: { title: string; description: string }) => {
+      createProject.mutate(data, {
+        onSuccess: (responseData) => {
+          router.push(`/project/${responseData.projectId}`);
+        },
+      });
+    };
+
     if (!title || !description) {
       if (title && !description) {
         toast.message("Generating description...");
-        const data = await runGenerateMetadata(idea);
-        if (!data?.description) {
+        const { title, description } = await generateMetadata.mutateAsync(idea);
+        setTitle(title);
+        setDescription(description);
+        if (!description) {
           return toast.error("AI couldn’t generate description. Please try again.");
         }
-        setDescription(data.description);
 
-        await createProject({ title, description: data.description });
+        // ✅ Call it here
+        executeMutation({ title, description });
         return;
       }
-
       return toast.error("Please generate details before creating.");
     }
 
-    await createProject({ title, description });
-  }, [idea, title, description, runGenerateMetadata, createProject]);
+    // ✅ Call it here
+    executeMutation({ title, description });
+  }, [idea, generateMetadata, createProject, description, router, title]);
 
   const handleCancel = () => {
     setOpen(false);
@@ -145,7 +112,7 @@ const NewProjectDialog = () => {
         <Button size="sm">Create</Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[28rem]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Start a new project</DialogTitle>
           <DialogDescription>
@@ -209,22 +176,22 @@ const NewProjectDialog = () => {
             type="button"
             variant="secondary"
             size="sm"
-            disabled={isGeneraing || !idea}
+            disabled={generateMetadata.isPending || !idea}
             onClick={handleGenerate}
             className={cn(
               "relative flex items-center gap-2 overflow-hidden rounded-md transition-all",
               "focus-visible:ring-primary/40 focus:outline-none focus-visible:ring-2",
-              isGeneraing && "cursor-wait shadow-inner",
-              !isGeneraing && "hover:shadow-md active:scale-[0.98]"
+              generateMetadata.isPending && "cursor-wait shadow-inner",
+              !generateMetadata.isPending && "hover:shadow-md active:scale-[0.98]"
               // disabled && "bg-muted/50 cursor-not-allowed opacity-70"
             )}
           >
             {/* Shimmer overlay when generating */}
             <AnimatePresence>
-              {isGeneraing && (
+              {generateMetadata.isPending && (
                 <motion.div
                   key="shimmer"
-                  className="via-primary/10 absolute inset-0 bg-gradient-to-r from-transparent to-transparent"
+                  className="via-primary/10 absolute inset-0 bg-linear-to-r from-transparent to-transparent"
                   initial={{ x: "-100%" }}
                   animate={{ x: "100%" }}
                   exit={{ opacity: 0 }}
@@ -241,16 +208,16 @@ const NewProjectDialog = () => {
             <motion.div
               className={cn(
                 "relative flex items-center justify-center rounded-full",
-                isGeneraing
+                generateMetadata.isPending
                   ? "bg-primary/10 text-primary"
                   : "text-foreground/80 group-hover:text-primary transition-colors"
               )}
               animate={{
-                scale: isGeneraing ? [1, 1.05, 1] : 1,
-                opacity: isGeneraing ? [1, 0.85, 1] : 1,
+                scale: generateMetadata.isPending ? [1, 1.05, 1] : 1,
+                opacity: generateMetadata.isPending ? [1, 0.85, 1] : 1,
               }}
               transition={
-                isGeneraing
+                generateMetadata.isPending
                   ? { duration: 1.6, ease: "easeInOut", repeat: Infinity }
                   : { duration: 0.2 }
               }
@@ -260,7 +227,7 @@ const NewProjectDialog = () => {
 
             {/* Text / Spinner transition */}
             <AnimatePresence mode="wait" initial={false}>
-              {isGeneraing ? (
+              {generateMetadata.isPending ? (
                 <motion.div
                   key="spinner"
                   initial={{ opacity: 0, y: 4 }}
@@ -284,8 +251,12 @@ const NewProjectDialog = () => {
               )}
             </AnimatePresence>
           </Button>
-          <Button size="sm" onClick={handleSubmit} disabled={isSubmitting || !idea || !title}>
-            {isSubmitting ? (
+          <Button
+            size="sm"
+            onClick={handleSubmit}
+            disabled={createProject.isPending || !idea || !title}
+          >
+            {createProject.isPending ? (
               <div>
                 <Spinner />
               </div>

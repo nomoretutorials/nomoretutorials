@@ -1,18 +1,10 @@
-import { redirect } from "next/navigation";
 import AuthCard from "@/app/auth/_components/AuthCard";
-import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import AuthForm from "./_components/AuthForm";
 
 export const metadata = { title: "Authentication", description: "Get started with your account." };
 
 export default async function AuthPage() {
-  const user = await getServerUserSession();
-
-  if (user) {
-    redirect("/");
-  }
-
   return (
     <div className="flex h-screen w-full max-w-4xl items-center justify-between gap-12 overflow-y-auto p-4 sm:p-6 md:h-full lg:w-4xl lg:p-8">
       <div className="flex h-full flex-1 flex-col items-center justify-center gap-8">

@@ -7,7 +7,6 @@ import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "sonner";
 
-// TODO: add debouncing and rate limitting. add client side error handling.
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
@@ -36,7 +35,7 @@ const AuthForm = () => {
           category: "validation",
           message: "Invalid email format",
           level: "warning",
-          data: { email: email.replace(/[^@]/g, "*") }, // Mask email for privacy
+          data: { email: email.replace(/[^@]/g, "*") },
         });
         return;
       }
@@ -55,13 +54,34 @@ const AuthForm = () => {
     try {
       switch (type) {
         case "google":
-          await authClient.signIn.social({ provider: "google" });
+          await authClient.signIn.social(
+            { provider: "google" },
+            {
+              onError(ctx) {
+                toast.error(ctx.error.message);
+              },
+            }
+          );
           break;
         case "github":
-          await authClient.signIn.social({ provider: "github" });
+          await authClient.signIn.social(
+            { provider: "github" },
+            {
+              onError(ctx) {
+                toast.error(ctx.error.message);
+              },
+            }
+          );
           break;
         case "magic-link":
-          await authClient.signIn.magicLink({ email });
+          await authClient.signIn.magicLink(
+            { email },
+            {
+              onError(ctx) {
+                toast.error(ctx.error.message);
+              },
+            }
+          );
           setSubmitted(true);
           Sentry.addBreadcrumb({
             category: "auth",

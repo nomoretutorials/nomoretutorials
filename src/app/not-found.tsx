@@ -2,78 +2,77 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+
+
 
 import { Button } from "@/components/ui/button";
 
+
 export default function NotFound() {
   return (
-    <main className="bg-background text-foreground relative flex min-h-screen items-center justify-center overflow-hidden px-6">
-      <div className="from-background via-muted/10 to-background absolute inset-0 bg-gradient-to-br" />
-
-      <motion.div
-        className="border-border animate-float absolute top-20 left-20 h-48 w-48 rotate-12 rounded-2xl border opacity-10"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 0.15, scale: 1 }}
-        transition={{ duration: 2 }}
+    <main className="bg-background relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden text-white">
+      {/* Background Grid Pattern (Optional, adds depth like a dark graph paper) 
+        Lower opacity to keep it subtle.
+      */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+        }}
       />
 
-      <motion.div
-        className="border-border bg-card/80 relative z-10 flex w-full max-w-md flex-col items-center rounded-xl border p-10 shadow-xl backdrop-blur-sm"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-      >
-        <motion.div
-          className="border-primary/20 absolute inset-0 rounded-xl border"
-          animate={{ rotate: [0, 1, -1, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-
+      <div className="relative z-10 flex flex-col items-center text-center">
+        {/* The "404" Text with Dot Matrix Effect 
+           We make the text transparent, then apply a background image of dots, 
+           then clip that background to the text shape.
+        */}
         <motion.h1
-          className="from-primary to-accent bg-gradient-to-r bg-clip-text text-[6rem] font-extrabold tracking-tight text-transparent select-none"
+          className="font-black tracking-tighter text-transparent select-none"
+          style={{
+            fontSize: "clamp(10rem, 30vw, 30rem)", // Responsive massive size
+            lineHeight: 0.8,
+            backgroundImage: "radial-gradient(#333 2px, transparent 2px)", // The 'dots'
+            backgroundSize: "10px 10px", // Density of dots
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+          }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
+          transition={{ duration: 1, ease: "easeOut" }}
         >
           404
         </motion.h1>
 
-        <motion.p
-          className="text-muted-foreground mt-3 max-w-sm text-center text-lg leading-relaxed"
-          initial={{ opacity: 0, y: 10 }}
+        {/* Content Container */}
+        <motion.div
+          className="mt-12 space-y-8"
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.6 }}
         >
-          We all get lost sometimes - what matters is getting back in line.
-        </motion.p>
+          <p className="text-muted-foreground text-lg font-medium">
+            Sorry, we can&apos;t find the page you&apos;re looking for.
+          </p>
 
-        <motion.div
-          className="via-primary/40 my-6 h-px w-2/3 bg-gradient-to-r from-transparent to-transparent"
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ delay: 0.6, duration: 0.6 }}
-        />
-
-        <motion.div
-          className="mt-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-        >
-          <Link href="/">
-            <Button className="border-border bg-primary/10 text-primary hover:bg-primary/20 inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-6 py-2 font-medium transition-colors duration-300">
-              <ArrowLeft size={17} />
-              Go Back Home
+          <Link href="/" className="inline-block">
+            <Button
+              variant="ghost"
+              className="group border-border/40 flex h-10 items-center gap-2 rounded-full border bg-white/5 px-6 text-sm font-medium text-white/90 transition-all duration-300 hover:border-white/20 hover:bg-white/5 hover:text-white"
+            >
+              Go to homepage
+              <ArrowRight
+                className="opacity-60 transition-transform duration-300 group-hover:translate-x-0.5"
+                size={16}
+              />
             </Button>
           </Link>
         </motion.div>
-      </motion.div>
+      </div>
 
-      <motion.div
-        className="border-border animate-spin-slow absolute right-24 bottom-20 h-16 w-16 rounded-xl border opacity-10"
-        initial={{ rotate: 45 }}
-      />
+      {/* Vignette Overlay for that "focused" look */}
+      <div className="bg-radial-gradient-to-t pointer-events-none absolute inset-0 from-black via-transparent to-transparent" />
     </main>
   );
 }

@@ -10,7 +10,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -232,13 +231,8 @@ enum ExperienceLevel {
 enum TechStackCategory {
   FRONTEND
   BACKEND
+  FULLSTACK
   DATABASE
   ORM
   AUTHENTICATION
-  QUEUE
-  AI
-  PAYMENT
-  CMS
-  EMAIL
-  OTHER
 }

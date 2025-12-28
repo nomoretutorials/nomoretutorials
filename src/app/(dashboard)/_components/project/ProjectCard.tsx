@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Project } from "@/types/project";
-import * as Sentry from "@sentry/nextjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { Calendar1Icon, EllipsisVerticalIcon, Github, Trash2, XIcon } from "lucide-react";
 
@@ -195,16 +194,6 @@ const DeleteAlertDialog = ({ project }: DeleteAlertDialogProps) => {
   const { mutate, isPending } = useDeleteProject();
 
   const handleDelete = async () => {
-    Sentry.addBreadcrumb({
-      category: "project",
-      message: "User attempting to delete project",
-      level: "info",
-      data: {
-        projectId: project.id,
-        projectTitle: project.title,
-      },
-    });
-
     mutate(project.id);
   };
 

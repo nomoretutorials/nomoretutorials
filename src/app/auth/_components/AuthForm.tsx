@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import * as Sentry from "@sentry/nextjs";
 import { AlertCircleIcon, Loader2Icon, MailCheckIcon } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
@@ -31,22 +30,9 @@ const AuthForm = () => {
     if (type === "magic-link") {
       if (!email || !email.includes("@")) {
         toast.error("Enter a valid email address");
-        Sentry.addBreadcrumb({
-          category: "validation",
-          message: "Invalid email format",
-          level: "warning",
-          data: { email: email.replace(/[^@]/g, "*") },
-        });
         return;
       }
     }
-
-    Sentry.addBreadcrumb({
-      category: "auth",
-      message: `User attempting sign-in with ${type}`,
-      level: "info",
-      data: { method: type },
-    });
 
     setIsLoading(true);
     setLoadingType(type);
@@ -83,25 +69,9 @@ const AuthForm = () => {
             }
           );
           setSubmitted(true);
-          Sentry.addBreadcrumb({
-            category: "auth",
-            message: "Magic link sent successfully",
-            level: "info",
-          });
           break;
       }
     } catch (error) {
-      Sentry.captureException(error, {
-        tags: {
-          component: "AuthForm",
-          operation: "signin",
-          auth_method: type,
-        },
-        extra: {
-          email: type === "magic-link" ? email.replace(/[^@]/g, "*") : undefined, // Mask email
-          lastUsedMethod: lastMethod,
-        },
-      });
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);

@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { getServerUserSession } from "@/utils/get-server-user-session";
 import { ExperienceLevel } from "@prisma/client";
-import * as Sentry from "@sentry/nextjs";
 
 
 
@@ -61,26 +60,8 @@ export async function completeTechStackSelection(data: {
     revalidatePath("/");
     revalidatePath("/dashboard");
 
-    Sentry.addBreadcrumb({
-      category: "server_action",
-      message: "User completed tech stack selection and onboarding",
-      level: "info",
-      data: {
-        userId: user.id,
-        primaryCount: data.primaryTechStackIds.length,
-        additionalCount: data.additionalToolIds?.length || 0,
-        experienceLevel: data.experienceLevel,
-      },
-    });
-
     return { success: true, data: { userId: user.id } };
   } catch (error) {
-    Sentry.captureException(error, {
-      tags: {
-        action: "completeTechStackSelection",
-        type: "server_action",
-      },
-    });
     return { success: false, error: "Failed to save tech stack selection." };
   }
 }
@@ -151,24 +132,8 @@ export async function usePopularStack(data: {
     revalidatePath("/");
     revalidatePath("/dashboard");
 
-    Sentry.addBreadcrumb({
-      category: "server_action",
-      message: "User selected popular stack",
-      level: "info",
-      data: {
-        userId: user.id,
-        experienceLevel: data.experienceLevel,
-      },
-    });
-
     return { success: true, data: { userId: user.id } };
   } catch (error) {
-    Sentry.captureException(error, {
-      tags: {
-        action: "usePopularStack",
-        type: "server_action",
-      },
-    });
     return { success: false, error: "Failed to set up popular stack." };
   }
 }

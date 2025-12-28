@@ -2,7 +2,6 @@
 import { notFound } from "next/navigation";
 import { getAllTechStacks, getUserTechStack } from "@/actions/project-actions";
 import { getServerUserSession } from "@/utils/get-server-user-session";
-import * as Sentry from "@sentry/nextjs";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 
 import ProjectPageClient from "../_components/project/ProjectPageClient";
@@ -52,15 +51,10 @@ export default async function ProjectPage({ params }: Props) {
       queryFn: () => fetchProjectInline(id),
     });
   } catch (error) {
-    Sentry.captureException(error, {
-      tags: { component: "ProjectPage", operation: "prefetch_project" },
-      extra: { projectId: id },
-    });
     notFound();
   }
 
   if (!id || typeof id !== "string") {
-    Sentry.captureMessage("Invalid project ID", { level: "warning", extra: { id } });
     notFound();
   }
 

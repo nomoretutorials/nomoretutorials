@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -34,49 +33,13 @@ const ChangeStep = ({
   const canProceedFromTechStack = selectedTechStacks.length > 0;
 
   const handleNext = async () => {
-    Sentry.addBreadcrumb({
-      category: "navigation",
-      message: `User proceeding from step ${currentStepIndex + 1}`,
-      level: "info",
-      data: {
-        currentStep: currentStepIndex + 1,
-        totalSteps,
-        isFeatureStep,
-        isTechStackStep,
-        selectedFeaturesCount: selectedFeatures.length,
-        selectedTechStacksCount: selectedTechStacks.length,
-      },
-    });
     try {
       if ((isFeatureStep || isTechStackStep) && !areStepsLocked && onSaveAndContinue) {
         await onSaveAndContinue();
-
-        Sentry.addBreadcrumb({
-          category: "project",
-          message: `Saved ${isFeatureStep ? "features" : "tech stacks"} successfully`,
-          level: "info",
-          data: {
-            step: currentStepIndex + 1,
-            itemsCount: isFeatureStep ? selectedFeatures.length : selectedTechStacks.length,
-          },
-        });
       } else {
         onNext();
       }
     } catch (error) {
-      Sentry.captureException(error, {
-        tags: {
-          component: "ChangeStep",
-          operation: "save_and_continue",
-          step: isFeatureStep ? "features" : "tech_stacks",
-        },
-        extra: {
-          currentStep: currentStepIndex + 1,
-          selectedFeaturesCount: selectedFeatures.length,
-          selectedTechStacksCount: selectedTechStacks.length,
-        },
-      });
-
       throw error;
     }
   };

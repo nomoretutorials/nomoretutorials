@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
-import * as Sentry from "@sentry/nextjs";
 
 function createPrismaClient() {
   const databaseUrl =
@@ -40,14 +39,6 @@ function createPrismaClient() {
                 model,
                 operation,
               });
-              if (process.env.NODE_ENV === "production") {
-                Sentry.addBreadcrumb({
-                  category: "database",
-                  message: `Slow query: ${model}.${operation}`,
-                  level: "warning",
-                  data: { duration, model, operation },
-                });
-              }
             }
 
             return result;
@@ -57,11 +48,6 @@ function createPrismaClient() {
               model,
               operation,
               error,
-            });
-
-            Sentry.captureException(error, {
-              tags: { component: "database", operation: `${model}.${operation}` },
-              extra: { duration, model, operation },
             });
 
             throw error;

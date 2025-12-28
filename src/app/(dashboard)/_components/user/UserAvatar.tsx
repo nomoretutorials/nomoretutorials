@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useProjectStore } from "@/store/project-store";
 import { glass } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
-import * as Sentry from "@sentry/nextjs";
 import { CornerDownLeft, CreditCard, LogOut, Settings, User } from "lucide-react";
 
 import {
@@ -88,39 +87,18 @@ const LogOutButton = () => {
       await authClient.signOut({
         fetchOptions: {
           onSuccess: () => {
-            Sentry.setUser(null);
-
-            Sentry.addBreadcrumb({
-              category: "auth",
-              message: "User signed out successfully",
-              level: "info",
-            });
-
             router.push("/auth");
 
             useProjectStore.getState().resetState();
             useProjectStore.persist.clearStorage();
           },
-          onError: (ctx) => {
-            Sentry.captureException(ctx.error, {
-              tags: {
-                component: "Navbar",
-                operation: "signout",
-              },
-              extra: {
-                context: ctx,
-              },
-            });
+          onError: () => {
+            // Error handling
           },
         },
       });
     } catch (error) {
-      Sentry.captureException(error, {
-        tags: {
-          component: "Navbar",
-          operation: "signout",
-        },
-      });
+      // Error handling
     }
   };
 

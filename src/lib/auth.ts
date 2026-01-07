@@ -4,6 +4,7 @@ import { nextCookies } from "better-auth/next-js";
 import { lastLoginMethod, magicLink } from "better-auth/plugins";
 
 import prisma from "./prisma";
+import { redis } from "./redis";
 import { magicLinkMail } from "./resend";
 
 // TODO: 1. Implement T3 Env
@@ -21,6 +22,22 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
+  secondaryStorage: {
+    get: async (key: string) => {
+      const value = await redis.get(key);
+      return value ?? null;
+    },
+    set: async (key: string, value: string, ttl?: number) => {
+      if (ttl) {
+        await redis.set(key, value, { ex: ttl });
+      } else {
+        await redis.set(key, value);
+      }
+    },
+    delete: async (key: string) => {
+      await redis.del(key);
     },
   },
   plugins: [
@@ -44,6 +61,6 @@ export const auth = betterAuth({
     cookieCache: {
       enabled: true,
       maxAge: 15 * 60,
-    }
+    },
   },
 });

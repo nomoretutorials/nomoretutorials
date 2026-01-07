@@ -77,12 +77,6 @@ async function main() {
       description: "Modern, fast web framework for building APIs with Python",
       category: TechStackCategory.BACKEND,
     },
-    {
-      name: "Go + Gin",
-      slug: "go-gin",
-      description: "High-performance HTTP web framework for Go",
-      category: TechStackCategory.BACKEND,
-    },
 
     // ==================== DATABASE ====================
     {
@@ -107,12 +101,6 @@ async function main() {
       name: "Redis",
       slug: "redis",
       description: "In-memory data structure store",
-      category: TechStackCategory.DATABASE,
-    },
-    {
-      name: "Supabase",
-      slug: "supabase",
-      description: "Open source Firebase alternative with PostgreSQL",
       category: TechStackCategory.DATABASE,
     },
 
@@ -142,13 +130,7 @@ async function main() {
       slug: "clerk",
       description: "Complete user management and authentication",
       category: TechStackCategory.AUTHENTICATION,
-    },
-    {
-      name: "Supabase Auth",
-      slug: "supabase-auth",
-      description: "User management and authentication from Supabase",
-      category: TechStackCategory.AUTHENTICATION,
-    },
+    }
   ];
 
   const techStacks = await Promise.all(

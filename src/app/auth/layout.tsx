@@ -1,6 +1,8 @@
-import { getServerUserSession } from "@/utils/get-server-user-session";
 import { redirect } from "next/navigation";
 import React from "react";
+import { getServerUserSession } from "@/utils/get-server-user-session";
+
+export const metadata = { title: "Authentication" };
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const user = await getServerUserSession();

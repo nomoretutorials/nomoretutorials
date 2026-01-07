@@ -4,6 +4,8 @@ import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import prisma from "@/lib/prisma";
 
+export const metadata = { title: "Dashboard" };
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await getServerUserSession();
   if (!user) redirect("/auth");

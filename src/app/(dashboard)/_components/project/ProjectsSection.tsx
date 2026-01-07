@@ -90,9 +90,6 @@ const ProjectsSection = () => {
                 <span>All Projects</span>
               </h2>
             </div>
-            <div className="hidden items-center gap-2 sm:flex">
-              <Button variant="outline">Sort</Button>
-            </div>
           </div>
 
           {loading ? (

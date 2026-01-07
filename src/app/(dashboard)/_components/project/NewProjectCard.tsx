@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import React, { useCallback, useState } from "react";
+import { generateMetadata } from "@/actions/ai/generate-metadata";
+import { createNewProject } from "@/actions/project-actions";
 import { AnimatePresence, motion } from "framer-motion";
 import { CornerDownLeft, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -23,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useCreateProject, useGenerateMetadata } from "@/hooks/useProjectQueries";
+import { useServerAction } from "@/hooks/useServerAction";
 
 const NewProjectDialog = () => {
   const [open, setOpen] = useState(false);
@@ -32,55 +34,62 @@ const NewProjectDialog = () => {
   const [description, setDescription] = useState("");
   const router = useRouter();
 
-  const createProject = useCreateProject();
-  const generateMetadata = useGenerateMetadata();
+  const { execute: runGenerateMetadata, isPending: isGenerating } = useServerAction(
+    generateMetadata,
+    {
+      successMessage: "Generated project details",
+      onSuccess: (data) => {
+        if (!title) setTitle(data.title);
+        setDescription(data.description);
+      },
+    }
+  );
+
+  const { execute: runCreateProject, isPending: isSubmitting } = useServerAction(createNewProject, {
+    successMessage: "Project created successfully!",
+    onSuccess: (data) => {
+      router.push(`/project/${data.projectId}`);
+    },
+  });
 
   const handleGenerate = useCallback(async () => {
     if (!idea) {
       return toast.error("Please enter an idea before generating.");
     }
 
-    const { title, description } = await generateMetadata.mutateAsync(idea);
-    setTitle(title);
-    setDescription(description);
-    if (!description) {
-      return toast.error("AI couldn’t generate project details. Please try again.");
+    const data = await runGenerateMetadata(idea);
+
+    if (!data?.description) {
+      return toast.error("AI couldn't generate project details. Please try again.");
     }
-  }, [idea, generateMetadata]);
+
+    if (!title) setTitle(data.title);
+    setDescription(data.description);
+  }, [idea, title, runGenerateMetadata]);
 
   const handleSubmit = useCallback(async () => {
     if (!idea) {
       return toast.error("Please enter an idea before creating a project.");
     }
 
-    const executeMutation = (data: { title: string; description: string }) => {
-      createProject.mutate(data, {
-        onSuccess: (responseData) => {
-          router.push(`/project/${responseData.projectId}`);
-        },
-      });
-    };
-
     if (!title || !description) {
       if (title && !description) {
         toast.message("Generating description...");
-        const { title, description } = await generateMetadata.mutateAsync(idea);
-        setTitle(title);
-        setDescription(description);
-        if (!description) {
-          return toast.error("AI couldn’t generate description. Please try again.");
+        const data = await runGenerateMetadata(idea);
+        if (!data?.description) {
+          return toast.error("AI couldn't generate description. Please try again.");
         }
+        setDescription(data.description);
 
-        // ✅ Call it here
-        executeMutation({ title, description });
+        await runCreateProject({ title, description: data.description });
         return;
       }
+
       return toast.error("Please generate details before creating.");
     }
 
-    // ✅ Call it here
-    executeMutation({ title, description });
-  }, [idea, generateMetadata, createProject, description, router, title]);
+    await runCreateProject({ title, description });
+  }, [idea, title, description, runGenerateMetadata, runCreateProject]);
 
   const handleCancel = () => {
     setOpen(false);
@@ -176,19 +185,18 @@ const NewProjectDialog = () => {
             type="button"
             variant="secondary"
             size="sm"
-            disabled={generateMetadata.isPending || !idea}
+            disabled={isGenerating || !idea}
             onClick={handleGenerate}
             className={cn(
               "relative flex items-center gap-2 overflow-hidden rounded-md transition-all",
               "focus-visible:ring-primary/40 focus:outline-none focus-visible:ring-2",
-              generateMetadata.isPending && "cursor-wait shadow-inner",
-              !generateMetadata.isPending && "hover:shadow-md active:scale-[0.98]"
-              // disabled && "bg-muted/50 cursor-not-allowed opacity-70"
+              isGenerating && "cursor-wait shadow-inner",
+              !isGenerating && "hover:shadow-md active:scale-[0.98]"
             )}
           >
             {/* Shimmer overlay when generating */}
             <AnimatePresence>
-              {generateMetadata.isPending && (
+              {isGenerating && (
                 <motion.div
                   key="shimmer"
                   className="via-primary/10 absolute inset-0 bg-linear-to-r from-transparent to-transparent"
@@ -208,16 +216,16 @@ const NewProjectDialog = () => {
             <motion.div
               className={cn(
                 "relative flex items-center justify-center rounded-full",
-                generateMetadata.isPending
+                isGenerating
                   ? "bg-primary/10 text-primary"
                   : "text-foreground/80 group-hover:text-primary transition-colors"
               )}
               animate={{
-                scale: generateMetadata.isPending ? [1, 1.05, 1] : 1,
-                opacity: generateMetadata.isPending ? [1, 0.85, 1] : 1,
+                scale: isGenerating ? [1, 1.05, 1] : 1,
+                opacity: isGenerating ? [1, 0.85, 1] : 1,
               }}
               transition={
-                generateMetadata.isPending
+                isGenerating
                   ? { duration: 1.6, ease: "easeInOut", repeat: Infinity }
                   : { duration: 0.2 }
               }
@@ -227,7 +235,7 @@ const NewProjectDialog = () => {
 
             {/* Text / Spinner transition */}
             <AnimatePresence mode="wait" initial={false}>
-              {generateMetadata.isPending ? (
+              {isGenerating ? (
                 <motion.div
                   key="spinner"
                   initial={{ opacity: 0, y: 4 }}
@@ -251,12 +259,8 @@ const NewProjectDialog = () => {
               )}
             </AnimatePresence>
           </Button>
-          <Button
-            size="sm"
-            onClick={handleSubmit}
-            disabled={createProject.isPending || !idea || !title}
-          >
-            {createProject.isPending ? (
+          <Button size="sm" onClick={handleSubmit} disabled={isSubmitting || !idea || !title}>
+            {isSubmitting ? (
               <div>
                 <Spinner />
               </div>

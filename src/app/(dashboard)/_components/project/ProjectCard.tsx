@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { deleteProject } from "@/actions/project-actions";
 import { Project } from "@/types/project";
 import { AnimatePresence, motion } from "framer-motion";
 import { Calendar1Icon, EllipsisVerticalIcon, Github, Trash2, XIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   AlertDialog,
@@ -27,7 +29,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { useDeleteProject } from "@/hooks/useProjectQueries";
 
 interface ProjectCardProps {
   project: Project;
@@ -35,7 +36,7 @@ interface ProjectCardProps {
   onDelete: (id: string, opts?: { rollback?: boolean; project?: Project }) => void;
 }
 
-const ProjectCard = ({ project, isLatest }: ProjectCardProps) => {
+const ProjectCard = ({ project, isLatest, onDelete }: ProjectCardProps) => {
   const [open, setOpen] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
   const router = useRouter();
@@ -166,7 +167,7 @@ const ProjectCard = ({ project, isLatest }: ProjectCardProps) => {
 
               {/* Actions */}
               <div className="border-border mt-4 flex items-center justify-between border-t pt-3">
-                <DeleteAlertDialog project={project}/>
+                <DeleteAlertDialog project={project} onDelete={onDelete} />
                 <Button
                   size="sm"
                   variant="outline"
@@ -186,15 +187,31 @@ const ProjectCard = ({ project, isLatest }: ProjectCardProps) => {
 
 interface DeleteAlertDialogProps {
   project: Project;
+  onDelete: (id: string, opts?: { rollback?: boolean; project?: Project }) => void;
 }
 
-const DeleteAlertDialog = ({ project }: DeleteAlertDialogProps) => {
+const DeleteAlertDialog = ({ project, onDelete }: DeleteAlertDialogProps) => {
   const [open, setOpen] = useState(false);
-
-  const { mutate, isPending } = useDeleteProject();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    mutate(project.id);
+    setIsDeleting(true);
+    
+    // Optimistic update
+    onDelete(project.id);
+    
+    const result = await deleteProject(project.id);
+    
+    if (!result.success) {
+      // Rollback on error
+      onDelete(project.id, { rollback: true, project });
+      toast.error(result.error || "Failed to delete project");
+    } else {
+      toast.success("Project deleted successfully");
+    }
+    
+    setIsDeleting(false);
+    setOpen(false);
   };
 
   return (
@@ -222,13 +239,13 @@ const DeleteAlertDialog = ({ project }: DeleteAlertDialogProps) => {
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            disabled={isPending}
+            disabled={isDeleting}
             onClick={handleDelete}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isPending ? "Deleting..." : "Confirm Delete"}
+            {isDeleting ? "Deleting..." : "Confirm Delete"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

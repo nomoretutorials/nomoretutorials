@@ -1,24 +1,53 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { Project } from "@/types/project";
 import { BookmarkIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { useProjects } from "@/hooks/useProjectQueries";
 import EmptyProject from "./EmptyProject";
 import NewProjectCard from "./NewProjectCard";
 import ProjectCard from "./ProjectCard";
 import ProjectCardSkeleton from "./ProjectCardSkeleton";
 
 const ProjectsSection = () => {
-  const { data: projects = [], isPending } = useProjects();
+  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch("/api/project");
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setProjects(data.data);
+
+        setLoading(false);
+      } catch (error) {
+        toast.error("Error Fetching Projects. Try Again!");
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   const latestProject = projects.length > 1 ? projects[0] : null;
   const restProjects = projects.length > 1 ? projects.slice(1) : projects;
 
-  const handleDelete = () => {};
+  const handleDelete = (id: string, opts?: { rollback?: boolean; project?: Project }) => {
+    setProjects((prev) => {
+      if (opts?.rollback && opts.project) {
+        return [...prev, opts.project];
+      }
+
+      return prev.filter((proj) => proj.id !== id);
+    });
+  };
 
   return (
-    <div className="h-[calc(100vh-4rem)] overflow-hidden px-2">
+    <div className="h-[calc(100vh-4.5rem)] overflow-hidden px-2">
       <div className="bg-background h-full space-y-8 overflow-y-auto rounded-2xl border bg-linear-to-b from-white/1 to-transparent px-9 py-8 shadow-sm">
         <section
           aria-labelledby="quick-actions-title"
@@ -37,7 +66,7 @@ const ProjectsSection = () => {
 
         <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <NewProjectCard />
-          {isPending ? (
+          {loading ? (
             <ProjectCardSkeleton />
           ) : (
             latestProject && (
@@ -66,7 +95,7 @@ const ProjectsSection = () => {
             </div>
           </div>
 
-          {isPending ? (
+          {loading ? (
             <div className="grid grid-cols-1 gap-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <ProjectCardSkeleton key={i} />

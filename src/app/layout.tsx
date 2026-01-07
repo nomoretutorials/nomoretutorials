@@ -6,7 +6,6 @@ import "./globals.css";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { ReactQueryProvider } from "./ReactQueryProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,11 +25,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <ReactQueryProvider>
-            {/* <MinWidth>{children}</MinWidth> */}
-            <div className="ui-scale-wrapper">{children}</div>
-            <Toaster />
-          </ReactQueryProvider>
+          {/* <MinWidth>{children}</MinWidth> */}
+          <div className="ui-scale-wrapper">{children}</div>
+          <Toaster />
         </ThemeProvider>
         <Analytics />
       </body>

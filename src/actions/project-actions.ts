@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { Feature, Project } from "@/types/project";
 import { getServerUserSession } from "@/utils/get-server-user-session";
 import { projectLimit } from "@/utils/project-limit";
@@ -9,6 +10,7 @@ import { projectLimit } from "@/utils/project-limit";
 import prisma from "@/lib/prisma";
 import { getCache, setCache } from "@/lib/redis";
 import { ActionResponse } from "@/hooks/useServerAction";
+import generateFeatures from "./ai/generate-features";
 
 export async function createNewProject({
   title,
@@ -75,14 +77,8 @@ export async function createNewProject({
     if (project.userId !== user.id)
       return { success: false, error: "Project does not belongs to the user." };
 
-    fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/project/${project.id}/features`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: (await headers()).get("cookie") || "",
-      },
-    }).catch((err) => {
-      console.error("Failed to trigger feature generation: ", err);
+    after(async () => {
+      await generateFeatures(project.id);
     });
 
     return { success: true, data: { projectId: project.id } };
@@ -116,7 +112,6 @@ export async function getProject(projectId: string): Promise<ActionResponse<{ pr
     return { success: false, error: "Error getting projects." };
   }
 }
-
 export async function getAllTechStacks() {
   const user = await getServerUserSession();
   if (!user) return { success: false, error: "Unauthorized" };
@@ -148,7 +143,6 @@ export async function getAllTechStacks() {
     return { success: false, error: "Something went wrong" };
   }
 }
-
 
 export async function saveProjectConfiguration(
   projectId: string,

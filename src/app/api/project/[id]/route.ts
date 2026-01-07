@@ -10,7 +10,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        Steps: { orderBy: { index: "asc" } },
+        Steps: {
+          select: {
+            id: true,
+            index: true,
+            title: true,
+            status: true,
+            category: true,
+            isCompleted: true,
+            projectId: true,
+          },
+          orderBy: { index: "asc" },
+        },
         ProjectTechStack: { include: { techStack: true } },
       },
     });

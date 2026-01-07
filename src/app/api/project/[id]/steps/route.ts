@@ -5,10 +5,11 @@ import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import { projectBuildStepsAgent } from "@/lib/ai/agents/build-steps-agent";
 import prisma from "@/lib/prisma";
+import { emitProjectUpdate } from "@/lib/project-events";
 
 export const runtime = "nodejs";
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: projectId } = await params;
 
@@ -31,10 +32,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Project Doesn't Exist" }, { status: 404 });
     }
 
-    const features = (project?.features ?? []) as Feature[];
+    const features = (project?.features ?? []) as unknown as Feature[];
     const selectedFeatures = features.filter((f) => f.selected);
     const techStackNames = project.ProjectTechStack.map((pts) => pts.techStack.name);
 
+    console.log("2. GENERATING BUILD STEPS");
     const buildSteps = await projectBuildStepsAgent(
       project.title,
       project.description,
@@ -68,8 +70,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const cookie = (await headers()).get("cookie") || "";
 
     // Fetch Step-2 content
+
     const step2Res = await fetch(`${baseUrl}/api/project/${projectId}/steps/2`, {
-      method: "GET",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Cookie: cookie,
@@ -82,12 +85,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       console.error("Step 2 failed:", err);
     }
 
+    console.log("[Events] Build steps generated, emitting update");
+
+    emitProjectUpdate(projectId, { type: "build-steps-ready" });
+
     (async () => {
       for (const stepIndex of [3, 4]) {
         try {
           console.log(`Generating content for step ${stepIndex} (background)...`);
           const res = await fetch(`${baseUrl}/api/project/${projectId}/steps/${stepIndex}`, {
-            method: "GET",
+            method: "POST",
             headers: {
               "Content-Type": "application/json",
               Cookie: cookie,

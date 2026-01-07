@@ -1,130 +1,117 @@
 // src/app/api/project/[id]/stream/route.ts
-
 import { NextRequest } from "next/server";
 
-import { redis } from "@/lib/redis";
+import prisma from "@/lib/prisma";
+import { onProjectUpdate } from "@/lib/project-events";
 
 export const dynamic = "force-dynamic";
 
-// Define types for the stream context
-interface StreamContext {
-  keepAlive?: NodeJS.Timeout;
-  messageHandler?: (channel: string, message: string) => void;
-}
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: projectId } = await params;
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> } // Changed to Promise
-) {
-  // Await params to get the actual values
-  const { id } = await params;
-  const projectId = id;
-
-  console.log("[SSE] 🏁 New connection for project:", projectId);
-
-  // Create a new Redis subscriber instance
-  const subscriber = redis.duplicate();
-
-  // For ioredis duplicate(), DON'T call connect() - it inherits the connection
-  // Just wait a bit for it to be ready if needed
-  if (subscriber.status === "wait" || subscriber.status === "connecting") {
-    await new Promise((resolve) => {
-      subscriber.once("ready", resolve);
-    });
-  }
-
-  // Subscribe to the channel
-  await subscriber.subscribe("features-updates");
+  console.log("[SSE] 🔌 Client connected for project:", projectId);
 
   const encoder = new TextEncoder();
 
-  // Create context object to store cleanup references
-  const context: StreamContext = {};
+  // Track cleanup functions
+  let keepAliveInterval: NodeJS.Timeout | null = null;
+  let unsubscribe: (() => void) | null = null;
 
-  const stream = new ReadableStream<Uint8Array>({
+  const stream = new ReadableStream({
     async start(controller) {
-      console.log("[SSE] Stream started for project:", projectId);
+      console.log("[SSE] 🚀 Stream started for project:", projectId);
 
-      // Message handler
-      const messageHandler = (channel: string, message: string) => {
+      // Helper function to fetch and send project data
+      const sendProjectData = async () => {
         try {
-          console.log("[SSE] Received message:", { channel, message });
+          const project = await prisma.project.findUnique({
+            where: { id: projectId },
+            select: {
+              id: true,
+              features: true,
+              status: true,
+              Steps: {
+                orderBy: { index: "asc" },
+              },
+            },
+          });
 
-          // Parse the message if it's JSON
-          let parsedMessage: any;
-          try {
-            parsedMessage = JSON.parse(message);
-          } catch {
-            parsedMessage = message;
+          if (!project) {
+            console.error("[SSE] ❌ Project not found:", projectId);
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ error: "Project not found" })}\n\n`)
+            );
+            return;
           }
 
-          // Filter messages for this specific project if needed
-          if (parsedMessage.projectId && parsedMessage.projectId !== projectId) {
-            return; // Skip messages for other projects
-          }
+          const data = {
+            projectId: project.id,
+            features: project.features,
+            steps: project.Steps,
+            status: project.status,
+          };
 
-          // Send the message to the client
-          controller.enqueue(encoder.encode(`data: ${message}\n\n`));
+          // Send data in SSE format: "data: {json}\n\n"
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+          console.log("[SSE] ✅ Sent project data to client");
         } catch (error) {
-          console.error("[SSE] Error sending message:", error);
+          console.error("[SSE] ❌ Error fetching project data:", error);
         }
       };
 
-      // Attach the message handler
-      subscriber.on("message", messageHandler);
+      // 1. Send initial project data immediately when client connects
+      await sendProjectData();
 
-      // Send initial connection success message
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ type: "connected", projectId })}\n\n`)
-      );
+      // 2. Listen for updates to this specific project
+      unsubscribe = onProjectUpdate(projectId, async () => {
+        console.log("[SSE] 🔔 Received update notification for project:", projectId);
+        // Fetch fresh data and send to client
+        await sendProjectData();
+      });
 
-      // Keep-alive ping every 30 seconds to prevent timeout
-      const keepAlive = setInterval(() => {
+      console.log("[SSE] 🎧 Listening for updates on project:", projectId);
+
+      // 3. Keep-alive: Send ping every 30 seconds to prevent connection timeout
+      keepAliveInterval = setInterval(() => {
         try {
-          controller.enqueue(encoder.encode(`: keep-alive\n\n`));
+          // Comments (lines starting with ":") are ignored by EventSource
+          controller.enqueue(encoder.encode(`: keep-alive ${Date.now()}\n\n`));
+          console.log("[SSE] 💓 Keep-alive ping sent");
         } catch (error) {
-          console.error("[SSE] Keep-alive error:", error);
-          clearInterval(keepAlive);
+          console.error("[SSE] ❌ Keep-alive failed:", error);
+          if (keepAliveInterval) {
+            clearInterval(keepAliveInterval);
+          }
         }
       }, 30000);
-
-      // Store in context for cleanup
-      context.keepAlive = keepAlive;
-      context.messageHandler = messageHandler;
     },
 
-    async cancel() {
-      console.log("[SSE] Client disconnected for project:", projectId);
+    cancel() {
+      console.log("[SSE] 🔌 Client disconnected for project:", projectId);
 
-      // Clear keep-alive interval
-      if (context.keepAlive) {
-        clearInterval(context.keepAlive);
+      // Clean up keep-alive interval
+      if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+        console.log("[SSE] ✅ Keep-alive interval cleared");
       }
 
-      // Remove message handler
-      if (context.messageHandler) {
-        subscriber.off("message", context.messageHandler);
+      // Unsubscribe from project updates
+      if (unsubscribe) {
+        unsubscribe();
+        console.log("[SSE] ✅ Unsubscribed from project updates");
       }
 
-      // Unsubscribe and disconnect
-      try {
-        await subscriber.unsubscribe("features-updates");
-
-        // For ioredis, disconnect the subscriber
-        subscriber.disconnect();
-      } catch (error) {
-        console.error("[SSE] Cleanup error:", error);
-      }
+      console.log("[SSE] ✅ Cleanup complete");
     },
   });
 
-  // Return the stream with appropriate headers
+  // Return response with SSE headers
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
-      "X-Accel-Buffering": "no", // Disable buffering in nginx
+      "X-Accel-Buffering": "no", // Disable nginx buffering if behind nginx
     },
   });
 }

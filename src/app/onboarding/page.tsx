@@ -6,7 +6,15 @@ import { getAllTechStacks } from "@/actions/project-actions";
 import { completeTechStackSelection } from "@/actions/user-actions";
 import { ExperienceLevel, TechStackCategory } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronLeft,
+  Code2,
+  Database,
+  Layers,
+  Sparkles,
+} from "lucide-react";
 
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils"; // Assuming you have a cn utility, if not, standard template literals work
@@ -152,9 +160,13 @@ export default function OnboardingPage() {
     }
 
     const toolIds: string[] = [];
-    if (postgresql) toolIds.push(postgresql.id);
-    if (prisma) toolIds.push(prisma.id);
-    if (betterAuth) toolIds.push(betterAuth.id);
+    const postgresqlId = findId("postgresql");
+    const prismaId = findId("prisma");
+    const betterAuthId = findId("better-auth") || findId("betterauth");
+
+    if (postgresqlId) toolIds.push(postgresqlId);
+    if (prismaId) toolIds.push(prismaId);
+    if (betterAuthId) toolIds.push(betterAuthId);
 
     setAdditionalToolIds(toolIds);
   };

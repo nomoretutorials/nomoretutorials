@@ -1,168 +1,221 @@
-// lib/ai/agents/stepContentAgent.ts
 import { openai } from "@ai-sdk/openai";
 import { generateText } from "ai";
 
-export async function projectStepContentAgent({
-  stepTitle,
-  learningFocus,
-  relatedFeatures,
-  projectTitle,
-  projectDescription,
-  techStackNames,
-  selectedFeatures,
-  previousSteps,
-  estimatedComplexity,
-}: {
+interface StepContentParams {
+  stepIndex: number;
   stepTitle: string;
+  stepCategory: string;
   learningFocus: string;
+  estimatedComplexity: "EASY" | "MEDIUM" | "HARD";
   relatedFeatures?: string[];
+
   projectTitle: string;
   projectDescription: string;
   techStackNames: string[];
-  selectedFeatures: Array<{ id: string; title: string; description: string }>;
-  previousSteps?: Array<{ index: number; title: string; summary: string }>;
-  estimatedComplexity: "EASY" | "MEDIUM" | "HARD";
-  apiKey?: string;
-}) {
-  const techStack = techStackNames.join(", ");
+
+  selectedFeatures: Array<{
+    id: string;
+    title: string;
+    description: string;
+  }>;
+
+  previousSteps?: Array<{
+    index: number;
+    title: string;
+    filesCreated?: string[];
+    modelsCreated?: string[];
+  }>;
+}
+
+export async function projectStepContentAgent(params: StepContentParams) {
+  const {
+    stepIndex,
+    stepTitle,
+    learningFocus,
+    techStackNames,
+    previousSteps = [],
+    projectTitle,
+  } = params;
+
+  // --- This logic is still perfect ---
+  const frontend =
+    techStackNames.find((t) =>
+      ["next", "react", "vue"].some((fw) => t.toLowerCase().includes(fw))
+    ) || "";
+
+  const orm =
+    techStackNames.find((t) =>
+      ["prisma", "drizzle", "mongoose"].some((o) => t.toLowerCase().includes(o))
+    ) || "";
+
+  const database =
+    techStackNames.find((t) =>
+      ["postgres", "mysql", "mongodb"].some((db) => t.toLowerCase().includes(db))
+    ) || "";
+
+  const auth =
+    techStackNames.find((t) =>
+      ["nextauth", "clerk", "better-auth"].some((a) => t.toLowerCase().includes(a))
+    ) || "";
+
+  // Detect what needs documentation
+  const needsDocs: string[] = [];
+  const stepLower = stepTitle.toLowerCase();
+
+  // Smart-detection for docs
+  if (
+    auth &&
+    (stepLower.includes(auth.toLowerCase()) ||
+      stepLower.includes("auth") ||
+      stepLower.includes("session"))
+  )
+    needsDocs.push(`${auth} installation and setup`);
+  if (
+    orm &&
+    (stepLower.includes(orm.toLowerCase()) ||
+      stepLower.includes("schema") ||
+      stepLower.includes("model"))
+  )
+    needsDocs.push(`${orm} setup guide`);
+  if (
+    frontend &&
+    (stepLower.includes("api") ||
+      stepLower.includes("route") ||
+      stepLower.includes("server action"))
+  )
+    needsDocs.push(`${frontend} ${learningFocus}`);
+  if (stepLower.includes("email") || stepLower.includes("resend"))
+    needsDocs.push("Resend email API docs");
+  if (stepLower.includes("ai") || stepLower.includes("gpt") || stepLower.includes("summarize"))
+    needsDocs.push("Gemini API docs");
+  if (stepLower.includes("payment") || stepLower.includes("stripe"))
+    needsDocs.push("Stripe docs setup");
+  if (stepLower.includes("upload") || stepLower.includes("s3"))
+    needsDocs.push("AWS S3 file upload with nodejs");
 
   const previousContext =
-    previousSteps && previousSteps.length > 0
-      ? previousSteps.map((s) => `- **Step ${s.index}**: ${s.title} (${s.summary})`).join("\n")
-      : "None - this is your first step.";
+    previousSteps.length > 0
+      ? `The user has already completed these steps: ${previousSteps.map((s) => `[${s.index}: ${s.title}]`).join(", ")}.`
+      : "This is the very first step.";
 
-  const stepFeatures = selectedFeatures.filter((f) => relatedFeatures?.includes(f.id));
-  const featuresContext =
-    stepFeatures.length > 0 ? stepFeatures.map((f) => `- ${f.title}`).join("\n") : "General setup";
+  // --- THIS IS THE NEW v4.1 (OPTIMIZED) SOCRATIC MENTOR PROMPT ---
+  const prompt = `You are a "Senior Developer Mentor" for "NoMoreTutorials."
+Your persona is a friendly, encouraging, and highly practical pair-programmer.
+Your mission is to generate a guide for the *current project step* that forces the user to *learn* and *problem-solve*, not just copy-paste.
 
-  const prompt = `You are a coding mentor creating a **learning guide** (NOT a tutorial) for: "${stepTitle}"
+## Project & Step Context
+- Project: "${projectTitle}"
+- Current Step (${stepIndex}): "${stepTitle}"
+- Key Learning Goal: "${learningFocus}"
+- Tech Stack: ${techStackNames.join(", ")}
+- Previous Steps: ${previousContext}
 
-## Context
-Project: ${projectTitle} (${projectDescription})
-Tech Stack: ${techStack}
-Features to build: ${featuresContext}
-Complexity: ${estimatedComplexity}
-Learning goal: ${learningFocus}
+## Critical Rules: The "Socratic Mentor" Mandate
+1.  ✅ **Context is King**: You MUST obey the \`stepTitle\`, \`techStackNames\`, and \`previousSteps\` context. Do NOT repeat steps. Do NOT use the wrong tech (e.g., if title says "Better Auth", do NOT use "NextAuth.js").
+2.  ✅ **Mentor Persona**: Act as a friendly, practical mentor. Be conversational. Always explain the 'Why' in 1-2 sentences after every code block. NO filler steps (\`ls\`, default configs).
+3.  ✅ **Interactive Commands**: Prefer *interactive* base commands (e.g., \`npx create-next-app@latest\`) and guide the user on what to select from the prompts.
+4.  ✅ **"Teach to Fish" (Docs)**: Use your web search to find *real, official doc links*. Give boilerplate code, then link to the docs with a *specific goal* for the user to complete (e.g., "Your Turn: Read [doc link] and find the 'GoogleProvider'").
+5.  ✅ **"Deep Dive" Prompts**: Include 1-2 optional \`🧠 Deep Dive\` blocks with copy-pasteable prompts for other LLMs to explain complex topics.
 
-Previous steps completed:
-${previousContext}
+## Output Format (Abridged Template)
 
-## Your Output Must Be:
-1. **Concise** - No fluff, no repetition. Every sentence must add value.
-2. **Action-focused** - Tell them WHAT to build, WHERE to look, WHAT success looks like.
-3. **Smart about detail** - More detail for complex parts, less for obvious parts.
-4. **No hand-holding** - Guide to resources, don't give solutions.
+You must follow this general structure.
 
-## Format (in markdown):
+## ${stepTitle}
 
-### What You're Building
-(1-2 sentences max. Be specific. Reference previous work if relevant.)
-
-### Your Tasks
-(3-5 bullet points. Each is a clear, actionable task. No explanations unless necessary.)
-
-Example:
-- Create a \`User\` model in \`prisma/schema.prisma\` with id, email, name, and password fields
-- Set up password hashing using bcrypt before storing
-- Create a POST /api/signup endpoint that validates input and creates users
-
-### Key Resources
-(2-4 most important links ONLY. Format: **[Title](url)** - one-line context)
-
-### Hints
-(2-3 practical tips ONLY when they'd actually get stuck. Skip if obvious.)
-
-Format as:
-> 💡 **Tip name**: Brief tip in one sentence
-
-### Verify Your Work
-(2-3 specific, testable checkpoints. Be concrete.)
-
-Example:
-- [ ] Running \`npx prisma studio\` shows your User table with correct fields
-- [ ] POST request to /api/signup returns 201 and creates a user in database
-- [ ] Passwords are hashed (never stored as plain text)
+(A short, encouraging intro on *what* we're building and *why*.)
 
 ---
 
-## Critical Rules:
+### 1. (First Action Title)
 
-**BE CONCISE**:
-- Overview: 1-2 sentences max
-- Tasks: 3-5 bullet points (one line each unless complex)
-- No redundant explanations
-- Skip obvious things (e.g., don't explain what a file is)
+(Brief explanation of the action.)
 
-**BE SMART ABOUT DETAIL**:
-${
-  estimatedComplexity === "EASY"
-    ? "This is EASY - be brief, they can figure it out. Only add detail for tricky parts."
-    : estimatedComplexity === "MEDIUM"
-      ? "This is MEDIUM - give direction but no solutions. Point to docs, describe patterns."
-      : "This is HARD - they need to research. Give conceptual direction and point to multiple resources."
-}
-
-**BE CONTEXT-AWARE**:
-${
-  previousSteps && previousSteps.length > 0
-    ? `They've completed: ${previousSteps.map((s) => s.title).join(", ")}. Don't re-explain those concepts. Build on them.`
-    : "This is their first step. Be slightly more explicit but still concise."
-}
-
-**NO FLUFF**:
-❌ "In this exciting step, we'll embark on a journey to..."
-✅ "Set up Prisma to connect to PostgreSQL."
-
-❌ "Let's think about how we might approach this problem..."
-✅ "Create an API route that handles user signup."
-
-❌ Long explanations of WHY before HOW
-✅ Quick WHAT, then WHERE to learn more
-
-**SHOW PATTERNS, NOT SOLUTIONS**:
-When showing code, use:
-- Placeholders: \`yourFieldName\`, \`YourModel\`
-- Incomplete snippets with comments: \`// Your validation logic here\`
-- Structure only: Show the shape, not the implementation
-
-Example of GOOD pattern:
-\`\`\`typescript
-// Pattern for API route
-export async function POST(request: Request) {
-  const body = await request.json();
-  // 1. Validate input
-  // 2. Process data
-  // 3. Return response
-}
+\`\`\`bash
+(command to run)
 \`\`\`
 
-Example of BAD (too complete):
+**Why we're doing this:** (Your 1-2 sentence explanation.)
+
+### 2. (Second Action Title)
+
+(Brief explanation.)
+
 \`\`\`typescript
-export async function POST(request: Request) {
-  const { email, password } = await request.json();
-  if (!email || !password) return Response.json({ error: "Invalid" });
-  const user = await prisma.user.create({ data: { email, password } });
-  return Response.json(user);
-}
+// path/to/file.ts
+(Minimal boilerplate code)
 \`\`\`
+
+**Why we're doing this:** (Your 1-2 sentence explanation.)
+
+### 3. (Your Turn: (Goal Title))
+
+**Your Goal:** (A clear, specific goal, e.g., "Read the official docs and add the 'Google' provider to our config.")
+
+**Here's the doc I found for you:** [Official Doc: (Title from search)]((Real URL from web search))
+
+**Hint:** (A small, helpful hint.)
+
+> **🧠 Deep Dive: (Topic Title)**
+> \`"(Copy-pasteable prompt for the user, e.g., "Explain what a 'catch-all' API route is in Next.js and why auth tools use it.")"\`
 
 ---
 
-Now generate concise, action-focused content for "${stepTitle}".
+### Step Complete!
 
-Remember:
-- Be brief and direct
-- Skip obvious explanations
-- More detail only where complexity demands it
-- Guide to resources, don't give solutions
-- Every word must earn its place`;
+(A 1-2 sentence summary and look ahead.)
 
-  const result = await generateText({
-    model: openai("gpt-4o-mini"),
-    prompt,
-    temperature: 0.6,
-  });
+---
 
-  console.log(result.usage);
-  return result;
+Now, generate the complete, high-quality mentor guide for the user's current step:
+**Step ${stepIndex}: ${stepTitle}**
+(Remember all 5 rules. Be a mentor, not a manual.)`;
+
+  try {
+    const result = await generateText({
+      // Task 4: Update model
+      model: openai.responses("gpt-4o-mini"),
+      prompt,
+      temperature: 0.3,
+      tools: {
+        web_search_preview: openai.tools.webSearch(),
+      },
+    });
+
+    console.log(`✅ Step ${stepIndex} content generated (v4.1-Optimized)`);
+    console.log(`Sources found: ${result.sources?.length || 0}`);
+    if (result.sources?.length) {
+      result.sources.forEach((source: any) => {
+        console.log(`   ${source.url}`);
+      });
+    }
+    console.log("Token usage:", result.usage);
+
+    // --- This metadata logic is still genius, keep it ---
+    const content = result.text;
+    const filesCreated: string[] = [];
+    const fileMatches = content.matchAll(/`([^`]+\.(ts|js|tsx|jsx|prisma|json|css))`?/g);
+    for (const match of fileMatches) {
+      if (match[1].includes("/")) filesCreated.push(match[1]);
+    }
+
+    const modelsCreated: string[] = [];
+    const modelMatches = content.matchAll(/model\s+(\w+)\s*\{/g);
+    for (const match of modelMatches) {
+      modelsCreated.push(match[1]);
+    }
+
+    return {
+      content: result.text,
+      metadata: {
+        filesCreated: [...new Set(filesCreated)],
+        modelsCreated: [...new Set(modelsCreated)],
+        sourcesUsed: result.sources?.map((s: any) => s.url) || [],
+      },
+      usage: result.usage,
+    };
+  } catch (error) {
+    console.error("❌ Error in projectStepContentAgent (v4):", error);
+    throw new Error("Failed to generate project step content");
+  }
 }

@@ -196,20 +196,21 @@ const DeleteAlertDialog = ({ project, onDelete }: DeleteAlertDialogProps) => {
 
   const handleDelete = async () => {
     setIsDeleting(true);
-    
+
     // Optimistic update
     onDelete(project.id);
-    
+
     const result = await deleteProject(project.id);
-    
+
     if (!result.success) {
       // Rollback on error
       onDelete(project.id, { rollback: true, project });
       toast.error(result.error || "Failed to delete project");
     } else {
       toast.success("Project deleted successfully");
+      localStorage.removeItem(`project-storage-${project.id}`);
     }
-    
+
     setIsDeleting(false);
     setOpen(false);
   };

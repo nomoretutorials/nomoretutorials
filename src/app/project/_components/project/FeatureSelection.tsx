@@ -1,6 +1,7 @@
 // components/project/FeatureSelection.tsx
 "use client";
 
+import { useProjectStore } from "@/store/project-store-provider";
 import { Feature } from "@/types/project";
 import { Info, Lock, Sparkles } from "lucide-react";
 
@@ -8,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import FeaturesSkeleton from "./skeleton/FeaturesSkeleton";
 
 type Props = {
   features: Feature[];
@@ -15,8 +17,14 @@ type Props = {
   onToggleFeature: (featureId: string) => void;
 };
 
-export default function FeatureSelection({ features, selectedFeatures, onToggleFeature }: Props) {
-  console.log(features);
+export default function FeatureSelection({ selectedFeatures, onToggleFeature, features }: Props) {
+  const isGenerated = useProjectStore((state) => state.isGenerated);
+
+  // Show skeleton while loading OR while features are empty (still generating)
+  if (!features || features.length === 0) {
+    return <FeaturesSkeleton />;
+  }
+
   const grouped = {
     BASIC: features.filter((feature) => feature.category === "BASIC"),
     ENHANCEMENT: features.filter((feature) => feature.category === "ENHANCEMENT"),
@@ -73,7 +81,8 @@ export default function FeatureSelection({ features, selectedFeatures, onToggleF
           selected
             ? "border-primary/50 bg-primary/5"
             : "border-muted hover:border-primary/30 hover:bg-muted/30",
-          disabled && "cursor-not-allowed opacity-50"
+          disabled && "cursor-not-allowed opacity-50",
+          isGenerated && "pointer-events-none opacity-50"
         )}
       >
         <Checkbox
@@ -140,6 +149,12 @@ export default function FeatureSelection({ features, selectedFeatures, onToggleF
 
   return (
     <div className="space-y-6 text-sm">
+      {isGenerated && (
+        <div className="bg-destructive/10 border-destructive/20 text-destructive-foreground mb-4 flex items-center gap-2 rounded-md border p-2 text-xs">
+          <Lock className="h-3 w-3" />
+          Selections are locked because steps have been generated.
+        </div>
+      )}
       <Section title="Basic" desc="Core app functionality" list={grouped.BASIC} />
       <Section title="Enhancement" desc="Polish & usability" list={grouped.ENHANCEMENT} />
       <Section title="Advanced" desc="Complex, powerful list features" list={grouped.ADVANCED} />

@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+import { useProjectStore } from "@/store/project-store-provider";
 import { TechStack } from "@/types/project";
+import { UserTechStack } from "@prisma/client";
+import { Lock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 
 type Props = {
   techStacks: TechStack[];
-  userTechStack: any;
+  userTechStack: UserTechStack[];
   selectedTechStacks: string[];
   onToggleTechStack: (stackId: string) => void;
 };
@@ -19,9 +23,11 @@ export default function TechStackSelection({
   selectedTechStacks,
   onToggleTechStack,
 }: Props) {
+  const isGenerated = useProjectStore((state) => state.isGenerated);
+
   // 🧠 Extract user tech stack IDs
   const userTechStackIds = useMemo(
-    () => userTechStack?.map((u: any) => u.techStackId) ?? [],
+    () => userTechStack?.map((u: UserTechStack) => u.techStackId) ?? [],
     [userTechStack]
   );
 
@@ -50,13 +56,20 @@ export default function TechStackSelection({
 
   useEffect(() => {
     if (!userTechStack?.length) return;
-    const userIds = userTechStack.map((u: any) => u.techStackId);
+    const userIds = userTechStack.map((u: UserTechStack) => u.techStackId);
     console.log("User Tech Stack IDs:", userIds);
   }, [userTechStack]);
 
   return (
     <div className="space-y-8 rounded-xl">
       <div>
+        {isGenerated && (
+          <div className="bg-destructive/10 border-destructive/20 text-destructive-foreground mb-4 flex items-center gap-2 rounded-md border p-2 text-xs">
+            <Lock className="h-3 w-3" />
+            Selections are locked because steps have been generated.
+          </div>
+        )}
+
         <p className="text-muted-foreground mb-4 text-sm">
           Select the technologies you want to use for your project
         </p>
@@ -97,7 +110,10 @@ export default function TechStackSelection({
 
       {/* Render sorted categories */}
       {categories.map((category) => (
-        <div key={category} className="space-y-4">
+        <div
+          key={category}
+          className={cn("space-y-4", isGenerated && "pointer-events-none opacity-50")}
+        >
           <div>
             <div className="text-muted-foreground/80 mb-1 font-mono text-xs tracking-tight uppercase">
               {category}

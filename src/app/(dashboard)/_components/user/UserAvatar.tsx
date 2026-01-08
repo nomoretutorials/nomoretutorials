@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { useProjectStore } from "@/store/project-store";
+import { useProjectStore } from "@/store/project-store-provider";
 import { glass } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
 import { CornerDownLeft, CreditCard, LogOut, Settings, User } from "lucide-react";
@@ -89,8 +89,9 @@ const LogOutButton = () => {
           onSuccess: () => {
             router.push("/auth");
 
-            useProjectStore.getState().resetState();
-            useProjectStore.persist.clearStorage();
+            // TODO: Implement Global Zustand State Reset
+            // useProjectStore.getState().resetState();
+            // useProjectStore.persist.clearStorage();
           },
           onError: () => {
             // Error handling

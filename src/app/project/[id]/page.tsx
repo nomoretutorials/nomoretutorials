@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getAllTechStacks, getProject } from "@/actions/project-actions";
 import { getUserTechStack } from "@/actions/user-actions";
+import { ProjectStoreProvider } from "@/store/project-store-provider";
 import { getServerUserSession } from "@/utils/get-server-user-session";
 
 import ProjectPageClient from "../_components/project/ProjectPageClient";
@@ -41,10 +42,12 @@ export default async function ProjectPage({ params }: Props) {
   }
 
   return (
-    <ProjectPageClient
-      project={projectResult.data.project}
-      techStacks={techStacksResult.data || []}
-      userTechStack={userTechStackResult.data || []}
-    />
+    <ProjectStoreProvider projectId={id}>
+      <ProjectPageClient
+        project={projectResult.data.project}
+        techStacks={techStacksResult.data || []}
+        userTechStack={userTechStackResult.data || []}
+      />
+    </ProjectStoreProvider>
   );
 }

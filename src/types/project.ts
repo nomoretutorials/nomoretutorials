@@ -22,14 +22,38 @@ export type TechStack = {
   category: string;
 };
 
-export type Feature = {
+export type UserTechStack = {
+  techStackId: string;
+};
+
+export interface Feature {
   id: string;
   title: string;
   description: string;
-  priority: string;
-  learningValue: string;
+  category: "BASIC" | "ENHANCEMENT" | "ADVANCED";
   selected?: boolean;
-};
+
+  learningValue: string;
+  userValue: string;
+  estimatedSteps: number;
+  difficulty: "EASY" | "MEDIUM" | "HARD";
+  isRecommended: boolean;
+
+  prerequisites: string[];
+  enablesFeatures: string[];
+  requiresTools: string[];
+  tags: string[];
+}
+
+export interface FeaturesResponse {
+  features: Feature[];
+  recommendedSelection: {
+    basic: string[];
+    enhancement: string[];
+    advanced: string[];
+    reasoning: string;
+  };
+}
 
 export interface Step {
   id: string;

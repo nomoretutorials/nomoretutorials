@@ -12,33 +12,55 @@ export const metadataAgentSchema = z.object({
 
 export type metadataAgentType = z.infer<typeof metadataAgentSchema>;
 
-const FeatureSchema = z.object({
+const featureSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string(),
-  priority: z.enum(["core", "essential", "enhancement"]),
-  learningValue: z.string(), // What will they learn building this?
+  category: z.enum(["BASIC", "ENHANCEMENT", "ADVANCED"]),
+
+  learningValue: z.string(),
+  userValue: z.string(),
+  estimatedSteps: z.number().min(1).max(3),
+  difficulty: z.enum(["EASY", "MEDIUM", "HARD"]),
+  isRecommended: z.boolean(),
+
+  prerequisites: z.array(z.string()).default([]),
+  enablesFeatures: z.array(z.string()).default([]),
+  requiresTools: z.array(z.string()).default([]),
+  tags: z.array(z.string()).default([]),
 });
+
+// const recommendedSelectionSchema = z.object({
+//   basic: z.array(z.string()),
+//   enhancement: z.array(z.string()),
+//   advanced: z.array(z.string()),
+//   reasoning: z.string(),
+// });
 
 export const featuresListSchema = z.object({
-  features: z.array(FeatureSchema),
+  features: z.array(featureSchema).min(8).max(12),
+  // recommendedSelection: recommendedSelectionSchema,
 });
 
-const BuildStepSchema = z.object({
+export type Feature = z.infer<typeof featureSchema>;
+export type FeaturesListResponse = z.infer<typeof featuresListSchema>;
+
+const buildStepSchema = z.object({
   index: z.number().int().positive(),
-  title: z.string().min(3).max(60),
+  title: z.string().min(5).max(100),
   category: z.enum(["SETUP", "FOUNDATION", "FEATURE", "INTEGRATION", "POLISH", "DEPLOYMENT"]),
-  relatedFeatures: z.array(z.string()).optional(), // Feature IDs this step builds
-  prerequisiteSteps: z.array(z.number()).optional(), // Which steps must come before
+  relatedFeatures: z.array(z.string()).default([]),
+  prerequisiteSteps: z.array(z.number().int()).default([]),
   estimatedComplexity: z.enum(["EASY", "MEDIUM", "HARD"]),
-  learningFocus: z.string(), // What they'll learn in this step
+  learningFocus: z.string().min(10).max(200),
 });
 
 export const buildStepsListSchema = z.object({
-  steps: z.array(BuildStepSchema).min(8).max(25),
+  steps: z.array(buildStepSchema).min(5).max(20),
 });
 
-export type buildStepListType = z.infer<typeof buildStepsListSchema>;
+export type BuildStep = z.infer<typeof buildStepSchema>;
+export type BuildStepsList = z.infer<typeof buildStepsListSchema>;
 
 export const stepContentAgentSchema = z.object({
   overview: z.string().describe("2-3 sentences explaining what this step accomplishes"),

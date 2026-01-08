@@ -1,14 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { UserTechStack } from "@/types/project";
 import { getServerUserSession } from "@/utils/get-server-user-session";
 import { ExperienceLevel } from "@prisma/client";
 
-
-
 import prisma from "@/lib/prisma";
 import { ActionResponse } from "@/hooks/useServerAction";
-
 
 // Complete onboarding with tech stack selection
 export async function completeTechStackSelection(data: {
@@ -151,7 +149,7 @@ export async function getUserTechStack(userId: string): Promise<any> {
         techStackId: true,
       },
     });
-    return { success: true, data: techStacks };
+    return { success: true, data: techStacks as UserTechStack[] };
   } catch (error) {
     console.error("Failed to fetch tech stacks:", error);
     return { success: false, error: "Something went wrong" };

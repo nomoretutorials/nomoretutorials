@@ -1,16 +1,14 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo } from "react";
-import { useProjectStore } from "@/store/project-store";
-import { TechStack, UserTechStack } from "@/types/project";
+import { useProjectStore } from "@/store/project-store-provider";
+import { Project, TechStack, UserTechStack } from "@/types/project";
 import { parseStepFeatures } from "@/utils/project-step-utils";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
-import { fetchProject } from "@/hooks/useProjectQueries";
 import { useProjectSave } from "@/hooks/useProjectSave";
 import { useProjectStream } from "@/hooks/useProjectStream";
 import ProjectStepLoader from "../ProjectStepLoader";
@@ -22,13 +20,13 @@ import StepContentRenderer from "./StepContentRenderer";
 import TechStackSelection from "./TechStackSelection";
 
 type Props = {
-  projectId: string;
+  project: Project;
   techStacks: TechStack[];
   userTechStack: UserTechStack[];
 };
 
 const ProjectPageClient = memo(function ProjectPageClient({
-  projectId,
+  project,
   techStacks,
   userTechStack,
 }: Props) {
@@ -42,20 +40,25 @@ const ProjectPageClient = memo(function ProjectPageClient({
     isNavigating,
     resetState,
     isSaving,
-  } = useProjectStore();
+    isGenerated,
+  } = useProjectStore((s) => s);
 
-  const { isConnected } = useProjectStream(projectId);
-  const { data: currentProject } = useSuspenseQuery({
-    queryKey: ["project", projectId],
-    queryFn: () => fetchProject(projectId),
-    staleTime: Infinity,
-    gcTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-  });
+  const { data: sseData, isConnected } = useProjectStream(project.id);
 
-  console.log(userTechStack);
+  const currentProject = useMemo(() => {
+    if (sseData) {
+      return {
+        ...project,
+        features: sseData.features || project.features,
+        Steps: sseData.steps || project.Steps,
+        status: sseData.status || project.Steps,
+      };
+    }
+
+    return project;
+  }, [project, sseData]);
+
+  const steps = useMemo(() => currentProject!.Steps || [], [currentProject]);
 
   const {
     showUnsavedDialog,
@@ -64,16 +67,13 @@ const ProjectPageClient = memo(function ProjectPageClient({
     handleDialogOpenChange,
   } = useProjectNavigation();
 
-  useEffect(() => {
-    console.log("Selected step changed:", selectedStepIndex);
-  }, [selectedStepIndex]);
-
-  const { handleSaveAndContinue } = useProjectSave(projectId);
+  const { handleSaveAndContinue } = useProjectSave(project.id);
 
   // Memoize expensive calculations
   const currentStep = useMemo(() => {
-    return currentProject.Steps![selectedStepIndex] ?? currentProject.Steps![0];
-  }, [currentProject.Steps, selectedStepIndex]);
+    if (!steps.length) return null;
+    return steps[selectedStepIndex] ?? steps[0];
+  }, [steps, selectedStepIndex]);
 
   const features = useMemo(() => {
     if (currentStep?.index === 0) {
@@ -91,14 +91,14 @@ const ProjectPageClient = memo(function ProjectPageClient({
   );
 
   const areStepsLocked = useMemo(() => {
-    return currentProject.Steps!.length > 2;
-  }, [currentProject.Steps]);
+    return steps.length > 2;
+  }, [steps]);
 
   useEffect(() => {
-    if (selectedStepIndex < 0 || selectedStepIndex >= currentProject.Steps!.length) {
+    if (steps.length > 0 && (selectedStepIndex < 0 || selectedStepIndex >= steps.length)) {
       setSelectedStepIndex(0);
     }
-  }, [selectedStepIndex, currentProject.Steps, setSelectedStepIndex]);
+  }, [selectedStepIndex, steps, setSelectedStepIndex]);
 
   useEffect(() => {
     return () => {
@@ -106,7 +106,35 @@ const ProjectPageClient = memo(function ProjectPageClient({
         resetState();
       }
     };
-  }, [resetState, isNavigating]);
+  }, [resetState, isNavigating, setSelectedStepIndex]);
+
+  const handleNext = async () => {
+    const nextStep = selectedStepIndex + 1;
+
+    // Instantly update UI
+    setSelectedStepIndex(nextStep);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/project/${project.id}/steps/${nextStep}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Internal-Generation": "true",
+          },
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        console.error("Step transition failed:", err);
+      }
+    } catch (error) {
+      console.error("Step transition error:", error);
+    }
+  };
 
   return (
     <>
@@ -126,7 +154,7 @@ const ProjectPageClient = memo(function ProjectPageClient({
             )}
             <Sidebar
               projectId={currentProject.id}
-              steps={currentProject.Steps!}
+              steps={steps}
               title={currentProject.title}
               repoUrl={currentProject.repositoryUrl!}
               currentStepIndex={selectedStepIndex}
@@ -134,7 +162,7 @@ const ProjectPageClient = memo(function ProjectPageClient({
             />
 
             <main className="relative flex h-full min-h-full flex-1 flex-col overflow-y-auto">
-              <div className="mx-auto ml-10 w-4xl flex-1 p-8">
+              <div className="mx-auto ml-10 w-[700px] flex-1 p-8">
                 <div className="space-y-6">
                   {/* SSE Connection Status */}
                   <div className="rounded-lg border bg-gray-50 p-2">
@@ -144,18 +172,16 @@ const ProjectPageClient = memo(function ProjectPageClient({
                   </div>
                   {currentStep ? (
                     <div className="space-y-4">
-                      <h2 className="mb-6 h-10 border-b text-2xl font-bold">
+                      <h2 className="mb-6 border-b pb-2 text-2xl font-bold">
                         Step {currentStep.index} - {currentStep.title}
                       </h2>
 
                       {currentStep.index === 0 && (
-                        <StepContentRenderer step={currentStep}>
-                          <FeatureSelection
-                            features={features}
-                            selectedFeatures={selectedFeatures}
-                            onToggleFeature={toggleFeature}
-                          />
-                        </StepContentRenderer>
+                        <FeatureSelection
+                          features={features}
+                          selectedFeatures={selectedFeatures}
+                          onToggleFeature={toggleFeature}
+                        />
                       )}
 
                       {currentStep.index === 1 && (
@@ -196,10 +222,10 @@ const ProjectPageClient = memo(function ProjectPageClient({
 
               <ChangeStep
                 currentStepIndex={selectedStepIndex}
-                totalSteps={currentProject.Steps!.length}
+                totalSteps={steps.length}
                 selectedFeatures={selectedFeatures}
                 selectedTechStacks={selectedTechStacks}
-                onNext={() => handleStepSelect(selectedStepIndex + 1)}
+                onNext={handleNext}
                 onPrev={() => handleStepSelect(selectedStepIndex - 1)}
                 onSaveAndContinue={handleSaveAndContinue}
                 areStepsLocked={areStepsLocked}

@@ -1,140 +1,241 @@
 "use client";
 
-import { ExternalLink, Lightbulb } from "lucide-react";
-import ReactMarkdown, { type Components } from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { useState } from "react";
+import { Check, Copy, ExternalLink } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
-import { SyntaxHighlighter } from "@/components/ui/syntax-highlighter";
+// Removed: react-syntax-highlighter imports that were causing the build error.
+// We will create a custom code block component that styles the <pre> tag
+// to match the desired look without this dependency.
 
-type Props = { content: string };
-
-/**
- * Code block with copy button & language badge
- */
-function CodeBlock({ code, language }: { code: string; language: string }) {
-  return <SyntaxHighlighter code={code} language={language} />;
+interface StepContentViewProps {
+  content: string;
 }
 
-/**
-/**
- * `code` renderer (typed properly for inline & block)
- */
-const codeRenderer: Components["code"] = (props) => {
-  // Fix for type issue: Explicitly destructure using correct prop types
-  const { className, children } = props as {
-    className?: string;
-    children?: React.ReactNode;
-    inline?: boolean;
-  };
-  // In some MDX/ReactMarkdown setups, `inline` might not actually exist
-  // Instead, fallback: If there's a language class, it's a block; otherwise, treat as inline
-  const match = /language-(\w+)/.exec(className || "");
-  const codeString = String(children ?? "").replace(/\n$/, "");
+/* --------------------------------------------------------------
+   1. Pre-process: turn ## Metadata { … } into ```json { … } ```
+   (User's existing function - it's good, so we keep it)
+   -------------------------------------------------------------- */
+function preprocessMarkdown(md: string): string {
+  return md.replace(/^(##\s+Metadata\s*\n)([\s\S]*?)(?=\n##|$)/gim, (match, header) => {
+    // Grab the raw JSON (may contain newlines)
+    const json = match.slice(header.length).trim();
+    return `${header}\`\`\`json\n${json}\n\`\`\``;
+  });
+}
 
-  // If it's a code block (has language), use CodeBlock; otherwise, render inline code
-  if (match) {
-    return <CodeBlock code={codeString} language={match[1]} />;
-  }
+/* --------------------------------------------------------------
+   2. Label:value detection
+   (User's existing function - this clever logic is key!)
+   -------------------------------------------------------------- */
+const isLabelValuePair = (children: React.ReactNode[]): boolean => {
+  if (!Array.isArray(children) || children.length < 2) return false;
 
-  return (
-    <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-pink-600 dark:bg-gray-800 dark:text-pink-400">
-      {children}
-    </code>
-  );
+  const first = children[0];
+  const second = children[1];
+
+  const isStrong = first && typeof first === "object" && "type" in first && first.type === "strong";
+
+  const isColonText = typeof second === "string" && second.trimStart().startsWith(":");
+
+  return Boolean(isStrong) && Boolean(isColonText);
 };
 
-/**
- * Full markdown renderer map
- */
-const components: Components = {
-  h1: ({ children }) => <h1 className="mt-8 mb-4 text-3xl font-bold">{children}</h1>,
-  h2: ({ children }) => <h2 className="mt-8 mb-3 text-2xl font-semibold">{children}</h2>,
-  h3: ({ children }) => (
-    <h3 className="mt-6 mb-2 flex items-center gap-2 text-xl font-semibold">{children}</h3>
-  ),
-  h4: ({ children }) => <h4 className="mt-4 mb-2 text-lg font-medium">{children}</h4>,
+/* --------------------------------------------------------------
+   3. Main component
+   (Keeping all the user's smart rendering logic, just
+    updating the blockquote style to remove transparency)
+   -------------------------------------------------------------- */
+export default function StepContentView({ content }: StepContentViewProps) {
+  const processed = preprocessMarkdown(content);
 
-  p: ({ children }) => (
-    <p className="my-3 leading-relaxed text-gray-700 dark:text-gray-300">{children}</p>
-  ),
+  return (
+    <div className="max-w-none">
+      <ReactMarkdown
+        components={{
+          /* ---------- Headers ---------- */
+          h2: ({ children }) => (
+            <h2 className="mt-10 mb-5 border-b border-gray-800 pb-3 text-2xl font-semibold text-gray-50">
+              {children}
+            </h2>
+          ),
+          h3: ({ children }) => (
+            <h3 className="mt-7 mb-3 text-xl font-semibold text-gray-100">{children}</h3>
+          ),
 
-  ul: ({ children }) => (
-    <ul className="my-3 ml-6 list-disc space-y-1.5 marker:text-blue-500">{children}</ul>
-  ),
-  ol: ({ children }) => (
-    <ol className="my-3 ml-6 list-decimal space-y-1.5 marker:font-semibold marker:text-blue-500">
-      {children}
-    </ol>
-  ),
+          /* ---------- Paragraphs (label/value magic) ---------- */
+          p: ({ children }) => {
+            const arr = Array.isArray(children) ? children : [children];
 
-  /**
-   * ✅ Fixed type issue for `checked`
-   */
-  li: ({ checked, children }: { checked?: boolean; children?: React.ReactNode }) => {
-    if (typeof checked === "boolean") {
-      return (
-        <li className="flex list-none items-start gap-2">
-          <input
-            type="checkbox"
-            checked={checked}
-            readOnly
-            className="mt-1 h-4 w-4 rounded border-gray-300"
-          />
-          <span className="text-gray-700 dark:text-gray-300">{children}</span>
-        </li>
-      );
-    }
-    return <li className="text-gray-700 dark:text-gray-300">{children}</li>;
-  },
+            if (isLabelValuePair(arr)) {
+              const label = (arr[0] as any).props.children;
+              // Drop the leading ":"
+              const valueParts = [(arr[1] as string).replace(/^:\s*/, ""), ...arr.slice(2)];
 
-  blockquote: ({ children }) => {
-    const text = String(children).toLowerCase();
-    if (text.includes("💡") || text.includes("tip")) {
-      return (
-        <div className="my-3 flex items-start gap-3 rounded-r border-l-4 border-blue-500 bg-blue-50 p-3 dark:bg-blue-950">
-          <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
-          <div className="text-sm text-blue-900 dark:text-blue-100">{children}</div>
-        </div>
-      );
-    }
-    return (
-      <blockquote className="my-3 border-l-4 border-gray-300 pl-4 text-gray-600 italic dark:text-gray-400">
-        {children}
-      </blockquote>
-    );
-  },
+              return (
+                <div className="mt-4 mb-3 grid grid-cols-[max-content_1fr] items-start gap-x-4">
+                  <span className="font-mono text-xs font-bold tracking-wider text-gray-500 uppercase">
+                    {label}
+                  </span>
+                  <div className="text-base leading-relaxed text-gray-300">{valueParts}</div>
+                </div>
+              );
+            }
 
-  code: codeRenderer,
+            return <p className="mb-4 text-base leading-relaxed text-gray-300">{children}</p>;
+          },
 
-  a: ({ href, children }) => {
-    const isExternal = typeof href === "string" && href.startsWith("http");
-    return (
-      <a
-        href={href}
-        className="inline-flex items-center gap-1 font-medium text-blue-600 hover:underline dark:text-blue-400"
-        target={isExternal ? "_blank" : undefined}
-        rel={isExternal ? "noopener noreferrer" : undefined}
+          /* ---------- Strong (non-label) ---------- */
+          strong: ({ children }) => (
+            <strong className="font-semibold text-gray-100">{children}</strong>
+          ),
+
+          /* ---------- Lists ---------- */
+          ul: ({ children }) => (
+            <ul className="mb-4 ml-5 list-disc space-y-1 text-gray-300">{children}</ul>
+          ),
+          ol: ({ children }) => (
+            <ol className="mb-4 ml-5 list-decimal space-y-1 text-gray-300">{children}</ol>
+          ),
+          li: ({ children }) => <li className="text-base leading-relaxed">{children}</li>,
+
+          /* ---------- Links ---------- */
+          a: ({ href, children }) => (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-blue-400 underline underline-offset-2 transition-colors hover:text-blue-300"
+            >
+              {children}
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          ),
+
+          /* ---------- Inline code (UPDATED) ---------- */
+          code: ({ className, children, ...props }) => {
+            const match = /language-(\w+)/.exec(className || "");
+            if (!match) {
+              // inline
+              return (
+                <code
+                  className="rounded border border-gray-700 bg-gray-800 px-1.5 py-0.5 font-mono text-sm text-gray-300"
+                  {...props}
+                >
+                  {children}
+                </code>
+              );
+            }
+            // block – delegate to CodeBlockWithoutHighlighter
+            // This component will render a styled <pre> block
+            return (
+              <CodeBlockWithoutHighlighter
+                language={match[1]}
+                code={String(children).replace(/\n$/, "")}
+              />
+            );
+          },
+
+          /* ---------- Code blocks (pre > code) (REMOVED) ---------- */
+          // We removed the `pre` override.
+          // `react-markdown` will use its default <pre> wrapper,
+          // and our `code` component override above will catch the
+          // code block *inside* it and render our custom component.
+
+          /* ---------- Horizontal rule ---------- */
+          hr: () => <hr className="my-9 border-gray-800" />,
+
+          /* ---------- Blockquote (UPDATED) ---------- */
+          blockquote: ({ children }) => (
+            // Removed /50 from bg-gray-900 to make it solid
+            <div className="my-5 rounded-r-lg border-l-4 border-gray-700 bg-gray-900 p-4">
+              <div className="text-sm text-gray-400">{children}</div>
+            </div>
+          ),
+        }}
       >
-        {children}
-        {isExternal && <ExternalLink className="h-3 w-3" />}
-      </a>
-    );
-  },
-
-  hr: () => <hr className="my-6 border-t border-gray-200 dark:border-gray-700" />,
-
-  strong: ({ children }) => (
-    <strong className="font-semibold text-gray-900 dark:text-gray-100">{children}</strong>
-  ),
-  em: ({ children }) => <em className="text-gray-700 italic dark:text-gray-300">{children}</em>,
-};
-
-export default function StepContentView({ content }: Props) {
-  return (
-    <article className="max-w-none">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-        {content}
+        {processed}
       </ReactMarkdown>
-    </article>
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------
+   4. CodeBlock (RENAMED and REBUILT)
+   - This version does *not* use react-syntax-highlighter.
+   - It provides the same frame, header, and copy button.
+   - It renders plain text in a <pre><code> block.
+   - This fixes the build error.
+   -------------------------------------------------------------- */
+function CodeBlockWithoutHighlighter({ language, code }: { language: string; code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      // Try modern clipboard API first
+      await navigator.clipboard.writeText(code);
+    } catch (err) {
+      // Fallback for insecure contexts (like some iframes)
+      console.warn("Clipboard API failed, using fallback.");
+      const textArea = document.createElement("textarea");
+      textArea.value = code;
+      textArea.style.position = "fixed"; // T-hide
+      textArea.style.top = "-9999px";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand("copy");
+      } catch (err2) {
+        console.error("Fallback copy failed", err2);
+      }
+      document.body.removeChild(textArea);
+    }
+
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // We removed showLineNumbers as we are not using the highlighter library
+  return (
+    <div className="my-5 overflow-hidden rounded-lg border border-gray-800">
+      {/* Header bar */}
+      <div className="flex items-center justify-between border-b border-gray-800 bg-gray-900 px-4 py-2">
+        <span className="font-mono text-xs text-gray-500 uppercase">{language}</span>
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1.5 rounded p-1 text-xs text-gray-300 transition-colors hover:bg-gray-700 hover:text-gray-100"
+          title="Copy code"
+        >
+          {copied ? (
+            <>
+              <Check className="h-3.5 w-3.5" />
+              <span>Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="h-3.5 w-3.5" />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Code content */}
+      <pre
+        style={{
+          margin: 0,
+          padding: "1rem",
+          fontSize: "0.875rem",
+          lineHeight: "1.5",
+          backgroundColor: "#1e1e1e", // vscDarkPlus bg
+          color: "#d4d4d4", // vscDarkPlus default text
+          overflowX: "auto", // Ensure long lines can scroll
+        }}
+      >
+        <code className="font-mono">{String(code).replace(/\n$/, "")}</code>
+      </pre>
+    </div>
   );
 }

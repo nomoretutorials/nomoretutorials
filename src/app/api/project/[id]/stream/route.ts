@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { onProjectUpdate } from "@/lib/project-events";
 
 export const dynamic = "force-dynamic";
+export const runtime = "edge";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: projectId } = await params;

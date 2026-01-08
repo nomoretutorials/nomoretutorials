@@ -1,61 +1,28 @@
+// src/lib/redis.ts
 import { TechStack } from "@/types/project";
-import Redis from "ioredis";
+import { Redis as UpstashRedis } from "@upstash/redis";
 
-export const redis = new Redis(process.env.UPSTASH_REDIS_URL!, {
-  maxRetriesPerRequest: 3,
-  retryStrategy: (times: number) => {
-    if (times > 10) {
-      console.error("Redis: Too many reconnection attempts");
-      return null; // Stop retrying
-    }
-    // Exponential backoff: 50ms, 100ms, 200ms, etc.
-    return Math.min(times * 50, 3000);
-  },
-  reconnectOnError: (err: Error) => {
-    const targetError = "READONLY";
-    if (err.message.includes(targetError)) {
-      // Only reconnect when the error contains "READONLY"
-      return true;
-    }
-    return false;
-  },
-});
-
-redis.on("error", (err) => {
-  console.error("Redis Client Error:", err);
-});
-
-redis.on("connect", () => {
-  console.log("✅ Redis connecting...");
-});
-
-redis.on("ready", () => {
-  console.log("✅ Redis ready");
-});
-
-redis.on("close", () => {
-  console.log("❌ Redis connection closed");
-});
-
-redis.on("reconnecting", () => {
-  console.log("🔄 Redis reconnecting...");
-});
-
-redis.on("end", () => {
-  console.log("❌ Redis connection ended");
-});
-
-export async function setCache(key: string, value: TechStack[], ttlSeconds: number) {
-  await redis.set(key, JSON.stringify(value), "EX", ttlSeconds);
+if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+  throw new Error("Upstash Redis environment variables are missing!");
 }
 
-export async function getCache(key: string) {
-  const cached = await redis.get(key);
+// ✅ HTTP-based Redis for caching (stateless, fast, serverless-friendly)
+export const redis = new UpstashRedis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
 
-  if (!cached) return null;
+// Your existing cache functions (using HTTP Redis)
+export async function setCache(key: string, value: TechStack[], ttlSeconds: number) {
+  await redis.set(key, value, { ex: ttlSeconds });
+}
+
+export async function getCache(key: string): Promise<TechStack[] | null> {
   try {
-    return JSON.parse(cached);
-  } catch {
+    const cached = await redis.get<TechStack[]>(key);
+    return cached;
+  } catch (error) {
+    console.error("Redis Get Error:", error);
     return null;
   }
 }

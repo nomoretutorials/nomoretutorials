@@ -6,14 +6,7 @@ export function useProjectNavigation() {
   const router = useRouter();
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const { hasUnsavedChanges, resetState, setHasUnsavedChanges, setIsNavigating } = useProjectStore(
-    (s) => {
-      return {
-        hasUnsavedChanges: s.hasUnsavedChanges,
-        resetState: s.resetState,
-        setHasUnsavedChanges: s.setHasUnsavedChanges,
-        setIsNavigating: s.setIsNavigating,
-      };
-    }
+    (s) => s
   );
 
   // Handle browser back button

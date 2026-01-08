@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "prisma generate && next build --turbopack",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "postinstall": "prisma generate",
     "analyze": "ANALYZE=true next build --webpack"
   },
   "prisma": {

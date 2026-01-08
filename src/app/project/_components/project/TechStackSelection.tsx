@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useProjectStore } from "@/store/project-store-provider";
-import { TechStack } from "@/types/project";
-import { UserTechStack } from "@prisma/client";
+import { TechStack, UserTechStack } from "@/types/project";
 import { Lock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -53,12 +52,6 @@ export default function TechStackSelection({
     const s = c.replace(/_/g, " ").toLowerCase();
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
-
-  useEffect(() => {
-    if (!userTechStack?.length) return;
-    const userIds = userTechStack.map((u: UserTechStack) => u.techStackId);
-    console.log("User Tech Stack IDs:", userIds);
-  }, [userTechStack]);
 
   return (
     <div className="space-y-8 rounded-xl">

@@ -2,15 +2,15 @@
 
 import { memo, useCallback, useEffect, useMemo } from "react";
 import { useProjectStore } from "@/store/project-store-provider";
-import { Project, TechStack, UserTechStack } from "@/types/project";
+import { Feature, Project, TechStack, UserTechStack } from "@/types/project";
 import { parseStepFeatures } from "@/utils/project-step-utils";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useProjectNavigation } from "@/hooks/useProjectNavigation";
+import { useProjectPolling } from "@/hooks/useProjectPolling";
 import { useProjectSave } from "@/hooks/useProjectSave";
-import { useProjectStream } from "@/hooks/useProjectStream";
 import ProjectStepLoader from "../ProjectStepLoader";
 import Sidebar from "../sidebar/Sidebar";
 import UnsavedChangesDialog from "../UnsavedChangesDialog";
@@ -40,25 +40,32 @@ const ProjectPageClient = memo(function ProjectPageClient({
     isNavigating,
     resetState,
     isSaving,
-    isGenerated,
   } = useProjectStore((s) => s);
 
-  const { data: sseData, isConnected } = useProjectStream(project.id);
+  // const { data: sseData, isConnected } = useProjectStream(project.id);
+  const { project: projectData } = useProjectPolling(project.id);
 
   const currentProject = useMemo(() => {
-    if (sseData) {
+    if (projectData) {
+      console.log("Project Page Client", projectData);
       return {
         ...project,
-        features: sseData.features || project.features,
-        Steps: sseData.steps || project.Steps,
-        status: sseData.status || project.Steps,
+        features: projectData.features || project.features,
+        Steps: projectData.steps || project.Steps,
+        status: projectData.status || project.Steps,
       };
     }
 
     return project;
-  }, [project, sseData]);
+  }, [project, projectData]);
 
   const steps = useMemo(() => currentProject!.Steps || [], [currentProject]);
+  const features: Feature[] =
+    !currentProject || !currentProject.features
+      ? []
+      : (currentProject.features as unknown as Feature[]);
+
+  console.log("Step", steps);
 
   const {
     showUnsavedDialog,
@@ -75,12 +82,14 @@ const ProjectPageClient = memo(function ProjectPageClient({
     return steps[selectedStepIndex] ?? steps[0];
   }, [steps, selectedStepIndex]);
 
-  const features = useMemo(() => {
-    if (currentStep?.index === 0) {
-      return parseStepFeatures(currentStep.content);
-    }
-    return [];
-  }, [currentStep]);
+  console.log("Current Step", currentStep);
+
+  // const features = useMemo(() => {
+  //   if (currentStep?.index === 0) {
+  //     return parseStepFeatures(currentStep.content);
+  //   }
+  //   return [];
+  // }, [currentStep]);
 
   // Memoize callback functions
   const handleStepSelect = useCallback(
@@ -165,11 +174,11 @@ const ProjectPageClient = memo(function ProjectPageClient({
               <div className="mx-auto ml-10 w-[700px] flex-1 p-8">
                 <div className="space-y-6">
                   {/* SSE Connection Status */}
-                  <div className="rounded-lg border bg-gray-50 p-2">
+                  {/* <div className="rounded-lg border bg-gray-50 p-2">
                     <div className="text-xs text-gray-600">
                       SSE Status: {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
                     </div>
-                  </div>
+                  </div> */}
                   {currentStep ? (
                     <div className="space-y-4">
                       <h2 className="mb-6 border-b pb-2 text-2xl font-bold">

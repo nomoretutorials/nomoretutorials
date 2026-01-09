@@ -4,6 +4,7 @@
 import { useProjectStore } from "@/store/project-store-provider";
 import { Feature } from "@/types/project";
 import { Info, Lock, Sparkles } from "lucide-react";
+import { motion } from "motion/react";
 
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,6 +21,7 @@ type Props = {
 export default function FeatureSelection({ selectedFeatures, onToggleFeature, features }: Props) {
   const isGenerated = useProjectStore((state) => state.isGenerated);
 
+  console.log(features);
   // Show skeleton while loading OR while features are empty (still generating)
   if (!features || features.length === 0) {
     return <FeaturesSkeleton />;
@@ -148,7 +150,16 @@ export default function FeatureSelection({ selectedFeatures, onToggleFeature, fe
   );
 
   return (
-    <div className="space-y-6 text-sm">
+    <motion.div
+      // Starting state
+      initial={{ opacity: 0, y: 4 }}
+      // End state
+      animate={{ opacity: 1, y: 0 }}
+      // Animation settings
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="space-y-6 text-sm"
+    >
+      {" "}
       {isGenerated && (
         <div className="bg-destructive/10 border-destructive/20 text-destructive-foreground mb-4 flex items-center gap-2 rounded-md border p-2 text-xs">
           <Lock className="h-3 w-3" />
@@ -158,6 +169,6 @@ export default function FeatureSelection({ selectedFeatures, onToggleFeature, fe
       <Section title="Basic" desc="Core app functionality" list={grouped.BASIC} />
       <Section title="Enhancement" desc="Polish & usability" list={grouped.ENHANCEMENT} />
       <Section title="Advanced" desc="Complex, powerful list features" list={grouped.ADVANCED} />
-    </div>
+    </motion.div>
   );
 }

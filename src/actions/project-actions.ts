@@ -119,7 +119,7 @@ export async function getAllTechStacks() {
   const cacheKey = "all-tech-stacks";
 
   const cached = await getCache(cacheKey);
-  if (cached) {
+  if (cached?.length) {
     return { success: true, data: cached };
   }
 
@@ -135,7 +135,9 @@ export async function getAllTechStacks() {
       orderBy: [{ category: "asc" }, { name: "asc" }],
     });
 
-    await setCache(cacheKey, techStacks, 60 * 60 * 24);
+    console.log(techStacks);
+
+    if (techStacks.length > 0) await setCache(cacheKey, techStacks, 60 * 60 * 24);
 
     return { success: true, data: techStacks };
   } catch (error) {

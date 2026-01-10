@@ -38,7 +38,7 @@ export default function MinWidth({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <div className="hidden lg:block">{children}</div>
+      <div className="ui-scale-wrapper hidden lg:block">{children}</div>
 
       <div className="bg-background relative mx-auto flex h-screen w-screen max-w-lg items-center justify-center px-6 text-white xl:hidden">
         <Button
@@ -64,7 +64,7 @@ export default function MinWidth({ children }: { children: ReactNode }) {
           <div className="space-y-2.5">
             <h1 className="text-2xl font-bold md:text-3xl">Small screens not supported (yet)</h1>
             <p className="text-gray-400">
-              We`&apos`re still working on making it mobile-friendly. For now, please open this on a
+              We&apos;re still working on making it mobile-friendly. For now, please open this on a
               laptop or PC. 🚀
             </p>
           </div>

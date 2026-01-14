@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
-import { FolderOpenDotIcon, LayoutDashboardIcon } from "lucide-react";
+import { FolderOpenDotIcon, LayoutDashboardIcon, ToolCase } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ const Navbar = () => {
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboardIcon },
     { href: "#", label: "Projects", icon: FolderOpenDotIcon },
+    { href: "#1", label: "Learn Tools", icon: ToolCase },
   ];
 
   const scrollTo = useScrollTo();
@@ -37,28 +38,45 @@ const Navbar = () => {
         <div className="flex gap-2">
           {navItems.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href;
-            return (
-              <Button
-                key={href}
-                variant={isActive ? "secondary" : "ghost"}
-                className="flex items-center gap-2"
-                onClick={() => {
-                  if (label === "Projects") {
-                    handleScrollToProjects();
-                  }
-                }}
-              >
-                {href === "#" ? (
-                  <>
-                    <Icon className="h-4 w-4" /> {label}
-                  </>
-                ) : (
-                  <Link href={href} className="flex items-center gap-2">
-                    <Icon className="h-4 w-4" /> {label}
-                  </Link>
-                )}
-              </Button>
-            );
+            if (label === "Learn Tools") {
+              return (
+                <Tooltip key={href}>
+                  <TooltipTrigger asChild>
+                    <Button className="" variant={isActive ? "secondary" : "ghost"}>
+                      <Icon className="h-4 w-4" />
+                      {label}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Learn all the production grade technologies hands-on with projects. Coming soon
+                    !
+                  </TooltipContent>
+                </Tooltip>
+              );
+            } else {
+              return (
+                <Button
+                  key={href}
+                  variant={isActive ? "secondary" : "ghost"}
+                  className="flex items-center gap-2"
+                  onClick={() => {
+                    if (label === "Projects") {
+                      handleScrollToProjects();
+                    }
+                  }}
+                >
+                  {href === "#" ? (
+                    <>
+                      <Icon className="h-4 w-4" /> {label}
+                    </>
+                  ) : (
+                    <Link href={href} className="flex items-center gap-2">
+                      <Icon className="h-4 w-4" /> {label}
+                    </Link>
+                  )}
+                </Button>
+              );
+            }
           })}
         </div>
       </div>

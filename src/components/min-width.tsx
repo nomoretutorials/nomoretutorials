@@ -40,7 +40,7 @@ export default function MinWidth({ children }: { children: ReactNode }) {
     <>
       <div className="ui-scale-wrapper hidden lg:block">{children}</div>
 
-      <div className="bg-background relative mx-auto flex h-screen w-screen max-w-lg items-center justify-center px-6 text-white xl:hidden">
+      <div className="bg-background relative mx-auto flex h-screen w-screen max-w-lg items-center justify-center px-6 text-white lg:hidden">
         <Button
           className="absolute top-6 right-6 rounded-2xl"
           variant="outline"

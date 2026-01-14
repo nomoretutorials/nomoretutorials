@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, ExternalLink } from "lucide-react";
+import { Check, Copy, CrossIcon, ExternalLink, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Removed: react-syntax-highlighter imports that were causing the build error.
 // We will create a custom code block component that styles the <pre> tag
@@ -51,17 +53,29 @@ export default function StepContentView({ content }: StepContentViewProps) {
 
   return (
     <div className="max-w-none">
+      <Alert className="mb-7">
+        <AlertTitle>Content may not be satisfactory yet</AlertTitle>
+        <AlertDescription>
+          <p>
+            This part of the project is still evolving. I’m building it in public and would love to
+            collaborate with curious minds to make it better. If you’re interested, reach out at{" "}
+            <a href="mailto:workwith@ronitkedia.com" className="underline underline-offset-4">
+              workwith@ronitkedia.com
+            </a>
+          </p>
+        </AlertDescription>
+      </Alert>
       <ReactMarkdown
         components={{
           /* ---------- Headers ---------- */
-          h2: ({ children }) => (
-            <h2 className="mt-10 mb-5 border-b border-gray-800 pb-3 text-2xl font-semibold text-gray-50">
-              {children}
-            </h2>
-          ),
-          h3: ({ children }) => (
-            <h3 className="mt-7 mb-3 text-xl font-semibold text-gray-100">{children}</h3>
-          ),
+          // h2: ({ children }) => (
+          //   <h2 className="mt-10 mb-5 border-b border-gray-800 pb-3 text-2xl font-semibold text-gray-50">
+          //     {children}
+          //   </h2>
+          // ),
+          // h3: ({ children }) => (
+          //   <h3 className="mt-7 mb-3 text-xl font-semibold text-gray-100">{children}</h3>
+          // ),
 
           /* ---------- Paragraphs (label/value magic) ---------- */
           p: ({ children }) => {
